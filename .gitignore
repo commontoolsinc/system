@@ -1,0 +1,11 @@
+target
+.wireit
+node_modules
+dist
+lib
+*.tsbuildinfo
+.DS_Store
+.vscode
+__pycache__
+cache
+typescript/packages/planning-server/.env
