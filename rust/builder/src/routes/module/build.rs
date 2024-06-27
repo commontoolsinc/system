@@ -8,7 +8,7 @@ use axum::{
 use bytes::Bytes;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use wit_parser::UnresolvedPackage;
+use wit_parser::UnresolvedPackageGroup;
 
 use crate::{serve::BuildServerState, storage::HashStorage, Bake, Baker, BuilderError};
 
@@ -67,10 +67,17 @@ pub async fn build_module(
                         match extension.to_str() {
                             Some("wit") => {
                                 let module_wit = field.bytes().await?;
-                                let wit_package = UnresolvedPackage::parse(
+                                let package_group = UnresolvedPackageGroup::parse(
                                     &PathBuf::from("module.wit"),
                                     String::from_utf8_lossy(&module_wit).as_ref(),
                                 )?;
+
+                                let wit_package =
+                                    package_group.packages.first().ok_or_else(|| {
+                                        BuilderError::InvalidConfiguration(
+                                            "Malformed module.wit".into(),
+                                        )
+                                    })?;
 
                                 wit.push(module_wit);
 
