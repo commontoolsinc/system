@@ -1,16 +1,15 @@
-use tracing::instrument;
-
+use super::fs::write_file;
 use super::Bake;
 use async_trait::async_trait;
+use bundler::JavaScriptBundler;
 use bytes::Bytes;
 use tempfile::TempDir;
-
-use bundler::JavaScriptBundler;
 use tokio::process::Command;
 use tokio::task::JoinSet;
+use tracing::instrument;
 
-use crate::write_file;
-
+/// A JavaScript-based [Bake] implementation,
+/// using `jco`.
 #[derive(Debug)]
 pub struct JavaScriptBaker {}
 
@@ -23,7 +22,7 @@ impl Bake for JavaScriptBaker {
         wit: Vec<Bytes>,
         source_code: Bytes,
         library: Vec<Bytes>,
-    ) -> Result<Bytes, crate::UsubaError> {
+    ) -> Result<Bytes, crate::BuilderError> {
         let workspace = TempDir::new()?;
         debug!(
             "Created temporary workspace in {}",

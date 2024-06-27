@@ -2,10 +2,13 @@ use axum::extract::Multipart;
 use bundler::JavaScriptBundler;
 use utoipa::ToSchema;
 
-use crate::UsubaError;
+use crate::BuilderError;
 
+/// Parameters used in a request to the bundler service.
 #[derive(ToSchema)]
 pub struct BundleRequest {
+    /// Collection of JavaScript source strings.
+    #[allow(unused)]
     pub source: Vec<Vec<u8>>,
 }
 
@@ -19,11 +22,11 @@ pub struct BundleRequest {
     (status = 500, description = "Internal error", body = ErrorResponse)
   )
 )]
-pub async fn bundle_javascript(mut form_data: Multipart) -> Result<String, UsubaError> {
+pub async fn bundle_javascript(mut form_data: Multipart) -> Result<String, BuilderError> {
     let first_field = if let Some(field) = form_data.next_field().await? {
         field
     } else {
-        return Err(UsubaError::BadRequest);
+        return Err(BuilderError::BadRequest);
     };
 
     match first_field.name() {
@@ -41,5 +44,5 @@ pub async fn bundle_javascript(mut form_data: Multipart) -> Result<String, Usuba
         _ => warn!("Skipping unexpected multipart content"),
     }
 
-    Err(UsubaError::BadRequest)
+    Err(BuilderError::BadRequest)
 }

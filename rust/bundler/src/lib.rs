@@ -1,3 +1,7 @@
+#![warn(missing_docs)]
+//! Utilities for compiling/bundling JavaScript into
+//! a single source.
+
 #[macro_use]
 extern crate tracing;
 
@@ -10,7 +14,10 @@ use deno_emit::{
 use deno_graph::source::LoadResponse;
 use url::Url;
 
-pub struct JavaScriptLoader {
+const ROOT_MODULE_URL: &str = "bundler:root";
+const ROOT_MODULE_SCHEME: &str = "bundler";
+
+struct JavaScriptLoader {
     root: Option<Bytes>,
 }
 
@@ -29,27 +36,20 @@ impl Loader for JavaScriptLoader {
 
         Box::pin(async move {
             match specifier.scheme() {
-                "usuba" => {
-                    debug!("Usuba!");
-                    Ok(Some(LoadResponse::Module {
-                        content: root
-                            .ok_or_else(|| {
-                                anyhow!("Attempted to load root module, but no root was specified!")
-                            })?
-                            .to_vec()
-                            .into(),
-                        specifier,
-                        maybe_headers: None,
-                    }))
-                }
-                "common" => {
-                    debug!("Common!");
-                    Ok(Some(LoadResponse::External {
-                        specifier: specifier.clone(),
-                    }))
-                }
+                ROOT_MODULE_SCHEME => Ok(Some(LoadResponse::Module {
+                    content: root
+                        .ok_or_else(|| {
+                            anyhow!("Attempted to load root module, but no root was specified!")
+                        })?
+                        .to_vec()
+                        .into(),
+                    specifier,
+                    maybe_headers: None,
+                })),
+                "common" => Ok(Some(LoadResponse::External {
+                    specifier: specifier.clone(),
+                })),
                 "https" => {
-                    debug!("Https!");
                     let response = reqwest::get(specifier.clone()).await?;
                     let headers = response.headers().to_owned();
                     let bytes = response.bytes().await?;
@@ -85,6 +85,8 @@ impl Loader for JavaScriptLoader {
     }
 }
 
+/// A namespace for functions that resolves a JavaScript source
+/// file's dependencies and bundles into a single artifact.
 pub struct JavaScriptBundler {}
 
 impl JavaScriptBundler {
@@ -103,16 +105,18 @@ impl JavaScriptBundler {
         }
     }
 
+    /// Bundle a JavaScript module via URL.
     pub async fn bundle_url(url: Url) -> Result<String> {
         let mut loader = JavaScriptLoader::new(None);
         let emit = bundle(url, &mut loader, None, Self::bundle_options()).await?;
         Ok(emit.code)
     }
 
+    /// Bundle a JavaScript module from bytes.
     pub async fn bundle_module(module: Bytes) -> Result<String> {
         let mut loader = JavaScriptLoader::new(Some(module));
         let emit = bundle(
-            Url::parse("usuba:root")?,
+            Url::parse(ROOT_MODULE_URL)?,
             &mut loader,
             None,
             Self::bundle_options(),
