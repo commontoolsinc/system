@@ -1,9 +1,11 @@
 [workspace]
 members = [
   "rust/builder",
-  "rust/usuba",
-  "rust/usuba-compat",
-  "rust/bundler"
+  "rust/bundler",
+  "rust/runtime",
+  # "rust/usuba",
+  # "rust/usuba-compat",
+  # "rust/usuba-bundle"
 ]
 
 # See: https://github.com/rust-lang/rust/issues/90148#issuecomment-949194352
@@ -41,12 +43,13 @@ tracing-web = { version = "0.1" }
 url = { version = "2" }
 utoipa = { version = "4" }
 utoipa-swagger-ui = { version = "7" }
-wasmtime = { version = "21" }
 wasm-bindgen = { version = "0.2" }
-wasmtime-environ = { version = "21" }
+wasmtime = { version = "22" }
+wasmtime-wasi = { version = "22" }
+wasmtime-environ = { version = "22" }
 web-sys = { version = "0.3" }
-wit-bindgen = { version = "0.25" }
-wit-parser = { version = "0.208" }
+wit-bindgen = { version = "0.26" }
+wit-parser = { version = "0.211" }
 
 [profile.release]
 opt-level = 'z'
