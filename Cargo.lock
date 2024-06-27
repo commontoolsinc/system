@@ -316,10 +316,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "builder"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum",
+ "blake3",
+ "bundler",
+ "bytes",
+ "mime_guess",
+ "redb",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
+ "wit-parser 0.208.1",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
+
+[[package]]
+name = "bundler"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "deno_emit",
+ "deno_graph",
+ "reqwest",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+]
 
 [[package]]
 name = "byteorder"
@@ -2289,6 +2330,7 @@ dependencies = [
  "js-sys",
  "log",
  "mime",
+ "mime_guess",
  "once_cell",
  "percent-encoding",
  "pin-project-lite",
@@ -3676,6 +3718,7 @@ dependencies = [
  "async-trait",
  "axum",
  "blake3",
+ "bundler",
  "bytes",
  "hyper-util",
  "mime_guess",
@@ -3689,27 +3732,11 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
- "usuba-bundle",
  "utoipa",
  "utoipa-swagger-ui",
  "wasmtime",
  "wasmtime-wasi",
  "wit-parser 0.208.1",
-]
-
-[[package]]
-name = "usuba-bundle"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytes",
- "deno_emit",
- "deno_graph",
- "reqwest",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
 ]
 
 [[package]]
