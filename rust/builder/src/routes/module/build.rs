@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 use wit_parser::UnresolvedPackageGroup;
 
-use crate::{serve::BuildServerState, storage::HashStorage, Bake, Baker, BuilderError};
+use crate::{serve::BuildServerState, storage::HashStorage, Baker, Bakerlike, BuilderError};
 
 /// A `multipart/form-data` payload that consists of module WIT + source code as
 /// well as additional (optional) library WIT files
@@ -68,7 +68,7 @@ pub async fn build_module(
                             Some("wit") => {
                                 let module_wit = field.bytes().await?;
                                 let package_group = UnresolvedPackageGroup::parse(
-                                    &PathBuf::from("module.wit"),
+                                    PathBuf::from("module.wit"),
                                     String::from_utf8_lossy(&module_wit).as_ref(),
                                 )?;
 
@@ -85,12 +85,12 @@ pub async fn build_module(
                                     wit_package
                                         .worlds
                                         .iter()
-                                        .nth(0)
+                                        .next()
                                         .map(|(_, world)| world.name.clone())
                                         .ok_or_else(|| {
-                                            BuilderError::InvalidModule(format!(
-                                                "Module WIT does not contain a world"
-                                            ))
+                                            BuilderError::InvalidModule(
+                                                "Module WIT does not contain a world".to_string(),
+                                            )
                                         })?,
                                 );
                             }

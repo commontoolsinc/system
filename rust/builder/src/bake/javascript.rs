@@ -1,5 +1,5 @@
 use super::fs::write_file;
-use super::Bake;
+use super::Bakerlike;
 use async_trait::async_trait;
 use bundler::JavaScriptBundler;
 use bytes::Bytes;
@@ -14,7 +14,7 @@ use tracing::instrument;
 pub struct JavaScriptBaker {}
 
 #[async_trait]
-impl Bake for JavaScriptBaker {
+impl Bakerlike for JavaScriptBaker {
     #[instrument]
     async fn bake(
         &self,
@@ -91,7 +91,7 @@ impl Bake for JavaScriptBaker {
         let child = command.spawn()?;
         let output = child.wait_with_output().await?;
 
-        if output.stderr.len() > 0 {
+        if !output.stderr.is_empty() {
             warn!("{}", String::from_utf8_lossy(&output.stderr));
         }
 

@@ -1,6 +1,6 @@
 use std::process::Command;
 
-const TYPESCRIPT_SOURCE_DEPENDENCIES: &[&'static str] = &[
+const TYPESCRIPT_SOURCE_DEPENDENCIES: &[&str] = &[
     "package.json",
     "package-lock.json",
     "common/io/wit/io.wit",
@@ -10,7 +10,7 @@ const TYPESCRIPT_SOURCE_DEPENDENCIES: &[&'static str] = &[
 
 fn main() {
     if !Command::new("npm")
-        .arg("install")
+        .arg("ci")
         .current_dir("../../typescript")
         .status()
         .unwrap()

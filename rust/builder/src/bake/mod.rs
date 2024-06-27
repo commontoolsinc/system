@@ -1,9 +1,9 @@
-mod bake;
+mod baker;
 mod fs;
 mod javascript;
 mod python;
 
-pub use bake::*;
+pub use baker::*;
 pub use javascript::*;
 pub use python::*;
 
@@ -19,7 +19,7 @@ pub enum Baker {
 }
 
 #[async_trait]
-impl Bake for Baker {
+impl Bakerlike for Baker {
     async fn bake(
         &self,
         world: &str,

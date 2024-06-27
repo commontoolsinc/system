@@ -83,10 +83,9 @@ impl ModuleHostState {
     ) -> Result<&ModuleHostReference, String> {
         let host_resource = Resource::<ModuleHostReference>::new_own(reference.rep());
 
-        Ok(self
-            .references
+        self.references
             .get(&host_resource)
-            .map_err(|error| format!("{error}"))?)
+            .map_err(|error| format!("{error}"))
     }
 }
 
@@ -114,9 +113,7 @@ impl ModuleHostState {
 impl common::io::state::Host for ModuleHostState {
     fn read(&mut self, name: String) -> Option<Resource<Reference>> {
         debug!("common:io/state.read: {name}");
-        if self.io.read(&name).is_none() {
-            return None;
-        }
+        self.io.read(&name)?;
 
         self.references
             .push(ModuleHostReference(name))
@@ -125,7 +122,7 @@ impl common::io::state::Host for ModuleHostState {
             .map(|host_reference| Resource::new_own(host_reference.rep()))
     }
 
-    fn write(&mut self, name: String, value: BindingValue) -> () {
+    fn write(&mut self, name: String, value: BindingValue) {
         debug!("common:io/state.write: {name}");
         self.io.write(&name, value.into());
     }
