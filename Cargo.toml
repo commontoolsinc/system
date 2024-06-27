@@ -1,14 +1,17 @@
 [workspace]
 members = [
+  "rust/builder",
   "rust/usuba",
   "rust/usuba-compat",
-  "rust/usuba-bundle"
+  "rust/bundler"
 ]
 
 # See: https://github.com/rust-lang/rust/issues/90148#issuecomment-949194352
 resolver = "2"
 
 [workspace.dependencies]
+bundler = { path = "./rust/bundler" }
+
 anyhow = { version = "1" }
 async-trait = { version = "0.1" }
 axum = { version = "0.7" }
@@ -36,7 +39,6 @@ tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "tracing-log", "json"] }
 tracing-web = { version = "0.1" }
 url = { version = "2" }
-usuba-bundle = { path = "./rust/usuba-bundle" }
 utoipa = { version = "4" }
 utoipa-swagger-ui = { version = "7" }
 wasmtime = { version = "21" }
