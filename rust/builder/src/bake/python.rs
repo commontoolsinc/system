@@ -1,5 +1,5 @@
 use super::fs::write_file;
-use crate::Bake;
+use crate::Bakerlike;
 use async_trait::async_trait;
 use bytes::Bytes;
 use tempfile::TempDir;
@@ -11,7 +11,7 @@ use tokio::{process::Command, task::JoinSet};
 pub struct PythonBaker {}
 
 #[async_trait]
-impl Bake for PythonBaker {
+impl Bakerlike for PythonBaker {
     #[instrument]
     async fn bake(
         &self,
@@ -76,7 +76,7 @@ impl Bake for PythonBaker {
         let child = command.spawn()?;
         let output = child.wait_with_output().await?;
 
-        if output.stderr.len() > 0 {
+        if !output.stderr.is_empty() {
             warn!("{}", String::from_utf8_lossy(&output.stderr));
         }
 
