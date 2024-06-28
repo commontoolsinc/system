@@ -2327,6 +2327,7 @@ dependencies = [
  "async-trait",
  "axum",
  "blake3",
+ "builder",
  "bytes",
  "hyper-util",
  "mime_guess",
