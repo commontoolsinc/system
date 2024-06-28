@@ -1,4 +1,3 @@
-# builder
+# common-wit
 
-An anything-to-Common-Wasm build server.
-
+Common library of shared WIT definitions
