@@ -1,7 +1,8 @@
 use super::fs::write_file;
-use crate::Bakerlike;
+use crate::Bake;
 use async_trait::async_trait;
 use bytes::Bytes;
+use common_wit::{WitTarget, WitTargetFileMap};
 use tempfile::TempDir;
 use tokio::{process::Command, task::JoinSet};
 
@@ -11,14 +12,12 @@ use tokio::{process::Command, task::JoinSet};
 pub struct PythonBaker {}
 
 #[async_trait]
-impl Bakerlike for PythonBaker {
+impl Bake for PythonBaker {
     #[instrument]
     async fn bake(
         &self,
-        world: &str,
-        wit: Vec<Bytes>,
+        target: WitTarget,
         source_code: Bytes,
-        library: Vec<Bytes>,
     ) -> Result<Bytes, crate::BuilderError> {
         let workspace = TempDir::new()?;
         debug!(
@@ -38,18 +37,15 @@ impl Bakerlike for PythonBaker {
 
         let mut writes = JoinSet::new();
 
-        wit.into_iter()
-            .enumerate()
-            .map(|(i, wit)| write_file(wit_path.join(format!("module{}.wit", i)), wit))
-            .chain([write_file(python_path.clone(), source_code)])
-            .chain(
-                library.into_iter().enumerate().map(|(i, wit)| {
-                    write_file(wit_deps_path.join(format!("library{}.wit", i)), wit)
-                }),
-            )
-            .for_each(|fut| {
-                writes.spawn(fut);
-            });
+        writes.spawn(write_file(python_path.clone(), source_code));
+        writes.spawn({
+            let wit_path = wit_path.clone();
+            let file_map = WitTargetFileMap::from(&target);
+            async move {
+                file_map.write_to(&wit_path).await?;
+                Ok(())
+            }
+        });
 
         while let Some(result) = writes.try_join_next() {
             result??;
@@ -65,7 +61,7 @@ impl Bakerlike for PythonBaker {
             .arg("-d")
             .arg(wit_path)
             .arg("-w")
-            .arg(world)
+            .arg(target.world())
             .arg("componentize")
             .arg("-p")
             .arg(workspace.path().display().to_string())

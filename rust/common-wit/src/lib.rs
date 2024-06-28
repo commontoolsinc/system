@@ -3,7 +3,9 @@
 //! This crate contains shared Common WIT definitions and helpers for assembling
 //! them during build steps and other logistical processes.
 
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, str::FromStr};
+
+use serde::{Deserialize, Serialize};
 
 /// WIT definition for `common:module`
 pub const COMMON_MODULE_WIT: &[u8] =
@@ -16,9 +18,48 @@ pub const COMMON_IO_WIT: &[u8] = include_bytes!("../../../typescript/common/io/w
 pub const COMMON_DATA_WIT: &[u8] = include_bytes!("../../../typescript/common/data/wit/data.wit");
 
 /// A target that some candidate source code may express the implementation of
+#[derive(Debug, Serialize, Deserialize)]
 pub enum WitTarget {
     /// The most basic target: a Common Module
+    #[serde(rename = "common:module")]
     CommonModule,
+}
+
+impl WitTarget {
+    /// The presumptive WIT world that corresponds to a give [WitTarget]
+    pub fn world(&self) -> &'static str {
+        match self {
+            WitTarget::CommonModule => "common",
+        }
+    }
+}
+
+impl FromStr for WitTarget {
+    type Err = std::io::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "common:module" => WitTarget::CommonModule,
+            _ => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    format!("Unrecognized target: {s}"),
+                ));
+            }
+        })
+    }
+}
+
+impl std::fmt::Display for WitTarget {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                WitTarget::CommonModule => "common:module",
+            }
+        )
+    }
 }
 
 /// A map of files that correspond to a give [WitTarget]
@@ -81,6 +122,12 @@ impl WitTargetFileMap {
 
 impl From<WitTarget> for WitTargetFileMap {
     fn from(value: WitTarget) -> Self {
+        WitTargetFileMap::from(&value)
+    }
+}
+
+impl From<&WitTarget> for WitTargetFileMap {
+    fn from(value: &WitTarget) -> Self {
         WitTargetFileMap(match value {
             WitTarget::CommonModule => BTreeMap::from([
                 ("target.wit".into(), COMMON_MODULE_WIT),

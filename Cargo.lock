@@ -435,6 +435,7 @@ dependencies = [
  "bytes",
  "common-bundler",
  "common-test-fixtures",
+ "common-wit",
  "mime_guess",
  "redb",
  "reqwest",
