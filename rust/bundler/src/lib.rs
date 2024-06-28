@@ -138,7 +138,7 @@ pub mod tests {
         let candidate = Url::parse("https://esm.sh/canvas-confetti@1.6.0")?;
         let bundle = JavaScriptBundler::bundle_url(candidate).await?;
 
-        assert!(bundle.len() > 0);
+        assert!(!bundle.is_empty());
 
         Ok(())
     }
@@ -148,35 +148,33 @@ pub mod tests {
         let candidate = Url::parse("https://deno.land/x/zod@v3.16.1/mod.ts")?;
         let bundle = JavaScriptBundler::bundle_url(candidate).await?;
 
-        assert!(bundle.len() > 0);
+        assert!(!bundle.is_empty());
 
         Ok(())
     }
 
     #[tokio::test]
     async fn it_can_bundle_a_module_file() -> Result<()> {
-        let candidate = format!(
-            r#"export * from "https://esm.sh/canvas-confetti@1.6.0";
+        let candidate = r#"export * from "https://esm.sh/canvas-confetti@1.6.0";
 "#
-        );
+        .to_string();
         let bundle = JavaScriptBundler::bundle_module(candidate.into()).await?;
 
-        assert!(bundle.len() > 0);
+        assert!(!bundle.is_empty());
 
         Ok(())
     }
 
     #[tokio::test]
     async fn it_skips_common_modules_when_bundling() -> Result<()> {
-        let candidate = format!(
-            r#"
-import {{ read, write }} from "common:io/state@0.0.1";
+        let candidate = r#"
+import { read, write } from "common:io/state@0.0.1";
 
 // Note: must use imports else they are tree-shaken
 // Caveat: cannot re-export built-ins as it provokes bundling
 console.log(read, write);
 "#
-        );
+        .to_string();
 
         let bundle = JavaScriptBundler::bundle_module(candidate.into())
             .await

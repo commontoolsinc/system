@@ -11,14 +11,13 @@ async fn it_bundles_javascript() -> anyhow::Result<()> {
     let addr = listener.local_addr()?;
     let handler = tokio::spawn(async { serve(listener).await.unwrap() });
 
-    let source = format!(
-        r#"export * from "https://esm.sh/canvas-confetti@1.6.0";
+    let source = r#"export * from "https://esm.sh/canvas-confetti@1.6.0";
 "#
-    );
+    .to_string();
     let form = Form::new().part("source", Part::text(source).file_name("foo.js"));
 
     let res = Client::new()
-        .post(format!("http://{}/api/v0/bundle", addr.to_string()))
+        .post(format!("http://{}/api/v0/bundle", addr))
         .multipart(form)
         .send()
         .await?;

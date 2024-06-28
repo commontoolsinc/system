@@ -6,7 +6,7 @@ use bytes::Bytes;
 /// source code to be executed within the artifact, where specific
 /// implementations of [Bake] provide a runtime to execute that source.
 #[async_trait]
-pub trait Bake {
+pub trait Bakerlike {
     /// Build a WASM artifact containing the WIT modules and means
     /// to execute `source_code`.
     async fn bake(

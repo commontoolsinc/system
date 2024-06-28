@@ -1,0 +1,43 @@
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches: [main]
+ 
+name: 'Lint'
+
+jobs:
+  rust:
+    name: 'Rust'
+    runs-on: ubuntu-latest
+    continue-on-error: false
+    strategy:
+      matrix:
+        include:
+          - toolchain: stable
+          - toolchain: nightly
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: 'Setup Rust'
+        run: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y
+          rustup toolchain install ${{matrix.toolchain}}
+          rustup +${{matrix.toolchain}} component add clippy
+          rustup +${{matrix.toolchain}} component add rustfmt
+      - name: 'Setup Node/NPM'
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+      - name: 'Install NPM dependencies'
+        run: |
+          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.4.4
+      - name: Install binaries from cargo
+        run: |
+          cargo +${{ matrix.toolchain }} binstall wit-deps-cli wasm-tools --no-confirm --force
+      - name: 'Check Format'
+        run: cargo +${{matrix.toolchain}} fmt --all -- --check
+      - name: 'Run Linter'
+        run: cargo +${{matrix.toolchain}} clippy --all -- -D warnings
