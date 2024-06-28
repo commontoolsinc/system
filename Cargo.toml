@@ -1,8 +1,10 @@
 [workspace]
 members = [
   "rust/common-builder",
+  "rust/common-macros",
   "rust/common-runtime",
   "rust/common-test-fixtures",
+  "rust/common-tracing",
   "rust/common-wit",
 ]
 
@@ -10,11 +12,6 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-common-builder = { path = "./rust/common-builder" }
-common-runtime = { path = "./rust/common-runtime" }
-common-test-fixtures = { path = "./rust/common-test-fixtures" }
-common-wit = { path = "./rust/common-wit" }
-
 anyhow = { version = "1" }
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
@@ -22,6 +19,12 @@ axum = { version = "0.7" }
 blake3 = { version = "1.5" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
+common-builder = { path = "./rust/common-builder" }
+common-runtime = { path = "./rust/common-runtime" }
+common-macros = { path = "./rust/common-macros" }
+common-test-fixtures = { path = "./rust/common-test-fixtures" }
+common-tracing = { path = "./rust/common-tracing" }
+common-wit = { path = "./rust/common-wit" }
 deno_emit = { version = "0.43" }
 deno_graph = { version = "0.79" }
 http = { version = "1.1" }

@@ -501,6 +501,7 @@ dependencies = [
  "blake3",
  "bytes",
  "common-test-fixtures",
+ "common-tracing",
  "common-wit",
  "deno_emit",
  "deno_graph",
@@ -522,6 +523,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "common-macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn 2.0.68",
+]
+
+[[package]]
 name = "common-runtime"
 version = "0.1.0"
 dependencies = [
@@ -533,6 +542,7 @@ dependencies = [
  "bytes",
  "common-builder",
  "common-test-fixtures",
+ "common-tracing",
  "common-wit",
  "http 1.1.0",
  "hyper-util",
@@ -573,6 +583,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "common-tracing"
+version = "0.1.0"
+dependencies = [
+ "common-macros",
+ "console_error_panic_hook",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-wasm",
+]
+
+[[package]]
 name = "common-wit"
 version = "0.1.0"
 dependencies = [
@@ -583,6 +604,16 @@ dependencies = [
  "tokio",
  "tracing",
  "wit-parser 0.212.0",
+]
+
+[[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -2729,9 +2760,9 @@ checksum = "976295e77ce332211c0d24d92c0e83e50f5c5f046d11082cea19f3df13a3562d"
 
 [[package]]
 name = "rustls-webpki"
-version = "0.102.4"
+version = "0.102.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff448f7e92e913c4b7d4c6d8e4540a1724b319b4152b8aef6d4cf8339712b33e"
+checksum = "f9a6fccd794a42c2c105b513a2f62bc3fd8f3ba57a4593677ceb0bd035164d78"
 dependencies = [
  "ring",
  "rustls-pki-types",
@@ -3931,6 +3962,17 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
+]
+
+[[package]]
+name = "tracing-wasm"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4575c663a174420fa2d78f4108ff68f65bf2fbb7dd89f33749b6e826b3626e07"
+dependencies = [
+ "tracing",
+ "tracing-subscriber",
+ "wasm-bindgen",
 ]
 
 [[package]]

@@ -4,15 +4,14 @@ extern crate tracing;
 use std::net::SocketAddr;
 
 use common_runtime::{serve, CommonRuntimeError};
-use tracing_subscriber::{fmt::Layer, layer::SubscriberExt, EnvFilter, FmtSubscriber};
+use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 #[tokio::main]
 pub async fn main() -> Result<(), CommonRuntimeError> {
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish();
-    tracing::subscriber::set_global_default(subscriber.with(Layer::default().pretty()))
-        .expect("Failed to configure tracing");
+    tracing::subscriber::set_global_default(subscriber).expect("Failed to configure tracing");
 
     let port = std::env::var("PORT").unwrap_or("8081".into());
     let socket_address: SocketAddr = format!("0.0.0.0:{port}")
