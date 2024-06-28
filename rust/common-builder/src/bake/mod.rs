@@ -1,11 +1,12 @@
-mod baker;
 mod fs;
 mod javascript;
 mod python;
+mod r#trait;
 
-pub use baker::*;
+use common_wit::WitTarget;
 pub use javascript::*;
 pub use python::*;
+pub use r#trait::*;
 
 use async_trait::async_trait;
 use bytes::Bytes;
@@ -19,25 +20,15 @@ pub enum Baker {
 }
 
 #[async_trait]
-impl Bakerlike for Baker {
+impl Bake for Baker {
     async fn bake(
         &self,
-        world: &str,
-        wit: Vec<Bytes>,
+        target: WitTarget,
         source_code: Bytes,
-        library: Vec<Bytes>,
     ) -> Result<Bytes, crate::BuilderError> {
         match self {
-            Baker::JavaScript => {
-                (JavaScriptBaker {})
-                    .bake(world, wit, source_code, library)
-                    .await
-            }
-            Baker::Python => {
-                (PythonBaker {})
-                    .bake(world, wit, source_code, library)
-                    .await
-            }
+            Baker::JavaScript => (JavaScriptBaker {}).bake(target, source_code).await,
+            Baker::Python => (PythonBaker {}).bake(target, source_code).await,
         }
     }
 }

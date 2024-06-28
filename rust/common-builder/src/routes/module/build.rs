@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, str::FromStr};
 
 use axum::{
     extract::{Multipart, State},
@@ -6,22 +6,23 @@ use axum::{
     Json,
 };
 use bytes::Bytes;
+use common_wit::WitTarget;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
-use wit_parser::UnresolvedPackageGroup;
 
-use crate::{serve::BuildServerState, storage::HashStorage, Baker, Bakerlike, BuilderError};
+use crate::{serve::BuildServerState, storage::HashStorage, Bake, Baker, BuilderError};
 
 /// A `multipart/form-data` payload that consists of module WIT + source code as
 /// well as additional (optional) library WIT files
 #[derive(ToSchema)]
 pub struct BuildModuleRequest {
-    /// Collection of module WIT + source code.
+    /// The source code of the module
     #[allow(unused)]
-    pub module: Vec<Vec<u8>>,
-    /// Collection of optional library WIT source.
+    pub source: Vec<u8>,
+
+    /// The WIT target that the module source code implements
     #[allow(unused)]
-    pub library: Vec<Vec<u8>>,
+    pub target: WitTarget,
 }
 
 /// A response from a build module request containing the
@@ -51,72 +52,53 @@ pub async fn build_module(
     State(BuildServerState { mut storage, .. }): State<BuildServerState>,
     mut form_data: Multipart,
 ) -> Result<BuildModuleResponse, BuilderError> {
-    let mut world_name: Option<String> = None;
-    let mut wit: Vec<Bytes> = Vec::new();
-    let mut library: Vec<Bytes> = Vec::new();
     let mut source_code: Option<Bytes> = None;
-    let mut baker: Option<Baker> = None;
+    let mut target: Option<WitTarget> = None;
+    let mut bakery: Option<Baker> = None;
 
     while let Some(field) = form_data.next_field().await? {
-        if let Some(file_name) = field.file_name() {
-            let file_name = PathBuf::from(file_name);
+        match field.name() {
+            Some("source") => {
+                let file_name = if let Some(file_name) = field.file_name() {
+                    PathBuf::from(file_name)
+                } else {
+                    continue;
+                };
 
-            match field.name() {
-                Some("module") => {
-                    if let Some(extension) = file_name.extension() {
-                        match extension.to_str() {
-                            Some("wit") => {
-                                let module_wit = field.bytes().await?;
-                                let package_group = UnresolvedPackageGroup::parse(
-                                    PathBuf::from("module.wit"),
-                                    String::from_utf8_lossy(&module_wit).as_ref(),
-                                )?;
-
-                                let wit_package =
-                                    package_group.packages.first().ok_or_else(|| {
-                                        BuilderError::InvalidConfiguration(
-                                            "Malformed module.wit".into(),
-                                        )
-                                    })?;
-
-                                wit.push(module_wit);
-
-                                world_name = Some(
-                                    wit_package
-                                        .worlds
-                                        .iter()
-                                        .next()
-                                        .map(|(_, world)| world.name.clone())
-                                        .ok_or_else(|| {
-                                            BuilderError::InvalidModule(
-                                                "Module WIT does not contain a world".to_string(),
-                                            )
-                                        })?,
-                                );
-                            }
-                            Some("js") => {
-                                source_code = Some(field.bytes().await?);
-                                baker = Some(Baker::JavaScript);
-                            }
-                            Some("py") => {
-                                source_code = Some(field.bytes().await?);
-                                baker = Some(Baker::Python);
-                            }
-                            _ => (),
-                        };
-                    }
+                if let Some(extension) = file_name.extension() {
+                    match extension.to_str() {
+                        Some("js") => {
+                            source_code = Some(field.bytes().await?);
+                            bakery = Some(Baker::JavaScript);
+                        }
+                        Some("py") => {
+                            source_code = Some(field.bytes().await?);
+                            bakery = Some(Baker::Python);
+                        }
+                        _ => (),
+                    };
                 }
-                Some("library") => {
-                    library.push(field.bytes().await?);
-                }
-                Some(name) => warn!("Unexpected multipart content: {name}"),
-                _ => warn!("Skipping unnamed multipart content"),
-            };
-        }
+            }
+            Some("target") => {
+                target = Some(WitTarget::from_str(
+                    &String::from_utf8(field.bytes().await?.to_vec()).map_err(|error| {
+                        BuilderError::InvalidModule(format!("Could not parse target: {error}"))
+                    })?,
+                )?);
+            }
+            Some(name) => warn!("Unexpected multipart content: {name}"),
+            _ => warn!("Skipping unnamed multipart content"),
+        };
     }
+    warn!(
+        "{:?} {:?} {:?}",
+        bakery.is_some(),
+        target.is_some(),
+        source_code.is_some()
+    );
 
-    if let (Some(world_name), Some(source_code), Some(baker)) = (world_name, source_code, baker) {
-        let wasm = baker.bake(&world_name, wit, source_code, library).await?;
+    if let (Some(bakery), Some(target), Some(source_code)) = (bakery, target, source_code) {
+        let wasm = bakery.bake(target, source_code).await?;
         let hash = storage.write(wasm).await?;
 
         Ok(BuildModuleResponse {

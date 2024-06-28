@@ -1,6 +1,6 @@
 [package]
 name = "common-wit"
-description = "Common library over WIT definitions"
+description = "Common library of shared WIT definitions"
 version = "0.1.0"
 edition = "2021"
 publish = false

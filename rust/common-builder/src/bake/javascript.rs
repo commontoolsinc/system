@@ -1,8 +1,9 @@
 use super::fs::write_file;
-use super::Bakerlike;
+use super::Bake;
 use async_trait::async_trait;
 use bytes::Bytes;
 use common_bundler::JavaScriptBundler;
+use common_wit::{WitTarget, WitTargetFileMap};
 use tempfile::TempDir;
 use tokio::process::Command;
 use tokio::task::JoinSet;
@@ -14,16 +15,15 @@ use tracing::instrument;
 pub struct JavaScriptBaker {}
 
 #[async_trait]
-impl Bakerlike for JavaScriptBaker {
+impl Bake for JavaScriptBaker {
     #[instrument]
     async fn bake(
         &self,
-        _world: &str,
-        wit: Vec<Bytes>,
+        target: WitTarget,
         source_code: Bytes,
-        library: Vec<Bytes>,
     ) -> Result<Bytes, crate::BuilderError> {
         let workspace = TempDir::new()?;
+
         debug!(
             "Created temporary workspace in {}",
             workspace.path().display()
@@ -40,28 +40,21 @@ impl Bakerlike for JavaScriptBaker {
 
         debug!(?workspace, "Created temporary workspace");
 
-        let wit_path = workspace.path().join("wit");
-        let wit_deps_path = wit_path.join("deps");
-
-        tokio::fs::create_dir_all(&wit_deps_path).await?;
-
         let mut writes = JoinSet::new();
+        let wit_path = workspace.path().join("wit");
 
-        wit.into_iter()
-            .enumerate()
-            .map(|(i, wit)| write_file(wit_path.join(format!("module{}.wit", i)), wit))
-            .chain([write_file(
-                js_path.clone(),
-                Bytes::from(bundled_source_code),
-            )])
-            .chain(
-                library.into_iter().enumerate().map(|(i, wit)| {
-                    write_file(wit_deps_path.join(format!("library{}.wit", i)), wit)
-                }),
-            )
-            .for_each(|fut| {
-                writes.spawn(fut);
-            });
+        writes.spawn(write_file(
+            js_path.clone(),
+            Bytes::from(bundled_source_code),
+        ));
+
+        writes.spawn({
+            let wit_path = wit_path.clone();
+            async move {
+                WitTargetFileMap::from(target).write_to(&wit_path).await?;
+                Ok(())
+            }
+        });
 
         while let Some(result) = writes.try_join_next() {
             result??;
@@ -69,14 +62,6 @@ impl Bakerlike for JavaScriptBaker {
         }
 
         debug!(?workspace, "Populated temporary input files");
-
-        Command::new("cp")
-            .arg("-r")
-            .arg(format!("{}", workspace.path().display()))
-            .arg("/tmp/failed")
-            .spawn()?
-            .wait()
-            .await?;
 
         let mut command = Command::new("jco");
 
