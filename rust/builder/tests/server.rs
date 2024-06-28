@@ -7,13 +7,18 @@ use tokio::net::TcpListener;
 
 #[tokio::test]
 async fn it_bundles_javascript() -> anyhow::Result<()> {
+    let mut esm_server = test_fixtures::EsmTestServer::default();
+    let esm_addr = esm_server.start().await?;
+
     let listener = TcpListener::bind("127.0.0.1:0").await?;
     let addr = listener.local_addr()?;
     let handler = tokio::spawn(async { serve(listener).await.unwrap() });
 
-    let source = r#"export * from "https://esm.sh/canvas-confetti@1.6.0";
-"#
-    .to_string();
+    let source = format!(
+        r#"export * from "http://{}/math/index.js";
+"#,
+        esm_addr
+    );
     let form = Form::new().part("source", Part::text(source).file_name("foo.js"));
 
     let res = Client::new()
@@ -23,7 +28,7 @@ async fn it_bundles_javascript() -> anyhow::Result<()> {
         .await?;
 
     assert_eq!(res.status(), 200);
-    assert!(res.text().await?.contains("URL.createObjectURL"));
+    assert!(res.text().await?.contains("function add"));
 
     handler.abort();
     Ok(())

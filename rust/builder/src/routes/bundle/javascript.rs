@@ -35,7 +35,7 @@ pub async fn bundle_javascript(mut form_data: Multipart) -> Result<String, Build
                 let source_code = first_field.bytes().await?;
                 return Ok(tokio::task::spawn_blocking(move || {
                     tokio::runtime::Handle::current()
-                        .block_on(JavaScriptBundler::bundle_module(source_code))
+                        .block_on(JavaScriptBundler::bundle_from_bytes(source_code))
                 })
                 .await??);
             }

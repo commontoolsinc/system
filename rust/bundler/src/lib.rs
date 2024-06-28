@@ -12,6 +12,7 @@ use deno_emit::{
     ModuleSpecifier, SourceMapOption, TranspileOptions,
 };
 use deno_graph::source::LoadResponse;
+use reqwest::Client;
 use url::Url;
 
 const ROOT_MODULE_URL: &str = "bundler:root";
@@ -19,17 +20,22 @@ const ROOT_MODULE_SCHEME: &str = "bundler";
 
 struct JavaScriptLoader {
     root: Option<Bytes>,
+    client: Client,
 }
 
 impl JavaScriptLoader {
     pub fn new(root: Option<Bytes>) -> Self {
-        Self { root }
+        Self {
+            root,
+            client: Client::new(),
+        }
     }
 }
 
 impl Loader for JavaScriptLoader {
     fn load(&self, specifier: &ModuleSpecifier, _options: LoadOptions) -> LoadFuture {
         let root = self.root.clone();
+        let client = self.client.clone();
         let specifier = specifier.clone();
 
         debug!("Attempting to load '{}'", specifier);
@@ -49,8 +55,8 @@ impl Loader for JavaScriptLoader {
                 "common" => Ok(Some(LoadResponse::External {
                     specifier: specifier.clone(),
                 })),
-                "https" => {
-                    let response = reqwest::get(specifier.clone()).await?;
+                "http" | "https" => {
+                    let response = client.get(specifier.as_str()).send().await?;
                     let headers = response.headers().to_owned();
                     let bytes = response.bytes().await?;
                     let content = bytes.to_vec().into();
@@ -106,14 +112,14 @@ impl JavaScriptBundler {
     }
 
     /// Bundle a JavaScript module via URL.
-    pub async fn bundle_url(url: Url) -> Result<String> {
+    pub async fn bundle_from_url(url: Url) -> Result<String> {
         let mut loader = JavaScriptLoader::new(None);
         let emit = bundle(url, &mut loader, None, Self::bundle_options()).await?;
         Ok(emit.code)
     }
 
     /// Bundle a JavaScript module from bytes.
-    pub async fn bundle_module(module: Bytes) -> Result<String> {
+    pub async fn bundle_from_bytes(module: Bytes) -> Result<String> {
         let mut loader = JavaScriptLoader::new(Some(module));
         let emit = bundle(
             Url::parse(ROOT_MODULE_URL)?,
@@ -128,39 +134,53 @@ impl JavaScriptBundler {
 
 #[cfg(test)]
 pub mod tests {
+    use crate::JavaScriptBundler;
     use anyhow::Result;
+    use test_fixtures::EsmTestServer;
     use url::Url;
 
-    use crate::JavaScriptBundler;
+    fn assert_math_bundle(bundle: &str) {
+        assert!(!bundle.is_empty());
+        assert!(bundle.contains("function add"));
+        assert!(bundle.contains("function mult"));
+    }
 
     #[tokio::test]
-    async fn it_loads_a_module_from_esm_sh() -> Result<()> {
-        let candidate = Url::parse("https://esm.sh/canvas-confetti@1.6.0")?;
-        let bundle = JavaScriptBundler::bundle_url(candidate).await?;
+    async fn it_bundles_javascript_from_url() -> Result<()> {
+        let mut server = EsmTestServer::default();
+        let addr = server.start().await?;
+        let candidate = Url::parse(&format!("http://{}/math/index.js", addr))?;
+        let bundle = JavaScriptBundler::bundle_from_url(candidate).await?;
 
-        assert!(!bundle.is_empty());
+        assert_math_bundle(&bundle);
 
         Ok(())
     }
 
     #[tokio::test]
-    async fn it_loads_a_module_from_deno_land() -> Result<()> {
-        let candidate = Url::parse("https://deno.land/x/zod@v3.16.1/mod.ts")?;
-        let bundle = JavaScriptBundler::bundle_url(candidate).await?;
+    async fn it_bundles_typescript_from_url() -> Result<()> {
+        let mut server = EsmTestServer::default();
+        let addr = server.start().await?;
+        let candidate = Url::parse(&format!("http://{}/math/index.ts", addr))?;
+        let bundle = JavaScriptBundler::bundle_from_url(candidate).await?;
 
-        assert!(!bundle.is_empty());
+        assert_math_bundle(&bundle);
 
         Ok(())
     }
 
     #[tokio::test]
-    async fn it_can_bundle_a_module_file() -> Result<()> {
-        let candidate = r#"export * from "https://esm.sh/canvas-confetti@1.6.0";
-"#
-        .to_string();
-        let bundle = JavaScriptBundler::bundle_module(candidate.into()).await?;
+    async fn it_bundles_javascript_from_bytes() -> Result<()> {
+        let mut server = EsmTestServer::default();
+        let addr = server.start().await?;
+        let candidate = format!(
+            r#"export * from "http://{}/math/index.js";
+"#,
+            addr
+        );
+        let bundle = JavaScriptBundler::bundle_from_bytes(candidate.into()).await?;
 
-        assert!(!bundle.is_empty());
+        assert_math_bundle(&bundle);
 
         Ok(())
     }
@@ -176,7 +196,7 @@ console.log(read, write);
 "#
         .to_string();
 
-        let bundle = JavaScriptBundler::bundle_module(candidate.into())
+        let bundle = JavaScriptBundler::bundle_from_bytes(candidate.into())
             .await
             .map_err(|error| {
                 error!("{}", error);

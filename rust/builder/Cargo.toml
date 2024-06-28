@@ -28,3 +28,4 @@ wit-parser = { workspace = true }
 
 [dev-dependencies]
 reqwest = { workspace = true, features = ["multipart"] }
+test-fixtures = { workspace = true }

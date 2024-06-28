@@ -2,23 +2,23 @@
 members = [
   "rust/builder",
   "rust/bundler",
-  "rust/runtime",
-  # "rust/usuba",
-  # "rust/usuba-compat",
-  # "rust/usuba-bundle"
+  "rust/test-fixtures",
+  "rust/runtime"
 ]
 
 # See: https://github.com/rust-lang/rust/issues/90148#issuecomment-949194352
 resolver = "2"
 
 [workspace.dependencies]
+builder = { path = "./rust/builder" }
+bundler = { path = "./rust/bundler" }
+test-fixtures = { path = "./rust/test-fixtures" }
+runtime = { path = "./rust/runtime" }
 
 anyhow = { version = "1" }
 async-trait = { version = "0.1" }
 axum = { version = "0.7" }
 blake3 = { version = "1.5" }
-builder = { path = "./rust/builder" }
-bundler = { path = "./rust/bundler" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
 deno_emit = { version = "0.43" }
@@ -31,7 +31,6 @@ js-sys = { version = "0.3" }
 mime_guess = { version = "2" }
 redb = { version = "2" }
 reqwest = { version = "0.12", default-features = false  }
-runtime = { path = "./rust/runtime" }
 rust-embed = { version = "8.4" }
 serde = { version = "1" }
 serde_json = { version = "1" }
