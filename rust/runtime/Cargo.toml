@@ -11,6 +11,7 @@ anyhow = { workspace = true }
 async-trait = { workspace = true }
 axum = { workspace = true, features = ["multipart", "macros"] }
 blake3 = { workspace = true }
+builder = { workspace = true }
 bytes = { workspace = true }
 hyper-util = { workspace = true }
 mime_guess = { workspace = true }
