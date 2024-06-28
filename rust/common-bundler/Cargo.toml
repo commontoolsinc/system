@@ -17,4 +17,5 @@ url = { workspace = true }
 
 [dev-dependencies]
 common-test-fixtures = { workspace = true }
+common-tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

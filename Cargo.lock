@@ -435,6 +435,7 @@ dependencies = [
  "bytes",
  "common-bundler",
  "common-test-fixtures",
+ "common-tracing",
  "mime_guess",
  "redb",
  "reqwest",
@@ -458,6 +459,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "common-test-fixtures",
+ "common-tracing",
  "deno_emit",
  "deno_graph",
  "reqwest",
@@ -476,6 +478,7 @@ dependencies = [
  "axum",
  "blake3",
  "bytes",
+ "common-tracing",
  "common-wit",
  "hyper-util",
  "mime_guess",
@@ -510,6 +513,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "common-tracing"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "console_error_panic_hook",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-wasm",
+]
+
+[[package]]
 name = "common-wit"
 version = "0.1.0"
 dependencies = [
@@ -520,6 +534,16 @@ dependencies = [
  "tokio",
  "tracing",
  "wit-parser 0.211.1",
+]
+
+[[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -3610,6 +3634,17 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
+]
+
+[[package]]
+name = "tracing-wasm"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4575c663a174420fa2d78f4108ff68f65bf2fbb7dd89f33749b6e826b3626e07"
+dependencies = [
+ "tracing",
+ "tracing-subscriber",
+ "wasm-bindgen",
 ]
 
 [[package]]

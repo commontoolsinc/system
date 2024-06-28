@@ -12,6 +12,7 @@ axum = { workspace = true, features = ["multipart", "macros"] }
 blake3 = { workspace = true }
 bytes = { workspace = true }
 common-bundler = { workspace = true }
+common-tracing = { workspace = true }
 mime_guess = { workspace = true }
 redb = { workspace = true }
 serde = { workspace = true }

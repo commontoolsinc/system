@@ -4,6 +4,7 @@ members = [
   "rust/common-bundler",
   "rust/common-runtime",
   "rust/common-test-fixtures",
+  "rust/common-tracing",
   "rust/common-wit",
 ]
 
@@ -11,17 +12,17 @@ members = [
 resolver = "2"
 
 [workspace.dependencies]
-common-builder = { path = "./rust/common-builder" }
-common-bundler = { path = "./rust/common-bundler" }
-common-test-fixtures = { path = "./rust/common-test-fixtures" }
-common-runtime = { path = "./rust/common-runtime" }
-
 anyhow = { version = "1" }
 async-trait = { version = "0.1" }
 axum = { version = "0.7" }
 blake3 = { version = "1.5" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
+common-builder = { path = "./rust/common-builder" }
+common-bundler = { path = "./rust/common-bundler" }
+common-test-fixtures = { path = "./rust/common-test-fixtures" }
+common-runtime = { path = "./rust/common-runtime" }
+common-tracing = { path = "./rust/common-tracing" }
 common-wit = { path = "./rust/common-wit" }
 deno_emit = { version = "0.43" }
 deno_graph = { version = "0.79" }

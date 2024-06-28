@@ -7,6 +7,7 @@ use tokio::net::TcpListener;
 
 #[tokio::test]
 async fn it_bundles_javascript() -> anyhow::Result<()> {
+    common_tracing::initialize_tracing();
     let mut esm_server = common_test_fixtures::EsmTestServer::default();
     let esm_addr = esm_server.start().await?;
 
@@ -37,5 +38,6 @@ async fn it_bundles_javascript() -> anyhow::Result<()> {
 #[tokio::test]
 #[ignore]
 async fn it_builds_javascript_modules() -> anyhow::Result<()> {
+    common_tracing::initialize_tracing();
     Ok(())
 }

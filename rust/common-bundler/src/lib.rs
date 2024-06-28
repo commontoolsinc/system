@@ -147,6 +147,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn it_bundles_javascript_from_url() -> Result<()> {
+        common_tracing::initialize_tracing();
         let mut server = EsmTestServer::default();
         let addr = server.start().await?;
         let candidate = Url::parse(&format!("http://{}/math/index.js", addr))?;
@@ -159,6 +160,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn it_bundles_typescript_from_url() -> Result<()> {
+        common_tracing::initialize_tracing();
         let mut server = EsmTestServer::default();
         let addr = server.start().await?;
         let candidate = Url::parse(&format!("http://{}/math/index.ts", addr))?;
@@ -171,6 +173,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn it_bundles_javascript_from_bytes() -> Result<()> {
+        common_tracing::initialize_tracing();
         let mut server = EsmTestServer::default();
         let addr = server.start().await?;
         let candidate = format!(
@@ -187,6 +190,7 @@ pub mod tests {
 
     #[tokio::test]
     async fn it_skips_common_modules_when_bundling() -> Result<()> {
+        common_tracing::initialize_tracing();
         let candidate = r#"
 import { read, write } from "common:io/state@0.0.1";
 
