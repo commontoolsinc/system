@@ -1,0 +1,17 @@
+[package]
+name = "test-fixtures"
+description = "Static server hosting ESM modules for testing."
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = { workspace = true }
+axum = { workspace = true }
+tokio = { workspace = true, features = ["process", "fs", "macros"] }
+tower-http = { workspace = true, features = ["fs"] }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tracing-subscriber = { workspace = true }
+reqwest = { workspace = true }

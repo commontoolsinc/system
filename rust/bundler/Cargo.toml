@@ -17,3 +17,4 @@ url = { workspace = true }
 
 [dev-dependencies]
 tracing-subscriber = { workspace = true }
+test-fixtures = { workspace = true }

@@ -31,7 +31,7 @@ impl Bakerlike for JavaScriptBaker {
 
         let bundled_source_code = tokio::task::spawn_blocking(move || {
             tokio::runtime::Handle::current()
-                .block_on(JavaScriptBundler::bundle_module(source_code))
+                .block_on(JavaScriptBundler::bundle_from_bytes(source_code))
         })
         .await??;
 
