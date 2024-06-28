@@ -25,11 +25,11 @@ RUN npm run build
 
 WORKDIR /build-root
 
-RUN cargo build --release --bin usuba
+RUN cargo build --release --bin runtime
 
 FROM node:latest
 
-WORKDIR /usuba
+WORKDIR /runtime
 
 EXPOSE 8080
 
@@ -37,9 +37,9 @@ RUN apt-get update && apt-get install -y libssl-dev ca-certificates
 RUN npm install -g @bytecodealliance/componentize-js
 RUN npm install -g @bytecodealliance/jco
 
-COPY --from=builder /build-root/target/release/usuba /usr/bin/usuba
+COPY --from=builder /build-root/target/release/runtime /usr/bin/runtime
 
 ENV RUST_LOG="debug"
 ENV UPSTREAM="localhost:5173"
 
-ENTRYPOINT ["/usr/bin/usuba"]
+ENTRYPOINT ["/usr/bin/runtime"]
