@@ -1,5 +1,5 @@
 [package]
-name = "bundler"
+name = "common-bundler"
 description = "Code preparation steps for Common modules"
 version = "0.1.0"
 edition = "2021"
@@ -16,5 +16,5 @@ tracing = { workspace = true }
 url = { workspace = true }
 
 [dev-dependencies]
+common-test-fixtures = { workspace = true }
 tracing-subscriber = { workspace = true }
-test-fixtures = { workspace = true }

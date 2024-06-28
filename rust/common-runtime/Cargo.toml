@@ -1,19 +1,22 @@
 [package]
-name = "builder"
-description = "A Common server"
+name = "common-runtime"
+description = "A Common runtime"
 version = "0.1.0"
 edition = "2021"
-publish = false
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
 axum = { workspace = true, features = ["multipart", "macros"] }
 blake3 = { workspace = true }
-bundler = { workspace = true }
 bytes = { workspace = true }
+common-builder = { workspace = true }
+hyper-util = { workspace = true }
 mime_guess = { workspace = true }
 redb = { workspace = true }
+rust-embed = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
@@ -24,8 +27,6 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 utoipa = { workspace = true, features = ["axum_extras"] }
 utoipa-swagger-ui = { workspace = true, features = ["axum"] }
+wasmtime = { workspace = true }
+wasmtime-wasi = { workspace = true }
 wit-parser = { workspace = true }
-
-[dev-dependencies]
-reqwest = { workspace = true, features = ["multipart"] }
-test-fixtures = { workspace = true }

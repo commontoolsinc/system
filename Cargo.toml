@@ -1,19 +1,19 @@
 [workspace]
 members = [
-  "rust/builder",
-  "rust/bundler",
-  "rust/test-fixtures",
-  "rust/runtime"
+  "rust/common-builder",
+  "rust/common-bundler",
+  "rust/common-test-fixtures",
+  "rust/common-runtime"
 ]
 
 # See: https://github.com/rust-lang/rust/issues/90148#issuecomment-949194352
 resolver = "2"
 
 [workspace.dependencies]
-builder = { path = "./rust/builder" }
-bundler = { path = "./rust/bundler" }
-test-fixtures = { path = "./rust/test-fixtures" }
-runtime = { path = "./rust/runtime" }
+common-builder = { path = "./rust/common-builder" }
+common-bundler = { path = "./rust/common-bundler" }
+common-test-fixtures = { path = "./rust/common-test-fixtures" }
+common-runtime = { path = "./rust/common-runtime" }
 
 anyhow = { version = "1" }
 async-trait = { version = "0.1" }

@@ -64,7 +64,7 @@ impl Default for EsmTestServer {
         // cargo tests, so in most cases this should
         // serve as a good default. TBD what ways
         // tests can run where this fails.
-        Self::new("../test-fixtures/fixtures")
+        Self::new("../common-test-fixtures/fixtures")
     }
 }
 

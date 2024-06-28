@@ -1,8 +1,8 @@
 use super::fs::write_file;
 use super::Bakerlike;
 use async_trait::async_trait;
-use bundler::JavaScriptBundler;
 use bytes::Bytes;
+use common_bundler::JavaScriptBundler;
 use tempfile::TempDir;
 use tokio::process::Command;
 use tokio::task::JoinSet;
