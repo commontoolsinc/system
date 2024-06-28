@@ -307,53 +307,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "builder"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "axum",
- "blake3",
- "bundler",
- "bytes",
- "mime_guess",
- "redb",
- "reqwest",
- "serde",
- "serde_json",
- "tempfile",
- "test-fixtures",
- "thiserror",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "utoipa",
- "utoipa-swagger-ui",
- "wit-parser 0.211.1",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.16.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79296716171880943b8470b5f8d03aa55eb2e645a4874bdbb28adb49162e012c"
-
-[[package]]
-name = "bundler"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "bytes",
- "deno_emit",
- "deno_graph",
- "reqwest",
- "test-fixtures",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "url",
-]
 
 [[package]]
 name = "byteorder"
@@ -466,6 +423,91 @@ name = "cobs"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67ba02a97a2bd10f4b59b25c7973101c79642302776489e030cd13cdab09ed15"
+
+[[package]]
+name = "common-builder"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum",
+ "blake3",
+ "bytes",
+ "common-bundler",
+ "common-test-fixtures",
+ "mime_guess",
+ "redb",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
+ "wit-parser 0.211.1",
+]
+
+[[package]]
+name = "common-bundler"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "bytes",
+ "common-test-fixtures",
+ "deno_emit",
+ "deno_graph",
+ "reqwest",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+ "url",
+]
+
+[[package]]
+name = "common-runtime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "axum",
+ "blake3",
+ "bytes",
+ "common-builder",
+ "hyper-util",
+ "mime_guess",
+ "redb",
+ "rust-embed",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+ "utoipa",
+ "utoipa-swagger-ui",
+ "wasmtime",
+ "wasmtime-wasi",
+ "wit-parser 0.211.1",
+]
+
+[[package]]
+name = "common-test-fixtures"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "axum",
+ "reqwest",
+ "tokio",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "constant_time_eq"
@@ -2328,35 +2370,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "runtime"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "axum",
- "blake3",
- "builder",
- "bytes",
- "hyper-util",
- "mime_guess",
- "redb",
- "rust-embed",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "utoipa",
- "utoipa-swagger-ui",
- "wasmtime",
- "wasmtime-wasi",
- "wit-parser 0.211.1",
-]
-
-[[package]]
 name = "rust-embed"
 version = "8.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3304,19 +3317,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
-]
-
-[[package]]
-name = "test-fixtures"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "axum",
- "reqwest",
- "tokio",
- "tower-http",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

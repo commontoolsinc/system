@@ -1,5 +1,5 @@
 use axum::extract::Multipart;
-use bundler::JavaScriptBundler;
+use common_bundler::JavaScriptBundler;
 use utoipa::ToSchema;
 
 use crate::BuilderError;

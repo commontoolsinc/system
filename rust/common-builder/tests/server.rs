@@ -1,4 +1,4 @@
-use builder::serve;
+use common_builder::serve;
 use reqwest::{
     multipart::{Form, Part},
     Client,
@@ -7,7 +7,7 @@ use tokio::net::TcpListener;
 
 #[tokio::test]
 async fn it_bundles_javascript() -> anyhow::Result<()> {
-    let mut esm_server = test_fixtures::EsmTestServer::default();
+    let mut esm_server = common_test_fixtures::EsmTestServer::default();
     let esm_addr = esm_server.start().await?;
 
     let listener = TcpListener::bind("127.0.0.1:0").await?;

@@ -3,7 +3,7 @@ extern crate tracing;
 
 use std::net::SocketAddr;
 
-use builder::{serve, BuilderError};
+use common_builder::{serve, BuilderError};
 use tracing_subscriber::{fmt::Layer, layer::SubscriberExt, EnvFilter, FmtSubscriber};
 
 #[tokio::main]

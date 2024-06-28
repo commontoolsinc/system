@@ -136,7 +136,7 @@ impl JavaScriptBundler {
 pub mod tests {
     use crate::JavaScriptBundler;
     use anyhow::Result;
-    use test_fixtures::EsmTestServer;
+    use common_test_fixtures::EsmTestServer;
     use url::Url;
 
     fn assert_math_bundle(bundle: &str) {
