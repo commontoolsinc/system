@@ -1,17 +1,12 @@
 syntax = "proto3";
 
+import public "common/common.proto";
+
 package builder;
 
-enum ContentType {
-  JAVASCRIPT = 0;
-  PYTHON = 1;
-}
-
-enum Target { COMMON_MODULE = 0; }
-
 message BuildComponentRequest {
-  Target target = 1;
-  ContentType content_type = 2;
+  common.Target target = 1;
+  common.ContentType content_type = 2;
   string source_code = 3;
 }
 
@@ -22,7 +17,7 @@ message ReadComponentRequest { string id = 1; }
 message ReadComponentResponse { bytes component = 1; }
 
 message BundleSourceCodeRequest {
-  ContentType content_type = 1;
+  common.ContentType content_type = 1;
   string source_code = 2;
 }
 

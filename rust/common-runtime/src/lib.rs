@@ -29,4 +29,6 @@ pub use io::*;
 mod wit;
 pub use wit::*;
 
+mod proto;
+
 pub mod sync;

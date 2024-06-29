@@ -8,7 +8,7 @@ extern crate tracing;
 mod bake;
 mod bundle;
 mod error;
-pub mod proto;
+pub mod protos;
 mod serve;
 mod storage;
 

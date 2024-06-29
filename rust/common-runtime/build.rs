@@ -10,23 +10,10 @@ fn main() {
         .unwrap()
         .join("proto");
 
-    // tonic_build::configure()
-    //     .file_descriptor_set_path(out_dir.join("common_descriptor.bin"))
-    //     .compile(&["common/common.proto"], &[proto_path.clone()])
-    //     .unwrap();
-
     tonic_build::configure()
         .file_descriptor_set_path(out_dir.join("builder_descriptor.bin"))
-        .compile(
-            &["common/common.proto", "builder/builder.proto"],
-            &[proto_path.clone()],
-        )
+        .compile(&["builder/builder.proto"], &[proto_path.clone()])
         .unwrap();
-
-    println!(
-        "cargo:rerun-if-changed={}/common/common.proto",
-        proto_path.display()
-    );
 
     println!(
         "cargo:rerun-if-changed={}/builder/builder.proto",

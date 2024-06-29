@@ -9,10 +9,13 @@ use tonic::{transport::Server as TonicServer, Request, Response, Status};
 
 use crate::{
     error::BuilderError,
-    proto::{
-        builder_server::{Builder as BuilderProto, BuilderServer},
-        BuildComponentRequest, BuildComponentResponse, BundleSourceCodeRequest,
-        BundleSourceCodeResponse, ContentType, ReadComponentRequest, ReadComponentResponse, Target,
+    protos::{
+        builder::{
+            builder_server::{Builder as BuilderProto, BuilderServer},
+            BuildComponentRequest, BuildComponentResponse, BundleSourceCodeRequest,
+            BundleSourceCodeResponse, ReadComponentRequest, ReadComponentResponse,
+        },
+        common::{ContentType, Target},
     },
     storage::{HashStorage, PersistedHashStorage},
     Bake, Baker, JavaScriptBundler,

@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+package common;
+
+enum ContentType {
+  JAVASCRIPT = 0;
+  PYTHON = 1;
+}
+
+enum Target { COMMON_MODULE = 0; }

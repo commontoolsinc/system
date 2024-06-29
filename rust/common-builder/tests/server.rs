@@ -1,7 +1,10 @@
 use common_builder::{
-    proto::{
-        builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
-        BundleSourceCodeRequest, BundleSourceCodeResponse, ContentType, Target,
+    protos::{
+        builder::{
+            builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
+            BundleSourceCodeRequest, BundleSourceCodeResponse,
+        },
+        common::{ContentType, Target},
     },
     serve,
 };

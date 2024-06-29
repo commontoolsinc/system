@@ -23,6 +23,7 @@ serde_json = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "io-util", "process", "fs"] }
+tonic = { workspace = true }
 tower-http = { workspace = true, features = ["cors"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
@@ -31,3 +32,6 @@ utoipa-swagger-ui = { workspace = true, features = ["axum"] }
 wasmtime = { workspace = true }
 wasmtime-wasi = { workspace = true }
 wit-parser = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }
