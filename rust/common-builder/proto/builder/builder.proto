@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package builder;
+
+enum ContentType {
+  JAVASCRIPT = 0;
+  PYTHON = 1;
+}
+
+enum Target { COMMON_MODULE = 0; }
+
+message BuildComponentRequest {
+  Target target = 1;
+  ContentType content_type = 2;
+  string source_code = 3;
+}
+
+message BuildComponentResponse { string id = 1; }
+
+message ReadComponentRequest { string id = 1; }
+
+message ReadComponentResponse { bytes component = 1; }
+
+message BundleSourceCodeRequest {
+  ContentType content_type = 1;
+  string source_code = 2;
+}
+
+message BundleSourceCodeResponse { string bundled_source_code = 1; }
+
+service Builder {
+  rpc BuildComponent(BuildComponentRequest) returns (BuildComponentResponse) {}
+
+  rpc ReadComponent(ReadComponentRequest) returns (ReadComponentResponse) {}
+
+  rpc BundleSourceCode(BundleSourceCodeRequest)
+      returns (BundleSourceCodeResponse) {}
+}

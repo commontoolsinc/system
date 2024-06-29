@@ -6,12 +6,13 @@
 extern crate tracing;
 
 mod bake;
+mod bundle;
 mod error;
-mod openapi;
-mod routes;
+pub mod proto;
 mod serve;
 mod storage;
 
 pub use bake::*;
+pub use bundle::*;
 pub use error::*;
 pub use serve::serve;

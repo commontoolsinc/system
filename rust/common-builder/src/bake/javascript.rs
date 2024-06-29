@@ -1,8 +1,9 @@
+use crate::JavaScriptBundler;
+
 use super::fs::write_file;
 use super::Bake;
 use async_trait::async_trait;
 use bytes::Bytes;
-use common_bundler::JavaScriptBundler;
 use common_wit::{WitTarget, WitTargetFileMap};
 use tempfile::TempDir;
 use tokio::process::Command;

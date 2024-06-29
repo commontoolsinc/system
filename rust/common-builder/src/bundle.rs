@@ -1,11 +1,7 @@
-#![warn(missing_docs)]
 //! Utilities for compiling/bundling JavaScript into
 //! a single source.
 
-#[macro_use]
-extern crate tracing;
-
-use anyhow::{anyhow, Result};
+use anyhow::anyhow;
 use bytes::Bytes;
 use deno_emit::{
     bundle, BundleOptions, BundleType, EmitOptions, LoadFuture, LoadOptions, Loader,
@@ -14,6 +10,8 @@ use deno_emit::{
 use deno_graph::source::LoadResponse;
 use reqwest::Client;
 use url::Url;
+
+use crate::BuilderError;
 
 const ROOT_MODULE_URL: &str = "bundler:root";
 const ROOT_MODULE_SCHEME: &str = "bundler";
@@ -45,7 +43,9 @@ impl Loader for JavaScriptLoader {
                 ROOT_MODULE_SCHEME => Ok(Some(LoadResponse::Module {
                     content: root
                         .ok_or_else(|| {
-                            anyhow!("Attempted to load root module, but no root was specified!")
+                            BuilderError::InvalidConfiguration(
+                                "Attempted to load root module, but no root was specified!".into(),
+                            )
                         })?
                         .to_vec()
                         .into(),
@@ -112,23 +112,36 @@ impl JavaScriptBundler {
     }
 
     /// Bundle a JavaScript module via URL.
-    pub async fn bundle_from_url(url: Url) -> Result<String> {
+    pub async fn bundle_from_url(url: Url) -> Result<String, BuilderError> {
         let mut loader = JavaScriptLoader::new(None);
         let emit = bundle(url, &mut loader, None, Self::bundle_options()).await?;
         Ok(emit.code)
     }
 
     /// Bundle a JavaScript module from bytes.
-    pub async fn bundle_from_bytes(module: Bytes) -> Result<String> {
+    pub async fn bundle_from_bytes(module: Bytes) -> Result<String, BuilderError> {
         let mut loader = JavaScriptLoader::new(Some(module));
         let emit = bundle(
-            Url::parse(ROOT_MODULE_URL)?,
+            Url::parse(ROOT_MODULE_URL)
+                .map_err(|error| BuilderError::Internal(format!("{error}")))?,
             &mut loader,
             None,
             Self::bundle_options(),
         )
         .await?;
         Ok(emit.code)
+    }
+
+    /// Spawns a blocking bundle operation on a thread dedicated to blocking
+    /// operations. This is needed in cases where bundling is taking place e.g.,
+    /// within a web server.
+    pub async fn bundle_sync(source_code: String) -> Result<String, BuilderError> {
+        tokio::task::spawn_blocking(move || {
+            tokio::runtime::Handle::current().block_on(JavaScriptBundler::bundle_from_bytes(
+                Bytes::from(source_code),
+            ))
+        })
+        .await?
     }
 }
 
