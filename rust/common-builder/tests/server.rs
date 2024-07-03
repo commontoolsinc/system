@@ -1,7 +1,3 @@
-use common_builder::serve;
-
-use common_test_fixtures::sources::common::BASIC_MODULE_JS;
-
 use common_builder::protos::{
     builder::{
         builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
@@ -9,9 +5,13 @@ use common_builder::protos::{
     },
     common::{ContentType, ModuleSource, SourceCode, Target},
 };
+use common_builder::serve;
+use common_test_fixtures::sources::common::BASIC_MODULE_JS;
+use common_tracing::*;
 use tokio::net::TcpListener;
 
 #[tokio::test]
+#[common_tracing]
 async fn it_bundles_javascript() -> anyhow::Result<()> {
     let mut esm_server = common_test_fixtures::EsmTestServer::default();
     let esm_addr = esm_server.start().await?;
@@ -54,6 +54,7 @@ async fn it_bundles_javascript() -> anyhow::Result<()> {
 }
 
 #[tokio::test]
+#[common_tracing]
 async fn it_builds_javascript_modules() -> anyhow::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:0").await?;
     let addr = listener.local_addr()?;

@@ -149,6 +149,7 @@ pub mod tests {
     use crate::JavaScriptBundler;
     use anyhow::Result;
     use common_test_fixtures::EsmTestServer;
+    use common_tracing::*;
     use url::Url;
 
     fn assert_math_bundle(bundle: &str) {
@@ -158,6 +159,7 @@ pub mod tests {
     }
 
     #[tokio::test]
+    #[common_tracing]
     async fn it_bundles_javascript_from_url() -> Result<()> {
         let mut server = EsmTestServer::default();
         let addr = server.start().await?;
@@ -170,6 +172,7 @@ pub mod tests {
     }
 
     #[tokio::test]
+    #[common_tracing]
     async fn it_bundles_typescript_from_url() -> Result<()> {
         let mut server = EsmTestServer::default();
         let addr = server.start().await?;
@@ -182,6 +185,7 @@ pub mod tests {
     }
 
     #[tokio::test]
+    #[common_tracing]
     async fn it_bundles_javascript_from_bytes() -> Result<()> {
         let mut server = EsmTestServer::default();
         let addr = server.start().await?;
@@ -198,6 +202,7 @@ pub mod tests {
     }
 
     #[tokio::test]
+    #[common_tracing]
     async fn it_skips_common_modules_when_bundling() -> Result<()> {
         let candidate = r#"
 import { read, write } from "common:io/state@0.0.1";
