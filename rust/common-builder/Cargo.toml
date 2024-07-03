@@ -13,11 +13,11 @@ async-stream = { workspace = true }
 async-trait = { workspace = true }
 blake3 = { workspace = true }
 bytes = { workspace = true }
+common-protos = { workspace = true, features = ["builder"] }
 common-tracing = { workspace = true }
 deno_emit = { workspace = true }
 deno_graph = { workspace = true }
 mime_guess = { workspace = true }
-prost = { workspace = true }
 redb = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls", "charset", "http2", "macos-system-configuration"] }
 serde = { workspace = true }
@@ -35,6 +35,3 @@ wit-parser = { workspace = true }
 common-test-fixtures = { workspace = true }
 reqwest = { workspace = true, features = ["multipart"] }
 tracing-subscriber = { workspace = true }
-
-[build-dependencies]
-tonic-build = { workspace = true }

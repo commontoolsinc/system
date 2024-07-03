@@ -1,17 +1,13 @@
+use crate::{CommonRuntimeError, InputOutput, ModuleInstanceId, Runtime, RuntimeIo, Value};
+use common_protos::{
+    self as protos,
+    runtime::{RunModuleRequest, RunModuleResponse},
+};
 use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,
 };
-
 use tokio::sync::Mutex;
-
-use crate::{
-    protos::{
-        self,
-        runtime::{RunModuleRequest, RunModuleResponse},
-    },
-    CommonRuntimeError, InputOutput, ModuleInstanceId, Runtime, RuntimeIo, Value,
-};
 
 pub async fn run_module(
     request: RunModuleRequest,

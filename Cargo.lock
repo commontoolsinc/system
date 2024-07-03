@@ -614,13 +614,13 @@ dependencies = [
  "async-trait",
  "blake3",
  "bytes",
+ "common-protos",
  "common-test-fixtures",
  "common-tracing",
  "common-wit",
  "deno_emit",
  "deno_graph",
  "mime_guess",
- "prost",
  "redb",
  "reqwest",
  "serde",
@@ -629,7 +629,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "tonic",
- "tonic-build",
  "tracing",
  "tracing-subscriber",
  "url",
@@ -659,6 +658,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "common-protos"
+version = "0.1.0"
+dependencies = [
+ "prost",
+ "tonic",
+ "tonic-build",
+]
+
+[[package]]
 name = "common-runtime"
 version = "0.1.0"
 dependencies = [
@@ -669,13 +677,13 @@ dependencies = [
  "blake3",
  "bytes",
  "common-builder",
+ "common-protos",
  "common-test-fixtures",
  "common-tracing",
  "common-wit",
  "http",
  "hyper-util",
  "mime_guess",
- "prost",
  "rand",
  "redb",
  "rust-embed",
@@ -686,7 +694,6 @@ dependencies = [
  "thiserror",
  "tokio",
  "tonic",
- "tonic-build",
  "tower-http",
  "tracing",
  "tracing-subscriber",

@@ -35,6 +35,4 @@ pub use mode::*;
 mod runtime;
 pub use runtime::*;
 
-pub mod protos;
-
 pub mod sync;
