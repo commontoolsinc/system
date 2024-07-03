@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package common;
+
+enum ContentType {
+  JAVA_SCRIPT = 0;
+  PYTHON = 1;
+}
+
+enum Target { COMMON_MODULE = 0; }
+
+enum ValueType {
+  STRING = 0;
+  NUMBER = 1;
+  BOOLEAN = 2;
+  BUFFER = 3;
+}
+
+message Value {
+  oneof value_type {
+    string string = 1;
+    double number = 2;
+    bool boolean = 3;
+    bytes buffer = 4;
+  }
+}
+
+message SourceCode {
+  ContentType content_type = 1;
+  bytes body = 2;
+}
+
+message ModuleId {
+  Target target = 1;
+  string id = 2;
+}
+
+message ModuleSource {
+  Target target = 1;
+  map<string, SourceCode> source_code = 2;
+}

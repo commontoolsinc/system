@@ -1,5 +1,7 @@
 //! Host binding details for use when instantiating Common Module guests
 
+use std::collections::BTreeMap;
+
 use super::super::bindings::*;
 
 use wasmtime::component::{Resource, ResourceTable};
@@ -7,6 +9,7 @@ use wasmtime_wasi::{WasiCtx, WasiView};
 
 // NOTE: This module comes from wasmtime::component::bindgen
 use common::data::types::{Reference, Value as BindingValue};
+use wasmtime_wasi_http::{WasiHttpCtx, WasiHttpView};
 
 use crate::{InputOutput, Value};
 
@@ -58,6 +61,10 @@ impl InputOutput for LinkableInputOutput {
     fn write(&mut self, key: &str, value: Value) {
         self.0.write(key, value)
     }
+
+    fn output(&self) -> &BTreeMap<String, Value> {
+        self.0.output()
+    }
 }
 
 #[repr(transparent)]
@@ -74,6 +81,9 @@ pub struct ModuleHostState {
 
     view_resources: ResourceTable,
     view_ctx: WasiCtx,
+
+    http_resources: ResourceTable,
+    http_ctx: WasiHttpCtx,
 }
 
 impl ModuleHostState {
@@ -100,6 +110,9 @@ impl ModuleHostState {
 
             view_resources: ResourceTable::default(),
             view_ctx: WasiCtx::builder().build(),
+
+            http_resources: ResourceTable::default(),
+            http_ctx: WasiHttpCtx::new(),
         }
     }
 
@@ -153,5 +166,15 @@ impl WasiView for ModuleHostState {
 
     fn ctx(&mut self) -> &mut WasiCtx {
         &mut self.view_ctx
+    }
+}
+
+impl WasiHttpView for ModuleHostState {
+    fn ctx(&mut self) -> &mut wasmtime_wasi_http::WasiHttpCtx {
+        &mut self.http_ctx
+    }
+
+    fn table(&mut self) -> &mut ResourceTable {
+        &mut self.http_resources
     }
 }

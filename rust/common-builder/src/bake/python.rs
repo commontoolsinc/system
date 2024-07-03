@@ -2,7 +2,7 @@ use super::fs::write_file;
 use crate::Bake;
 use async_trait::async_trait;
 use bytes::Bytes;
-use common_wit::{WitTarget, WitTargetFileMap};
+use common_wit::{Target, WitTargetFileMap};
 use tempfile::TempDir;
 use tokio::{process::Command, task::JoinSet};
 
@@ -14,11 +14,7 @@ pub struct PythonBaker {}
 #[async_trait]
 impl Bake for PythonBaker {
     #[instrument]
-    async fn bake(
-        &self,
-        target: WitTarget,
-        source_code: Bytes,
-    ) -> Result<Bytes, crate::BuilderError> {
+    async fn bake(&self, target: Target, source_code: Bytes) -> Result<Bytes, crate::BuilderError> {
         let workspace = TempDir::new()?;
         debug!(
             "Created temporary workspace in {}",

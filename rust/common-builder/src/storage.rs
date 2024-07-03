@@ -14,7 +14,7 @@ pub trait HashStorage: Send + Sync {
     /// Read value stored at `key`.
     async fn read(&self, key: &Hash) -> Result<Option<Bytes>, BuilderError>;
     /// Write `value` to `key`.
-    async fn write(&mut self, value: Bytes) -> Result<Hash, BuilderError>;
+    async fn write(&self, value: Bytes) -> Result<Hash, BuilderError>;
 }
 
 const MODULE_TABLE: TableDefinition<&str, Vec<u8>> = TableDefinition::new("modules");
@@ -50,7 +50,7 @@ impl HashStorage for PersistedHashStorage {
             .map(|v| v.value().into()))
     }
 
-    async fn write(&mut self, value: Bytes) -> Result<Hash, BuilderError> {
+    async fn write(&self, value: Bytes) -> Result<Hash, BuilderError> {
         let hash = blake3::hash(&value);
 
         let tx = self.db.begin_write()?;

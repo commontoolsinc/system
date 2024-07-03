@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import public "common/common.proto";
+
+package builder;
+
+message BuildComponentRequest { common.ModuleSource module_source = 1; }
+
+message BuildComponentResponse { string id = 1; }
+
+message ReadComponentRequest { string id = 1; }
+
+message ReadComponentResponse { bytes component = 1; }
+
+message BundleSourceCodeRequest { common.ModuleSource module_source = 1; }
+
+message BundleSourceCodeResponse { string bundled_source_code = 1; }
+
+service Builder {
+  rpc BuildComponent(BuildComponentRequest) returns (BuildComponentResponse) {}
+
+  rpc ReadComponent(ReadComponentRequest) returns (ReadComponentResponse) {}
+
+  rpc BundleSourceCode(BundleSourceCodeRequest)
+      returns (BundleSourceCodeResponse) {}
+}

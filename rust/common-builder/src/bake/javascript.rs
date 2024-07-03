@@ -1,9 +1,10 @@
+use crate::JavaScriptBundler;
+
 use super::fs::write_file;
 use super::Bake;
 use async_trait::async_trait;
 use bytes::Bytes;
-use common_bundler::JavaScriptBundler;
-use common_wit::{WitTarget, WitTargetFileMap};
+use common_wit::{Target, WitTargetFileMap};
 use tempfile::TempDir;
 use tokio::process::Command;
 use tokio::task::JoinSet;
@@ -17,11 +18,7 @@ pub struct JavaScriptBaker {}
 #[async_trait]
 impl Bake for JavaScriptBaker {
     #[instrument]
-    async fn bake(
-        &self,
-        target: WitTarget,
-        source_code: Bytes,
-    ) -> Result<Bytes, crate::BuilderError> {
+    async fn bake(&self, target: Target, source_code: Bytes) -> Result<Bytes, crate::BuilderError> {
         let workspace = TempDir::new()?;
 
         debug!(

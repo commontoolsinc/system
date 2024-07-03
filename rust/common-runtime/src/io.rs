@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::{sync::ConditionalSync, Value};
 
 /// A generic trait for a reference to state. The implementation may embody
@@ -14,6 +16,11 @@ pub trait InputOutput: ConditionalSync + std::fmt::Debug {
     /// `key` may or may not reflect the effect of a `write`, regardless of
     /// whether or not it was considered to be successful.
     fn write(&mut self, key: &str, value: Value);
+
+    /// Get a mapping of the output keys to their set values. Keys with no set
+    /// values will not be pressent in the output, even if they were allowed to
+    /// be set.
+    fn output(&self) -> &BTreeMap<String, Value>;
 }
 
 impl<Io> InputOutput for Box<Io>
@@ -26,5 +33,9 @@ where
 
     fn write(&mut self, key: &str, value: Value) {
         self.as_mut().write(key, value)
+    }
+
+    fn output(&self) -> &BTreeMap<String, Value> {
+        self.as_ref().output()
     }
 }

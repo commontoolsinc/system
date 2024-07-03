@@ -6,8 +6,8 @@
 
 pub mod bindings;
 
-mod builder;
-pub use builder::*;
+mod compile;
+pub use compile::*;
 
-mod interpreter;
+mod interpret;
 // pub use interpreter::*;

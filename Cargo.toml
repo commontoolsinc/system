@@ -1,7 +1,6 @@
 [workspace]
 members = [
   "rust/common-builder",
-  "rust/common-bundler",
   "rust/common-runtime",
   "rust/common-test-fixtures",
   "rust/common-wit",
@@ -12,17 +11,17 @@ resolver = "2"
 
 [workspace.dependencies]
 common-builder = { path = "./rust/common-builder" }
-common-bundler = { path = "./rust/common-bundler" }
-common-test-fixtures = { path = "./rust/common-test-fixtures" }
 common-runtime = { path = "./rust/common-runtime" }
+common-test-fixtures = { path = "./rust/common-test-fixtures" }
+common-wit = { path = "./rust/common-wit" }
 
 anyhow = { version = "1" }
+async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
 axum = { version = "0.7" }
 blake3 = { version = "1.5" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
-common-wit = { path = "./rust/common-wit" }
 deno_emit = { version = "0.43" }
 deno_graph = { version = "0.79" }
 http = { version = "1.1" }
@@ -31,6 +30,8 @@ hyper-util = { version = "0.1", features = ["client", "client-legacy"] }
 js-component-bindgen = { version = "1", features = ["transpile-bindgen"] }
 js-sys = { version = "0.3" }
 mime_guess = { version = "2" }
+prost = { version = "0.12" }
+rand = { version = "0.8" }
 redb = { version = "2" }
 reqwest = { version = "0.12", default-features = false  }
 rust-embed = { version = "8.4" }
@@ -38,6 +39,8 @@ serde = { version = "1" }
 serde_json = { version = "1" }
 tempfile = { version = "3" }
 thiserror = { version = "1" }
+tonic = { version = "0.11" }
+tonic-build = { version = "0.11" }
 tokio = { version = "1" }
 tower-http = { version = "0.5" }
 tracing = { version = "0.1" }
@@ -49,10 +52,11 @@ utoipa-swagger-ui = { version = "7" }
 wasm-bindgen = { version = "0.2" }
 wasmtime = { version = "22" }
 wasmtime-wasi = { version = "22" }
+wasmtime-wasi-http = { version = "22" }
 wasmtime-environ = { version = "22" }
 web-sys = { version = "0.3" }
-wit-bindgen = { version = "0.26" }
-wit-parser = { version = "0.211" }
+wit-bindgen = { version = "0.27" }
+wit-parser = { version = "0.212" }
 
 [profile.release]
 opt-level = 'z'

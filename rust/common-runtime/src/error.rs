@@ -23,4 +23,18 @@ pub enum CommonRuntimeError {
     /// An error occurred when a Common Module was run
     #[error("Failed to run a Common Module: {0}")]
     ModuleRunFailed(String),
+
+    /// An unexpected internal error occurred
+    #[error("Internal error")]
+    InternalError(String),
+
+    /// A provided value was empty or of an unexpected shape
+    #[error("Invalid value")]
+    InvalidValue,
+}
+
+impl From<tonic::transport::Error> for CommonRuntimeError {
+    fn from(value: tonic::transport::Error) -> Self {
+        CommonRuntimeError::InternalError(format!("{value}"))
+    }
 }

@@ -11,6 +11,8 @@ use std::{
 use tokio::{net::TcpListener, task::JoinHandle};
 use tower_http::services::ServeDir;
 
+pub mod sources;
+
 /// Manages a static server for use in builders and bundlers,
 /// serving various types of ES modules.
 pub struct EsmTestServer {

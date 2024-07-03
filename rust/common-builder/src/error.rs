@@ -1,16 +1,9 @@
-use axum::{
-    extract::multipart::MultipartError,
-    http::{uri::InvalidUri, StatusCode},
-    response::IntoResponse,
-    Json,
-};
 use blake3::HexError;
 use redb::{CommitError, DatabaseError, StorageError, TableError, TransactionError};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use tokio::task::JoinError;
 use tracing::subscriber::SetGlobalDefaultError;
-use utoipa::ToSchema;
 
 /// Errors from various builder operations.
 #[derive(Debug, Error)]
@@ -42,12 +35,6 @@ impl From<std::io::Error> for BuilderError {
     fn from(value: std::io::Error) -> Self {
         error!("{}", value);
         BuilderError::Internal(format!("{}", value))
-    }
-}
-
-impl From<MultipartError> for BuilderError {
-    fn from(_value: MultipartError) -> Self {
-        BuilderError::BadRequest
     }
 }
 
@@ -113,35 +100,8 @@ impl From<anyhow::Error> for BuilderError {
     }
 }
 
-impl From<InvalidUri> for BuilderError {
-    fn from(value: InvalidUri) -> Self {
-        warn!("{}", value);
-        BuilderError::BadRequest
-    }
-}
-
-impl IntoResponse for BuilderError {
-    fn into_response(self) -> axum::response::Response {
-        let status = match self {
-            BuilderError::BadRequest => StatusCode::BAD_REQUEST,
-            BuilderError::InvalidModule(_) => StatusCode::BAD_REQUEST,
-            BuilderError::InvalidConfiguration(_) => StatusCode::BAD_REQUEST,
-            BuilderError::Internal(_) => StatusCode::INTERNAL_SERVER_ERROR,
-            BuilderError::ModuleNotFound => StatusCode::NOT_FOUND,
-        };
-
-        (
-            status,
-            Json(ErrorResponse {
-                error: self.to_string(),
-            }),
-        )
-            .into_response()
-    }
-}
-
 /// Response used to contain errors in the builder server.
-#[derive(Serialize, Deserialize, ToSchema)]
+#[derive(Serialize, Deserialize)]
 pub struct ErrorResponse {
     error: String,
 }
