@@ -31,6 +31,7 @@ js-component-bindgen = { version = "1", features = ["transpile-bindgen"] }
 js-sys = { version = "0.3" }
 mime_guess = { version = "2" }
 prost = { version = "0.12" }
+rand = { version = "0.8" }
 redb = { version = "2" }
 reqwest = { version = "0.12", default-features = false  }
 rust-embed = { version = "8.4" }
@@ -51,10 +52,11 @@ utoipa-swagger-ui = { version = "7" }
 wasm-bindgen = { version = "0.2" }
 wasmtime = { version = "22" }
 wasmtime-wasi = { version = "22" }
+wasmtime-wasi-http = { version = "22" }
 wasmtime-environ = { version = "22" }
 web-sys = { version = "0.3" }
-wit-bindgen = { version = "0.26" }
-wit-parser = { version = "0.211" }
+wit-bindgen = { version = "0.27" }
+wit-parser = { version = "0.212" }
 
 [profile.release]
 opt-level = 'z'

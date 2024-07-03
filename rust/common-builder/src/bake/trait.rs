@@ -1,7 +1,7 @@
 use crate::BuilderError;
 use async_trait::async_trait;
 use bytes::Bytes;
-use common_wit::WitTarget;
+use common_wit::Target;
 
 /// A trait to build a WASM artifact containing WIT modules, and
 /// source code to be executed within the artifact, where specific
@@ -10,5 +10,5 @@ use common_wit::WitTarget;
 pub trait Bake {
     /// Build a WASM artifact containing the WIT modules and means
     /// to execute `source_code`.
-    async fn bake(&self, target: WitTarget, source_code: Bytes) -> Result<Bytes, BuilderError>;
+    async fn bake(&self, target: Target, source_code: Bytes) -> Result<Bytes, BuilderError>;
 }

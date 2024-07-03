@@ -23,12 +23,15 @@ pub use value::*;
 mod module;
 pub use module::*;
 
+mod serve;
+pub use serve::*;
+
 mod io;
 pub use io::*;
 
 mod wit;
 pub use wit::*;
 
-mod proto;
+pub mod protos;
 
 pub mod sync;

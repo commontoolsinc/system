@@ -11,11 +11,15 @@ common-wit = { workspace = true }
 
 anyhow = { workspace = true }
 async-trait = { workspace = true }
+async-stream = { workspace = true }
 axum = { workspace = true, features = ["multipart", "macros"] }
 blake3 = { workspace = true }
 bytes = { workspace = true }
+http = { workspace = true }
 hyper-util = { workspace = true }
 mime_guess = { workspace = true }
+prost = { workspace = true }
+rand = { workspace = true }
 redb = { workspace = true }
 rust-embed = { workspace = true }
 serde = { workspace = true }
@@ -31,7 +35,12 @@ utoipa = { workspace = true, features = ["axum_extras"] }
 utoipa-swagger-ui = { workspace = true, features = ["axum"] }
 wasmtime = { workspace = true }
 wasmtime-wasi = { workspace = true }
+wasmtime-wasi-http = { workspace = true }
 wit-parser = { workspace = true }
+
+[dev-dependencies]
+common-builder = { workspace = true }
+common-test-fixtures = { workspace = true }
 
 [build-dependencies]
 tonic-build = { workspace = true }

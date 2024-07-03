@@ -1,14 +1,14 @@
-use common_builder::{
-    protos::{
-        builder::{
-            builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
-            BundleSourceCodeRequest, BundleSourceCodeResponse,
-        },
-        common::{ContentType, Target},
-    },
-    serve,
-};
+use common_builder::serve;
 
+use common_test_fixtures::sources::common::BASIC_MODULE_JS;
+
+use common_builder::protos::{
+    builder::{
+        builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
+        BundleSourceCodeRequest, BundleSourceCodeResponse,
+    },
+    common::{ContentType, ModuleSource, SourceCode, Target},
+};
 use tokio::net::TcpListener;
 
 #[tokio::test]
@@ -27,12 +27,22 @@ async fn it_bundles_javascript() -> anyhow::Result<()> {
         bundled_source_code,
     } = client
         .bundle_source_code(BundleSourceCodeRequest {
-            content_type: ContentType::Javascript.into(),
-            source_code: format!(
-                r#"export * from "http://{}/math/index.js";
-"#,
-                esm_addr
-            ),
+            module_source: Some(ModuleSource {
+                target: Target::CommonModule.into(),
+                source_code: [(
+                    "module".to_owned(),
+                    SourceCode {
+                        content_type: ContentType::JavaScript.into(),
+                        body: format!(
+                            r#"export * from "http://{}/math/index.js";
+    "#,
+                            esm_addr
+                        )
+                        .into(),
+                    },
+                )]
+                .into(),
+            }),
         })
         .await?
         .into_inner();
@@ -49,36 +59,23 @@ async fn it_builds_javascript_modules() -> anyhow::Result<()> {
     let addr = listener.local_addr()?;
     let handler = tokio::spawn(async { serve(listener).await.unwrap() });
 
-    let source_code = r#"import { read, write } from 'common:io/state@0.0.1';
-
-export class Body {
-    run() {
-        const foo = read('foo');
-        const value = foo?.deref();
-
-        write('baz', {
-          tag: 'string',
-          val: 'quux'
-        });
-    }
-}
-
-export const module = {
-  Body,
-
-  create() {
-      return new Body();
-  }
-};"#
-    .to_owned();
+    let source_code = Vec::from(BASIC_MODULE_JS);
 
     let mut client = BuilderClient::connect(format!("http://{}", addr)).await?;
 
     let BuildComponentResponse { id } = client
         .build_component(BuildComponentRequest {
-            target: Target::CommonModule.into(),
-            content_type: ContentType::Javascript.into(),
-            source_code,
+            module_source: Some(ModuleSource {
+                target: Target::CommonModule.into(),
+                source_code: [(
+                    "module".to_owned(),
+                    SourceCode {
+                        content_type: ContentType::JavaScript.into(),
+                        body: source_code,
+                    },
+                )]
+                .into(),
+            }),
         })
         .await?
         .into_inner();

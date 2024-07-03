@@ -5,7 +5,7 @@ use wasmtime::{
 };
 
 use crate::{
-    wasmtime::bindings::Common, CommonModule, CommonRuntimeError, ModulePreparer, ToWasmComponent,
+    wasmtime::bindings::Common, CommonRuntimeError, Module, ModulePreparer, ToWasmComponent,
 };
 
 use super::WasmtimePrebuiltModule;
@@ -18,11 +18,11 @@ use super::WasmtimePrebuiltModule;
 /// the module over time (even across sessions) may be significantly faster than
 /// other options (that may entail e.g., interpreting the code).
 #[derive(Clone)]
-pub struct WasmtimeBuilder {
+pub struct WasmtimeCompile {
     engine: Engine,
 }
 
-impl WasmtimeBuilder {
+impl WasmtimeCompile {
     /// Instantiate a [WasmtimeBuilder]
     pub fn new() -> Result<Self, CommonRuntimeError> {
         let mut config = Config::default();
@@ -38,16 +38,13 @@ impl WasmtimeBuilder {
 }
 
 #[async_trait]
-impl<Module> ModulePreparer<Module> for WasmtimeBuilder
+impl<Mod> ModulePreparer<Mod> for WasmtimeCompile
 where
-    Module: CommonModule + ToWasmComponent + 'static,
+    Mod: Module + ToWasmComponent + 'static,
 {
     type PreparedModule = WasmtimePrebuiltModule;
 
-    async fn prepare(
-        &mut self,
-        module: Module,
-    ) -> Result<Self::PreparedModule, CommonRuntimeError> {
+    async fn prepare(&mut self, module: Mod) -> Result<Self::PreparedModule, CommonRuntimeError> {
         let component_wasm = module.to_wasm_component().await?;
 
         let component = Component::new(&self.engine, component_wasm)
@@ -56,6 +53,9 @@ where
         let mut linker = Linker::new(&self.engine);
 
         wasmtime_wasi::add_to_linker_sync(&mut linker)
+            .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
+
+        wasmtime_wasi_http::proxy::sync::add_only_http_to_linker(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
         Common::add_to_linker(&mut linker, |environment| environment)

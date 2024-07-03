@@ -18,28 +18,28 @@ pub const COMMON_IO_WIT: &[u8] = include_bytes!("../../../typescript/common/io/w
 pub const COMMON_DATA_WIT: &[u8] = include_bytes!("../../../typescript/common/data/wit/data.wit");
 
 /// A target that some candidate source code may express the implementation of
-#[derive(Debug, Serialize, Deserialize)]
-pub enum WitTarget {
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+pub enum Target {
     /// The most basic target: a Common Module
     #[serde(rename = "common:module")]
     CommonModule,
 }
 
-impl WitTarget {
+impl Target {
     /// The presumptive WIT world that corresponds to a give [WitTarget]
     pub fn world(&self) -> &'static str {
         match self {
-            WitTarget::CommonModule => "common",
+            Target::CommonModule => "common",
         }
     }
 }
 
-impl FromStr for WitTarget {
+impl FromStr for Target {
     type Err = std::io::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
-            "common:module" => WitTarget::CommonModule,
+            "common:module" => Target::CommonModule,
             _ => {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
@@ -50,13 +50,13 @@ impl FromStr for WitTarget {
     }
 }
 
-impl std::fmt::Display for WitTarget {
+impl std::fmt::Display for Target {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
             "{}",
             match self {
-                WitTarget::CommonModule => "common:module",
+                Target::CommonModule => "common:module",
             }
         )
     }
@@ -120,16 +120,16 @@ impl WitTargetFileMap {
     }
 }
 
-impl From<WitTarget> for WitTargetFileMap {
-    fn from(value: WitTarget) -> Self {
+impl From<Target> for WitTargetFileMap {
+    fn from(value: Target) -> Self {
         WitTargetFileMap::from(&value)
     }
 }
 
-impl From<&WitTarget> for WitTargetFileMap {
-    fn from(value: &WitTarget) -> Self {
+impl From<&Target> for WitTargetFileMap {
+    fn from(value: &Target) -> Self {
         WitTargetFileMap(match value {
-            WitTarget::CommonModule => BTreeMap::from([
+            Target::CommonModule => BTreeMap::from([
                 ("target.wit".into(), COMMON_MODULE_WIT),
                 ("deps/io/io.wit".into(), COMMON_IO_WIT),
                 ("deps/data/data.wit".into(), COMMON_DATA_WIT),
@@ -143,12 +143,12 @@ mod tests {
     use anyhow::Result;
     use tempfile::TempDir;
 
-    use crate::{WitTarget, WitTargetFileMap};
+    use crate::{Target, WitTargetFileMap};
 
     #[tokio::test]
     async fn it_can_write_a_wit_hierarchy_to_the_file_system() -> Result<()> {
         let output = TempDir::new()?;
-        let file_map: WitTargetFileMap = WitTarget::CommonModule.into();
+        let file_map: WitTargetFileMap = Target::CommonModule.into();
 
         file_map.clone().write_to(output.path()).await?;
 

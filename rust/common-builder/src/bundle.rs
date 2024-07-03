@@ -135,11 +135,10 @@ impl JavaScriptBundler {
     /// Spawns a blocking bundle operation on a thread dedicated to blocking
     /// operations. This is needed in cases where bundling is taking place e.g.,
     /// within a web server.
-    pub async fn bundle_sync(source_code: String) -> Result<String, BuilderError> {
+    pub async fn bundle_from_bytes_sync(source_code: Bytes) -> Result<String, BuilderError> {
         tokio::task::spawn_blocking(move || {
-            tokio::runtime::Handle::current().block_on(JavaScriptBundler::bundle_from_bytes(
-                Bytes::from(source_code),
-            ))
+            tokio::runtime::Handle::current()
+                .block_on(JavaScriptBundler::bundle_from_bytes(source_code))
         })
         .await?
     }

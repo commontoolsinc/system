@@ -4,11 +4,7 @@ import public "common/common.proto";
 
 package builder;
 
-message BuildComponentRequest {
-  common.Target target = 1;
-  common.ContentType content_type = 2;
-  string source_code = 3;
-}
+message BuildComponentRequest { common.ModuleSource module_source = 1; }
 
 message BuildComponentResponse { string id = 1; }
 
@@ -16,10 +12,7 @@ message ReadComponentRequest { string id = 1; }
 
 message ReadComponentResponse { bytes component = 1; }
 
-message BundleSourceCodeRequest {
-  common.ContentType content_type = 1;
-  string source_code = 2;
-}
+message BundleSourceCodeRequest { common.ModuleSource module_source = 1; }
 
 message BundleSourceCodeResponse { string bundled_source_code = 1; }
 

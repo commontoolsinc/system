@@ -3,7 +3,7 @@ mod javascript;
 mod python;
 mod r#trait;
 
-use common_wit::WitTarget;
+use common_wit::Target;
 pub use javascript::*;
 pub use python::*;
 pub use r#trait::*;
@@ -21,11 +21,7 @@ pub enum Baker {
 
 #[async_trait]
 impl Bake for Baker {
-    async fn bake(
-        &self,
-        target: WitTarget,
-        source_code: Bytes,
-    ) -> Result<Bytes, crate::BuilderError> {
+    async fn bake(&self, target: Target, source_code: Bytes) -> Result<Bytes, crate::BuilderError> {
         match self {
             Baker::JavaScript => (JavaScriptBaker {}).bake(target, source_code).await,
             Baker::Python => (PythonBaker {}).bake(target, source_code).await,

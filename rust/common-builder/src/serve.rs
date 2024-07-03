@@ -2,8 +2,7 @@ use std::str::FromStr;
 
 use async_trait::async_trait;
 use blake3::Hash;
-use bytes::Bytes;
-use common_wit::WitTarget;
+use common_wit::Target;
 use tokio::net::TcpListener;
 use tonic::{transport::Server as TonicServer, Request, Response, Status};
 
@@ -15,7 +14,8 @@ use crate::{
             BuildComponentRequest, BuildComponentResponse, BundleSourceCodeRequest,
             BundleSourceCodeResponse, ReadComponentRequest, ReadComponentResponse,
         },
-        common::{ContentType, Target},
+        common::{ContentType, ModuleSource, Target as TargetProto},
+        MAX_MESSAGE_SIZE,
     },
     storage::{HashStorage, PersistedHashStorage},
     Bake, Baker, JavaScriptBundler,
@@ -23,6 +23,33 @@ use crate::{
 
 pub struct Builder {
     storage: PersistedHashStorage,
+}
+
+impl Builder {
+    fn take_one_from_module_source(
+        &self,
+        module_source: Option<ModuleSource>,
+    ) -> Option<(Target, ContentType, Vec<u8>)> {
+        if let Some(module_source) = module_source {
+            let target = match module_source.target() {
+                TargetProto::CommonModule => Target::CommonModule,
+            };
+            let source_code = module_source.source_code;
+
+            if source_code.len() > 1 {
+                // TODO: Support multiple source inputs
+                warn!("Multiple sources were provided, but only one will be used!")
+            }
+
+            if let Some((_, source_code)) = source_code.into_iter().next() {
+                Some((target, source_code.content_type(), source_code.body))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
 }
 
 #[async_trait]
@@ -33,16 +60,21 @@ impl BuilderProto for Builder {
     ) -> Result<Response<BuildComponentResponse>, Status> {
         let request = request.into_inner();
 
-        let baker = match request.content_type() {
-            ContentType::Javascript => Baker::JavaScript,
-            ContentType::Python => Baker::Python,
+        let (target, baker, source_code) = if let Some((target, content_type, source_code)) =
+            self.take_one_from_module_source(request.module_source)
+        {
+            let baker = match content_type {
+                ContentType::JavaScript => Baker::JavaScript,
+                ContentType::Python => Baker::Python,
+            };
+            (target, baker, source_code)
+        } else {
+            return Err(Status::invalid_argument(
+                "Must provide at least one source to build",
+            ));
         };
 
-        let target = match request.target() {
-            Target::CommonModule => WitTarget::CommonModule,
-        };
-
-        let bytes = baker.bake(target, Bytes::from(request.source_code)).await?;
+        let bytes = baker.bake(target, source_code.into()).await?;
         let hash = self.storage.write(bytes).await?;
 
         Ok(Response::new(BuildComponentResponse {
@@ -74,7 +106,25 @@ impl BuilderProto for Builder {
     ) -> Result<Response<BundleSourceCodeResponse>, Status> {
         let request = request.into_inner();
 
-        let bundled_source_code = JavaScriptBundler::bundle_sync(request.source_code).await?;
+        let source_code = if let Some((target, content_type, source_code)) =
+            self.take_one_from_module_source(request.module_source)
+        {
+            match (target, content_type) {
+                (Target::CommonModule, ContentType::JavaScript) => source_code,
+                _ => {
+                    return Err(Status::invalid_argument(
+                        "Only JavaScript targetting 'common:module' may be bundled!",
+                    ))
+                }
+            }
+        } else {
+            return Err(Status::invalid_argument(
+                "Must provide at least one source to bundle",
+            ));
+        };
+
+        let bundled_source_code =
+            JavaScriptBundler::bundle_from_bytes_sync(source_code.into()).await?;
 
         Ok(Response::new(BundleSourceCodeResponse {
             bundled_source_code,
@@ -94,7 +144,7 @@ impl From<BuilderError> for Status {
     }
 }
 
-/// Start the Common Builder server, listening to incomming connections on the
+/// Start the Common Builder server, listening to incoming connections on the
 /// provided [TcpListener]
 pub async fn serve(listener: TcpListener) -> Result<(), BuilderError> {
     let incoming_stream = async_stream::stream! {
@@ -105,7 +155,9 @@ pub async fn serve(listener: TcpListener) -> Result<(), BuilderError> {
     };
 
     let storage = PersistedHashStorage::temporary()?;
-    let builder_server = BuilderServer::new(Builder { storage });
+    let builder_server = BuilderServer::new(Builder { storage })
+        .max_encoding_message_size(MAX_MESSAGE_SIZE)
+        .max_decoding_message_size(MAX_MESSAGE_SIZE);
 
     TonicServer::builder()
         .add_service(builder_server)

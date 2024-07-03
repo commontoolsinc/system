@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+import public "common/common.proto";
+
+package runtime;
+
+enum InstantiationMode {
+  COMPILE = 0;
+  INTERPRET = 1;
+}
+
+message InstantiateModuleRequest {
+  oneof module_reference {
+    common.ModuleId module_id = 1;
+    common.ModuleSource module_source = 2;
+  }
+
+  InstantiationMode mode = 3;
+
+  map<string, common.ValueType> output_shape = 4;
+  map<string, common.Value> default_input = 5;
+}
+
+message InstantiateModuleResponse {
+  common.ModuleId module_id = 1;
+  string instance_id = 2;
+}
+
+message RunModuleRequest {
+  string instance_id = 1;
+  map<string, common.Value> input = 2;
+}
+
+message RunModuleResponse { map<string, common.Value> output = 1; }
+
+service Runtime {
+  rpc InstantiateModule(InstantiateModuleRequest)
+      returns (InstantiateModuleResponse) {}
+
+  rpc RunModule(RunModuleRequest) returns (RunModuleResponse) {}
+}

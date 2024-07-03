@@ -91,7 +91,7 @@ jobs:
           ${{ matrix.features }}
           ${{ matrix.toolchain}}" > test-results/target
 
-          cargo +${{ matrix.toolchain }} nextest run $FEATURES --profile ci --color always 2>&1 | tee test-results/log
+          cargo +${{ matrix.toolchain }} nextest run --release --profile ci --color always 2>&1 | tee test-results/log
         env:
           RUST_LOG: debug
       - uses: actions/upload-artifact@v3
