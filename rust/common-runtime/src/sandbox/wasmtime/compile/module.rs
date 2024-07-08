@@ -39,22 +39,10 @@ impl PreparedModule for WasmtimePrebuiltModule {
         let (common, _inst) = Common::instantiate(&mut store, &self.component, &self.linker)
             .map_err(|error| CommonRuntimeError::ModuleInstantiationFailed(format!("{error}")))?;
 
-        let common_module = common.common_module_module();
-
-        match common_module.call_create(&mut store) {
-            Ok(body_resource) => {
-                common
-                    .common_module_module()
-                    .body()
-                    .call_run(&mut store, body_resource)
-                    .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?;
-            }
-            Err(error) => {
-                return Err(CommonRuntimeError::ModuleInstantiationFailed(format!(
-                    "{error}"
-                )))
-            }
-        };
+        common
+            .call_run(&mut store)
+            .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?
+            .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?;
 
         Ok(store.into_data().take_io().into())
     }

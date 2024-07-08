@@ -1,6 +1,7 @@
 [workspace]
 members = [
   "rust/common-builder",
+  "rust/common-interpreter",
   "rust/common-macros",
   "rust/common-runtime",
   "rust/common-test-fixtures",
@@ -17,6 +18,9 @@ async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
 axum = { version = "0.7" }
 blake3 = { version = "1.5" }
+boa_engine = { version = "0.18"}
+boa_gc = { version = "0.18" }
+boa_runtime = { version = "0.18" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
 common-builder = { path = "./rust/common-builder" }
@@ -32,8 +36,10 @@ http-body-util = { version = "0.1" }
 hyper-util = { version = "0.1", features = ["client", "client-legacy"] }
 js-component-bindgen = { version = "1", features = ["transpile-bindgen"] }
 js-sys = { version = "0.3" }
+lazy_static = { version = "1" }
 mime_guess = { version = "2" }
-prost = { version = "0.12" }
+once_cell = { version = "1" }
+prost = { version = "0.13" }
 rand = { version = "0.8" }
 redb = { version = "2" }
 reqwest = { version = "0.12", default-features = false  }
@@ -42,16 +48,14 @@ serde = { version = "1" }
 serde_json = { version = "1" }
 tempfile = { version = "3" }
 thiserror = { version = "1" }
-tonic = { version = "0.11" }
-tonic-build = { version = "0.11" }
+tonic = { version = "0.12" }
+tonic-build = { version = "0.12" }
 tokio = { version = "1" }
 tower-http = { version = "0.5" }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = ["env-filter", "tracing-log", "json"] }
 tracing-web = { version = "0.1" }
 url = { version = "2" }
-utoipa = { version = "4" }
-utoipa-swagger-ui = { version = "7" }
 wasm-bindgen = { version = "0.2" }
 wasmtime = { version = "22" }
 wasmtime-wasi = { version = "22" }
@@ -59,8 +63,12 @@ wasmtime-wasi-http = { version = "22" }
 wasmtime-environ = { version = "22" }
 web-sys = { version = "0.3" }
 wit-bindgen = { version = "0.27" }
+wit-bindgen-rt = { version = "0.27" }
 wit-parser = { version = "0.212" }
 
 [profile.release]
-opt-level = 'z'
+codegen-units = 1
+opt-level = "s"
+debug = false
+strip = true
 lto = true

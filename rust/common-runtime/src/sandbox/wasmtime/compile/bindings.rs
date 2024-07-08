@@ -155,9 +155,27 @@ impl common::data::types::HostReference for ModuleHostState {
         self.references.delete(host_resource)?;
         Ok(())
     }
+
+    fn read(
+        &mut self,
+        _this: wasmtime::component::Resource<Reference>,
+        _name: String,
+    ) -> Option<wasmtime::component::Resource<Reference>> {
+        todo!("Resource sub-keys not yet supported")
+    }
 }
 
 impl common::data::types::Host for ModuleHostState {}
+
+impl common::module::reflect::Host for ModuleHostState {
+    fn input_keys(&mut self) -> Vec<String> {
+        todo!("Input key enumeration not yet supported")
+    }
+
+    fn output_keys(&mut self) -> Vec<String> {
+        todo!("Output key enumeration not yet supported")
+    }
+}
 
 impl WasiView for ModuleHostState {
     fn table(&mut self) -> &mut ResourceTable {

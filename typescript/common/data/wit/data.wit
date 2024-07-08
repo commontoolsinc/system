@@ -8,6 +8,8 @@ interface types {
     // This call is fallible (for example, if the dereference is not allowed)
     // The value may be none (for example, if it is strictly opaque)
     deref: func() -> result<option<value>, %string>;
+
+    read: func(name: %string) -> option<reference>;
   }
 
   type %string = string;
