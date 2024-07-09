@@ -1,0 +1,19 @@
+[package]
+name = "common-wasi"
+description = "WASI 0.2 implementation for Common components."
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+bytes = { workspace = true }
+cap-rand = { version = "3.1.0", features = ["small_rng"] }
+cap-std = "3.1.0"
+cap-time-ext = "3.1.0"
+futures = { workspace = true }
+once_cell = { workspace = true }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "sync", "time", "signal", "io-util"] }
+tracing = { workspace = true }
+wasmtime = { workspace = true, features = ["component-model"] }
