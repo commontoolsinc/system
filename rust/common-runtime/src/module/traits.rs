@@ -1,11 +1,8 @@
-use std::collections::BTreeMap;
-
-use crate::{ModuleId, ModuleInstanceId, SourceCode};
+use crate::{CommonRuntimeError, ModuleId, ModuleInstanceId, SourceCode};
 use async_trait::async_trait;
 use bytes::Bytes;
-use common_wit::Target;
-
-use crate::{sync::ConditionalSync, CommonRuntimeError, InputOutput};
+use common_wit::{ConditionalSync, InputOutput, Target};
+use std::collections::BTreeMap;
 
 /// A [ModuleDefinition] embodies the substance of a Common Module.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]

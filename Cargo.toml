@@ -7,6 +7,7 @@ members = [
   "rust/common-runtime",
   "rust/common-test-fixtures",
   "rust/common-tracing",
+  "rust/common-bindings",
   "rust/common-wit",
 ]
 
@@ -31,11 +32,13 @@ common-protos = { path = "./rust/common-protos", default-features = false }
 common-runtime = { path = "./rust/common-runtime" }
 common-test-fixtures = { path = "./rust/common-test-fixtures" }
 common-tracing = { path = "./rust/common-tracing" }
+common-bindings = { path = "./rust/common-bindings" }
 common-wit = { path = "./rust/common-wit" }
 criterion = { version = "0.5" }
 deno_emit = { version = "0.43" }
-deno_graph = { version = "0.79" }
+deno_graph = { version = "0.80" }
 getrandom = { version = "0.2", features = ["js"] }
+futures = { version = "0.3" }
 http = { version = "1.1" }
 http-body-util = { version = "0.1" }
 hyper-util = { version = "0.1", features = ["client", "client-legacy"] }
@@ -66,8 +69,6 @@ tracing-web = { version = "0.1" }
 url = { version = "2" }
 wasm-bindgen = { version = "0.2" }
 wasmtime = { version = "22" }
-wasmtime-wasi = { version = "22" }
-wasmtime-wasi-http = { version = "22" }
 wasmtime-environ = { version = "22" }
 web-sys = { version = "0.3" }
 wit-bindgen = { version = "0.27" }

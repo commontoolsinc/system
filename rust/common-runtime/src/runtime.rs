@@ -1,9 +1,9 @@
 use crate::{
-    CommonRuntimeError, InputOutput, ModuleDefinition, ModuleInstance, ModuleInstanceId,
-    ModulePreparer, OutputShape, PreparedModule, ToModuleSources, ToWasmComponent, Value,
-    ValueKind,
+    CommonRuntimeError, ModuleDefinition, ModuleInstance, ModuleInstanceId, ModulePreparer,
+    PreparedModule, ToModuleSources, ToWasmComponent,
 };
 use common_protos::common;
+use common_wit::{InputOutput, OutputShape, Value, ValueKind};
 use std::collections::{BTreeMap, HashMap};
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
@@ -198,7 +198,10 @@ impl TryFrom<(HashMap<String, common::Value>, HashMap<String, i32>)> for Runtime
     ) -> Result<Self, Self::Error> {
         let mut input = BTreeMap::new();
         for (key, value) in input_proto.into_iter() {
-            input.insert(key, Value::try_from(value)?);
+            input.insert(
+                key,
+                Value::try_from(value).map_err(|_| CommonRuntimeError::InvalidValue)?,
+            );
         }
 
         let mut output_shape = BTreeMap::new();

@@ -3,9 +3,8 @@
 use async_trait::async_trait;
 use std::marker::PhantomData;
 
-use crate::{
-    InputOutput, ModuleDefinition, ModuleInstance, ModulePreparer, PreparedModule, ToWasmComponent,
-};
+use crate::{ModuleDefinition, ModuleInstance, ModulePreparer, PreparedModule, ToWasmComponent};
+use commit_wit::InputOutput;
 
 #[derive(Clone)]
 pub struct CompiledModuleInstance<Io>

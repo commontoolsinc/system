@@ -1,18 +1,16 @@
-use std::sync::Arc;
-
+use crate::{
+    sandbox::wasmtime::HostState, CommonRuntimeError, ModuleId, ModuleInstance, ModuleInstanceId,
+    PreparedModule,
+};
 use async_trait::async_trait;
+use common_bindings::{instantiate_async_module, CommonModuleEntry};
+use common_wit::InputOutput;
+use std::sync::Arc;
 use tokio::sync::Mutex;
 use wasmtime::{
     component::{Component, Instance, Linker},
     AsContextMut, Engine, Store,
 };
-
-use crate::{
-    wasmtime::bindings::common_module::Common, CommonRuntimeError, InputOutput, ModuleId,
-    ModuleInstance, ModuleInstanceId, PreparedModule,
-};
-
-use super::bindings::ModuleHostState;
 
 /// A [WasmtimeCompiledModule] is a pre-transformed, pre-compiled Common Module.
 /// In other words: a harness to run fully-self-contained Wasm Component bytes.
@@ -23,7 +21,7 @@ where
 {
     id: ModuleId,
     engine: Engine,
-    linker: Linker<ModuleHostState<Io>>,
+    linker: Linker<HostState<Io>>,
     component: Component,
 }
 
@@ -35,7 +33,7 @@ where
     pub fn new(
         id: ModuleId,
         engine: Engine,
-        linker: Linker<ModuleHostState<Io>>,
+        linker: Linker<HostState<Io>>,
         component: Component,
     ) -> Self {
         Self {
@@ -59,10 +57,10 @@ where
         &self,
         io: Self::InputOutput,
     ) -> Result<Self::ModuleInstance, CommonRuntimeError> {
-        let mut store = Store::new(&self.engine, ModuleHostState::new(io));
+        let mut store = Store::new(&self.engine, HostState::new(io));
 
         let (common, instance) =
-            Common::instantiate_async(&mut store, &self.component, &self.linker)
+            instantiate_async_module(&mut store, &self.component, &self.linker)
                 .await
                 .map_err(|error| {
                     CommonRuntimeError::ModuleInstantiationFailed(format!("{error}"))
@@ -84,8 +82,8 @@ where
 {
     id: ModuleInstanceId,
     // TODO: Synchronization wrapper may not be needed after we stub wasi:*
-    store: Arc<Mutex<Store<ModuleHostState<Io>>>>,
-    common: Common,
+    store: Arc<Mutex<Store<HostState<Io>>>>,
+    common: CommonModuleEntry,
 
     // REASON: Instance must be retained until module is dropped
     #[allow(dead_code)]

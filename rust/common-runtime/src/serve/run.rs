@@ -1,8 +1,9 @@
-use crate::{CommonRuntimeError, InputOutput, ModuleInstanceId, Runtime, RuntimeIo, Value};
+use crate::{CommonRuntimeError, ModuleInstanceId, Runtime, RuntimeIo};
 use common_protos::{
     self as protos,
     runtime::{RunModuleRequest, RunModuleResponse},
 };
+use common_wit::{InputOutput, Value};
 use std::{
     collections::{BTreeMap, HashMap},
     sync::Arc,
@@ -19,7 +20,10 @@ pub async fn run_module(
     let output_shape = runtime.output_shape(&instance_id)?;
     let mut input = BTreeMap::new();
     for (key, value) in request.input.into_iter() {
-        input.insert(key, Value::try_from(value)?);
+        input.insert(
+            key,
+            Value::try_from(value).map_err(|_| CommonRuntimeError::InvalidValue)?,
+        );
     }
     let io = RuntimeIo::new(input, output_shape.clone());
     let io = runtime.run(&instance_id, io).await?;
