@@ -31,6 +31,7 @@ common-protos = { path = "./rust/common-protos", default-features = false }
 common-test-fixtures = { path = "./rust/common-test-fixtures" }
 common-tracing = { path = "./rust/common-tracing" }
 common-wit = { path = "./rust/common-wit" }
+criterion = { version = "0.5" }
 deno_emit = { version = "0.43" }
 deno_graph = { version = "0.79" }
 http = { version = "1.1" }
