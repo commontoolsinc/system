@@ -33,18 +33,26 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
-      - name: 'Install NPM dependencies'
-        run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
         run: |
-          cargo +${{ matrix.toolchain }} binstall wit-deps-cli wasm-tools --no-confirm --force
+          cargo +${{ matrix.toolchain }} binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
+      - name: 'Install NPM dependencies'
+        run: |
+          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          cd typescript
+          npm ci
+      - name: 'Run wit-deps on Wasm Component projects'
+        run: |
+          # NOTE: cargo-component doesn't invoke build.rs as expected when
+          # performing checked format
+          cd ./rust/common-interpreter
+          RUST_LOG=trace wit-deps
       - name: 'Check Format'
-        run: cargo +${{matrix.toolchain}} fmt --all -- --check
+        run: cargo +${{matrix.toolchain}} component fmt --all -- --check
       - name: 'Run Linter'
-        run: cargo +${{matrix.toolchain}} clippy --all -- -D warnings
+        run: cargo +${{matrix.toolchain}} component clippy --all -- -D warnings
 
   native-target-tests:
     name: 'Native target tests'
@@ -74,14 +82,22 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
-      - name: 'Install NPM dependencies'
-        run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
         run: |
-          cargo +${{ matrix.toolchain }} binstall cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
+          cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
+      - name: 'Install NPM dependencies'
+        run: |
+          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          cd typescript
+          npm ci
+      - name: 'Run wit-deps on Wasm Component projects'
+        run: |
+          # NOTE: cargo-component doesn't invoke build.rs as expected when
+          # performing checked format
+          cd ./rust/common-interpreter
+          RUST_LOG=trace wit-deps
       - name: 'Run Rust tests'
         shell: bash
         run: |
@@ -91,7 +107,7 @@ jobs:
           ${{ matrix.features }}
           ${{ matrix.toolchain}}" > test-results/target
 
-          cargo +${{ matrix.toolchain }} nextest run --release --profile ci --color always 2>&1 | tee test-results/log
+          cargo +${{ matrix.toolchain }} component nextest run --release --profile ci --color always 2>&1 | tee test-results/log
         env:
           RUST_LOG: debug
       - uses: actions/upload-artifact@v3

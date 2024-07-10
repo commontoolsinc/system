@@ -1,5 +1,5 @@
 pub(crate) mod instantiate;
 pub(crate) mod run;
 
-mod runtime;
-pub use runtime::*;
+mod server;
+pub use server::*;

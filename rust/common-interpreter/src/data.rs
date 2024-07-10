@@ -44,7 +44,7 @@ impl Reference {
         }
 
         Err(JsError::from_opaque(JsValue::String(
-            format!("Unexpected context").into(),
+            "Unexpected context".to_string().into(),
         )))
     }
 
@@ -52,7 +52,7 @@ impl Reference {
         if let Some(object) = this.as_object() {
             if let Some(reference) = object.downcast_ref::<Reference>() {
                 let Some(value) = reference.inner.deref().map_err(|error| {
-                    JsError::from_opaque(JsValue::String(format!("{error}").into()))
+                    JsError::from_opaque(JsValue::String(error.to_string().into()))
                 })?
                 else {
                     return Ok(JsValue::Undefined);
@@ -87,7 +87,7 @@ impl Reference {
         }
 
         Err(JsError::from_opaque(JsValue::String(
-            format!("Unexpected context").into(),
+            "Unexpected context".to_string().into(),
         )))
     }
 }

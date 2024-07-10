@@ -1,8 +1,3 @@
-use crate::{
-    protos::{self, common::value::ValueType},
-    CommonRuntimeError,
-};
-
 /// An intrinsic value type within a Common Runtime
 #[derive(Clone, Debug)]
 pub enum Value {
@@ -16,29 +11,28 @@ pub enum Value {
     Buffer(Vec<u8>),
 }
 
-impl TryFrom<protos::common::Value> for Value {
-    type Error = CommonRuntimeError;
-
-    fn try_from(value: protos::common::Value) -> Result<Self, Self::Error> {
-        let value = value.value_type.ok_or(CommonRuntimeError::InvalidValue)?;
-        Ok(match value {
-            ValueType::String(string) => Value::String(string),
-            ValueType::Number(number) => Value::Number(number),
-            ValueType::Boolean(boolean) => Value::Boolean(boolean),
-            ValueType::Buffer(buffer) => Value::Buffer(buffer),
-        })
+impl Value {
+    /// Check if a [ValueKind] corresponds to the type of this [Value]
+    pub fn is_of_kind(&self, kind: &ValueKind) -> bool {
+        match self {
+            Value::String(_) if kind == &ValueKind::String => true,
+            Value::Boolean(_) if kind == &ValueKind::Boolean => true,
+            Value::Number(_) if kind == &ValueKind::Number => true,
+            Value::Buffer(_) if kind == &ValueKind::Buffer => true,
+            _ => false,
+        }
     }
 }
 
-impl From<Value> for protos::common::Value {
-    fn from(value: Value) -> Self {
-        protos::common::Value {
-            value_type: Some(match value {
-                Value::String(string) => ValueType::String(string),
-                Value::Boolean(number) => ValueType::Boolean(number),
-                Value::Number(boolean) => ValueType::Number(boolean),
-                Value::Buffer(buffer) => ValueType::Buffer(buffer),
-            }),
-        }
-    }
+/// The set of variant types for [Value]
+#[derive(PartialEq, Eq, Debug, Clone)]
+pub enum ValueKind {
+    /// A UTF-8 string
+    String,
+    /// A boolean: true or false
+    Boolean,
+    /// A double-precision floating-point number
+    Number,
+    /// A slab of bytes
+    Buffer,
 }

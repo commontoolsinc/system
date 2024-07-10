@@ -9,7 +9,7 @@ enum ContentType {
 
 enum Target { COMMON_MODULE = 0; }
 
-enum ValueType {
+enum ValueKind {
   STRING = 0;
   NUMBER = 1;
   BOOLEAN = 2;
@@ -17,7 +17,7 @@ enum ValueType {
 }
 
 message Value {
-  oneof value_type {
+  oneof variant {
     string string = 1;
     double number = 2;
     bool boolean = 3;
@@ -30,7 +30,7 @@ message SourceCode {
   bytes body = 2;
 }
 
-message ModuleId {
+message ModuleSignature {
   Target target = 1;
   string id = 2;
 }

@@ -11,7 +11,7 @@ use std::{cell::RefCell, thread_local};
 use std::{rc::Rc, sync::RwLock};
 
 thread_local! {
-    pub static MODULE_STATE: RefCell<OnceCell<Rc<RwLock<Module>>>> = RefCell::new(OnceCell::new());
+    pub static MODULE_STATE: RefCell<OnceCell<Rc<RwLock<Module>>>> = const { RefCell::new(OnceCell::new()) };
 }
 
 pub struct Module {
@@ -32,7 +32,7 @@ impl Module {
         let script_id = Rc::new(blake3::hash(
             maybe_script.clone().unwrap_or_default().as_bytes(),
         ));
-        let maybe_script = maybe_script.map(|script| Rc::new(script));
+        let maybe_script = maybe_script.map(Rc::new);
 
         let state = Self::get_or_init(maybe_script.clone(), script_id.clone())?;
         let read_state = state.read().map_err(|error| format!("{error}"))?;

@@ -1,26 +1,45 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
+use tokio::sync::Mutex;
 use wasmtime::{
-    component::{Component, Linker},
-    Engine, Store,
+    component::{Component, Instance, Linker},
+    AsContextMut, Engine, Store,
 };
 
-use crate::{wasmtime::bindings::Common, CommonRuntimeError, InputOutput, PreparedModule};
+use crate::{
+    wasmtime::bindings::Common, CommonRuntimeError, InputOutput, ModuleId, ModuleInstance,
+    ModuleInstanceId, PreparedModule,
+};
 
 use super::bindings::ModuleHostState;
 
-/// A [WasmtimePrebuiltModule] is a pre-transformed, pre-compiled Common Module.
-/// In other words: fully-self-contained Wasm Component bytes.
+/// A [WasmtimeCompiledModule] is a pre-transformed, pre-compiled Common Module.
+/// In other words: a harness to run fully-self-contained Wasm Component bytes.
 #[derive(Clone)]
-pub struct WasmtimePrebuiltModule {
+pub struct WasmtimeCompiledModule<Io>
+where
+    Io: InputOutput,
+{
+    id: ModuleId,
     engine: Engine,
-    linker: Linker<ModuleHostState>,
+    linker: Linker<ModuleHostState<Io>>,
     component: Component,
 }
 
-impl WasmtimePrebuiltModule {
-    /// Initialize the [WasmtimePrebuiltModule]
-    pub fn new(engine: Engine, linker: Linker<ModuleHostState>, component: Component) -> Self {
+impl<Io> WasmtimeCompiledModule<Io>
+where
+    Io: InputOutput,
+{
+    /// Initialize the [WasmtimeCompiledModule]
+    pub fn new(
+        id: ModuleId,
+        engine: Engine,
+        linker: Linker<ModuleHostState<Io>>,
+        component: Component,
+    ) -> Self {
         Self {
+            id,
             engine,
             linker,
             component,
@@ -29,21 +48,67 @@ impl WasmtimePrebuiltModule {
 }
 
 #[async_trait]
-impl PreparedModule for WasmtimePrebuiltModule {
-    async fn call(
-        &self,
-        io: Box<dyn InputOutput>,
-    ) -> Result<Box<dyn InputOutput>, CommonRuntimeError> {
-        let mut store = Store::new(&self.engine, ModuleHostState::new(io.into()));
+impl<Io> PreparedModule for WasmtimeCompiledModule<Io>
+where
+    Io: InputOutput,
+{
+    type InputOutput = Io;
+    type ModuleInstance = WasmtimeModuleInstance<Io>;
 
-        let (common, _inst) = Common::instantiate(&mut store, &self.component, &self.linker)
+    async fn instantiate(
+        &self,
+        io: Self::InputOutput,
+    ) -> Result<Self::ModuleInstance, CommonRuntimeError> {
+        let mut store = Store::new(&self.engine, ModuleHostState::new(io));
+
+        let (common, instance) = Common::instantiate(&mut store, &self.component, &self.linker)
             .map_err(|error| CommonRuntimeError::ModuleInstantiationFailed(format!("{error}")))?;
 
-        common
-            .call_run(&mut store)
-            .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?
-            .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?;
+        Ok(WasmtimeModuleInstance {
+            id: self.id.clone().try_into()?,
+            store: Arc::new(Mutex::new(store)),
+            common,
+            instance,
+        })
+    }
+}
 
-        Ok(store.into_data().take_io().into())
+/// A live Common Module as instantiated by a [crate::wasmtime::WasmtimeCompiler]
+pub struct WasmtimeModuleInstance<Io>
+where
+    Io: InputOutput,
+{
+    id: ModuleInstanceId,
+    // TODO: Synchronization wrapper may not be needed after we stub wasi:*
+    store: Arc<Mutex<Store<ModuleHostState<Io>>>>,
+    common: Common,
+
+    // REASON: Instance must be retained until module is dropped
+    #[allow(dead_code)]
+    instance: Instance,
+}
+
+#[async_trait]
+impl<Io> ModuleInstance for WasmtimeModuleInstance<Io>
+where
+    Io: InputOutput,
+{
+    type InputOutput = Io;
+
+    async fn run(&self, io: Self::InputOutput) -> Result<Self::InputOutput, CommonRuntimeError> {
+        let mut store = self.store.lock().await;
+
+        store.data_mut().replace_io(io);
+
+        self.common
+            .call_run(store.as_context_mut())
+            .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?
+            .map_err(|error| CommonRuntimeError::ModuleRunFailed(error.to_string()))?;
+
+        Ok(store.data_mut().take_io())
+    }
+
+    fn id(&self) -> &ModuleInstanceId {
+        &self.id
     }
 }

@@ -29,8 +29,11 @@ pub use serve::*;
 mod io;
 pub use io::*;
 
-mod wit;
-pub use wit::*;
+mod mode;
+pub use mode::*;
+
+mod runtime;
+pub use runtime::*;
 
 pub mod protos;
 

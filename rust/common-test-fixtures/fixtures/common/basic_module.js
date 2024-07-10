@@ -6,6 +6,6 @@ export const run = () => {
 
   write("bar", {
     tag: "string",
-    val: `${value}:bar`,
+    val: `${value?.val}:bar`,
   });
 };
