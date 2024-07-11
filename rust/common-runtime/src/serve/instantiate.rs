@@ -1,10 +1,7 @@
 use crate::{CommonRuntimeError, CompiledModule, ModuleDefinition, RawModule, Runtime, RuntimeIo};
-use common_protos::{
-    self as protos,
-    runtime::{
-        instantiate_module_request::ModuleReference, InstantiateModuleRequest,
-        InstantiateModuleResponse,
-    },
+use common_protos::runtime::{
+    instantiate_module_request::ModuleReference, InstantiateModuleRequest,
+    InstantiateModuleResponse,
 };
 use common_wit::Target;
 use http::Uri;
@@ -19,14 +16,19 @@ pub async fn instantiate_module(
     builder_address: Option<Uri>,
 ) -> Result<InstantiateModuleResponse, CommonRuntimeError> {
     let module_reference = request.module_reference.ok_or_else(|| {
-        CommonRuntimeError::ModuleInstantiationFailed("No module referenced in request".into())
+        CommonRuntimeError::InvalidInstantiationParameters("No module referenced in request".into())
     })?;
 
     Ok(match module_reference {
         ModuleReference::ModuleSignature(module_signature) => {
             let module = CompiledModule {
                 target: match module_signature.target() {
-                    protos::common::Target::CommonModule => Target::CommonModule,
+                    common_protos::common::Target::CommonModule => Target::CommonModule,
+                    common_protos::common::Target::CommonScript => {
+                        return Err(CommonRuntimeError::InvalidInstantiationParameters(
+                            "Must provide sources to instantiate a common:script".into(),
+                        ));
+                    }
                 },
                 module_id: module_signature.id.clone().into(),
                 builder_address,
@@ -42,19 +44,27 @@ pub async fn instantiate_module(
                 instance_id: instance_id.to_string(),
             }
         }
-        ModuleReference::ModuleSource(module_source) => {
+        ModuleReference::ModuleSource(module_source_proto) => {
+            let target_proto = module_source_proto.target;
+            let module_source: crate::ModuleSource = module_source_proto.into();
             let target = module_source.target;
-            let module = RawModule::new(module_source.into(), builder_address);
-            let module_id = module.id().await?.clone();
-            let module_signature = protos::common::ModuleSignature {
-                target,
+
+            let module = RawModule::new(module_source, builder_address);
+            let module_id = module.id().await?;
+
+            let module_signature = common_protos::common::ModuleSignature {
+                target: target_proto,
                 id: module_id.to_string(),
             };
 
             let initial_io = RuntimeIo::try_from((request.default_input, request.output_shape))?;
-            let mut runtime = runtime.lock().await;
-            let instance_id = runtime.compile(module, initial_io).await?;
 
+            let mut runtime = runtime.lock().await;
+
+            let instance_id = match target {
+                Target::CommonModule => runtime.compile(module, initial_io).await?,
+                Target::CommonScript => runtime.interpret(module, initial_io).await?,
+            };
             InstantiateModuleResponse {
                 module_signature: Some(module_signature),
                 instance_id: instance_id.to_string(),

@@ -1,7 +1,7 @@
 [workspace]
 members = [
   "rust/common-builder",
-  "rust/common-interpreter",
+  "rust/common-javascript-interpreter",
   "rust/common-macros",
   "rust/common-protos",
   "rust/common-runtime",
@@ -19,15 +19,16 @@ async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
 axum = { version = "0.7" }
 blake3 = { version = "1.5" }
-boa_engine = { version = "0.18"}
-boa_gc = { version = "0.18" }
-boa_runtime = { version = "0.18" }
+boa_engine = { version = "0.19"}
+boa_gc = { version = "0.19" }
+boa_runtime = { version = "0.19" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
 common-builder = { path = "./rust/common-builder" }
-common-runtime = { path = "./rust/common-runtime" }
+common-javascript-interpreter = { path = "./rust/common-javasript-interpreter" }
 common-macros = { path = "./rust/common-macros" }
 common-protos = { path = "./rust/common-protos", default-features = false }
+common-runtime = { path = "./rust/common-runtime" }
 common-test-fixtures = { path = "./rust/common-test-fixtures" }
 common-tracing = { path = "./rust/common-tracing" }
 common-wit = { path = "./rust/common-wit" }
@@ -47,7 +48,7 @@ rand = { version = "0.8" }
 redb = { version = "2" }
 reqwest = { version = "0.12", default-features = false  }
 rust-embed = { version = "8.4" }
-serde = { version = "1" }
+serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 sieve-cache = { version = "0.2" }
 tempfile = { version = "3" }

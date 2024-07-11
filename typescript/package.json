@@ -29,14 +29,16 @@
       "dependencies": [
         "./common/data:build",
         "./common/io:build",
-        "./common/module:build"
+        "./common/module:build",
+        "./common/script:build"
       ]
     },
     "clean": {
       "dependencies": [
         "./common/data:clean",
         "./common/io:clean",
-        "./common/module:clean"
+        "./common/module:clean",
+        "./common/script:clean"
       ]
     }
   },

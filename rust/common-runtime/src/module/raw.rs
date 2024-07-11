@@ -1,5 +1,8 @@
 use super::{ModuleDefinition, ToModuleSources, ToWasmComponent};
-use crate::{CommonRuntimeError, ModuleId, ModuleSource, SourceCode};
+use crate::{
+    CommonRuntimeError, ContentType, ModuleId, ModuleSource, SourceCode,
+    COMMON_JAVASCRIPT_INTERPRETER_WASM,
+};
 use async_trait::async_trait;
 use bytes::Bytes;
 use common_protos::{
@@ -34,40 +37,61 @@ impl RawModule {
         }
     }
 
-    async fn wasm(&self) -> Result<(&ModuleId, Bytes), CommonRuntimeError> {
-        let (id, bytes) = self
-            .wasm
-            .get_or_try_init(|| async {
-                let mut client = if let Some(address) = &self.builder_address {
-                    BuilderClient::connect(address.to_string())
-                        .await?
-                        .max_decoding_message_size(MAX_MESSAGE_SIZE)
-                        .max_encoding_message_size(MAX_MESSAGE_SIZE)
-                } else {
-                    return Err(CommonRuntimeError::PreparationFailed(
-                        "Needed to build module, but not builder address was configured".into(),
-                    ));
-                };
+    async fn wasm(&self) -> Result<(ModuleId, Bytes), CommonRuntimeError> {
+        match self.module_source.target {
+            Target::CommonModule => {
+                let (id, bytes) = self
+                    .wasm
+                    .get_or_try_init(|| async {
+                        let mut client = if let Some(address) = &self.builder_address {
+                            BuilderClient::connect(address.to_string())
+                                .await?
+                                .max_decoding_message_size(MAX_MESSAGE_SIZE)
+                                .max_encoding_message_size(MAX_MESSAGE_SIZE)
+                        } else {
+                            return Err(CommonRuntimeError::PreparationFailed(
+                                "Needed to build module, but not builder address was configured"
+                                    .into(),
+                            ));
+                        };
 
-                let BuildComponentResponse { id } = client
-                    .build_component(BuildComponentRequest {
-                        module_source: Some(self.module_source.clone().into()),
+                        let BuildComponentResponse { id } = client
+                            .build_component(BuildComponentRequest {
+                                module_source: Some(self.module_source.clone().into()),
+                            })
+                            .await
+                            .map_err(|error| {
+                                CommonRuntimeError::PreparationFailed(format!("{error}"))
+                            })?
+                            .into_inner();
+
+                        let ReadComponentResponse { component } = client
+                            .read_component(tonic::Request::new(ReadComponentRequest { id }))
+                            .await
+                            .map_err(|error| {
+                                CommonRuntimeError::PreparationFailed(format!("{error}"))
+                            })?
+                            .into_inner();
+
+                        let id = ModuleId::Hash(blake3::hash(&component));
+                        Ok((id, component.into()))
                     })
-                    .await
-                    .map_err(|error| CommonRuntimeError::PreparationFailed(format!("{error}")))?
-                    .into_inner();
-
-                let ReadComponentResponse { component } = client
-                    .read_component(tonic::Request::new(ReadComponentRequest { id }))
-                    .await
-                    .map_err(|error| CommonRuntimeError::PreparationFailed(format!("{error}")))?
-                    .into_inner();
-
-                let id = ModuleId::Hash(blake3::hash(&component));
-                Ok((id, component.into()))
-            })
-            .await?;
-        Ok((id, bytes.clone()))
+                    .await?;
+                Ok((id.clone(), bytes.clone()))
+            }
+            Target::CommonScript => {
+                let (_, entrypoint) = self.module_source.entrypoint()?;
+                match entrypoint.content_type {
+                    ContentType::JavaScript => {
+                        let id = ModuleId::Hash(blake3::hash(COMMON_JAVASCRIPT_INTERPRETER_WASM));
+                        Ok((id, COMMON_JAVASCRIPT_INTERPRETER_WASM.into()))
+                    }
+                    ContentType::Python => Err(CommonRuntimeError::InvalidInstantiationParameters(
+                        "Instantiating python as a common:script is not supported yet".into(),
+                    )),
+                }
+            }
+        }
     }
 }
 
@@ -77,7 +101,7 @@ impl ModuleDefinition for RawModule {
         self.module_source.target
     }
 
-    async fn id(&self) -> Result<&ModuleId, CommonRuntimeError> {
+    async fn id(&self) -> Result<ModuleId, CommonRuntimeError> {
         let (id, _) = self.wasm().await?;
         Ok(id)
     }

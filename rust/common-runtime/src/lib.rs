@@ -8,6 +8,9 @@
 #[macro_use]
 extern crate tracing;
 
+mod components;
+pub use components::*;
+
 mod sandbox;
 pub use sandbox::*;
 
@@ -28,9 +31,6 @@ pub use serve::*;
 
 mod io;
 pub use io::*;
-
-mod mode;
-pub use mode::*;
 
 mod runtime;
 pub use runtime::*;

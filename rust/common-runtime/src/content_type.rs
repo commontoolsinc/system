@@ -1,7 +1,7 @@
 use common_protos::common;
 
 /// Supported content types that may be embodied as a [crate::CommonModule]
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ContentType {
     /// JavaScript or TypeScript code
     JavaScript,

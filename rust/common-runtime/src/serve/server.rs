@@ -69,6 +69,12 @@ impl From<CommonRuntimeError> for Status {
             CommonRuntimeError::UnknownInstanceId(_) => {
                 Status::invalid_argument(format!("{value}"))
             }
+            CommonRuntimeError::InvalidModuleSource(_) => {
+                Status::invalid_argument(format!("{value}"))
+            }
+            CommonRuntimeError::InvalidInstantiationParameters(_) => {
+                Status::invalid_argument(format!("{value}"))
+            }
         }
     }
 }

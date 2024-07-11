@@ -2,9 +2,9 @@ use boa_engine::{
     class::{Class, ClassBuilder},
     object::builtins::JsUint8Array,
     property::PropertyDescriptor,
-    Context, JsArgs, JsData, JsError, JsObject, JsResult, JsString, JsValue, NativeFunction,
+    Context, Finalize, JsArgs, JsData, JsError, JsObject, JsResult, JsString, JsValue,
+    NativeFunction, Trace,
 };
-use boa_gc::{Finalize, Trace};
 
 use crate::bindings::common::{
     data::types::Reference as HostReference, io::state::Value as HostValue,
@@ -74,12 +74,20 @@ impl Reference {
                 object.insert_property(
                     JsString::from("tag"),
                     PropertyDescriptor::builder()
+                        .configurable(false)
+                        .enumerable(true)
+                        .writable(false)
                         .value(JsValue::String(tag.into()))
                         .build(),
                 );
                 object.insert_property(
                     JsString::from("val"),
-                    PropertyDescriptor::builder().value(val).build(),
+                    PropertyDescriptor::builder()
+                        .configurable(false)
+                        .enumerable(true)
+                        .writable(false)
+                        .value(val)
+                        .build(),
                 );
 
                 return Ok(JsValue::Object(object));

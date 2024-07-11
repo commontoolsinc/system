@@ -25,7 +25,6 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
 
     let runtime::InstantiateModuleResponse { instance_id, .. } = runtime_client
         .instantiate_module(runtime::InstantiateModuleRequest {
-            mode: runtime::InstantiationMode::Compile.into(),
             output_shape: [("bar".into(), common::ValueKind::String.into())].into(),
             default_input: [(
                 "foo".into(),
@@ -119,7 +118,6 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
 
     let runtime::InstantiateModuleResponse { instance_id, .. } = runtime_client
         .instantiate_module(runtime::InstantiateModuleRequest {
-            mode: runtime::InstantiationMode::Compile.into(),
             output_shape: [("bar".into(), common::ValueKind::String.into())].into(),
             default_input: [(
                 "foo".into(),

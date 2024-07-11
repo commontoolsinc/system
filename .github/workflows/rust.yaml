@@ -47,7 +47,7 @@ jobs:
         run: |
           # NOTE: cargo-component doesn't invoke build.rs as expected when
           # performing checked format
-          cd ./rust/common-interpreter
+          cd ./rust/common-javascript-interpreter
           RUST_LOG=trace wit-deps
       - name: 'Check Format'
         run: cargo +${{matrix.toolchain}} component fmt --all -- --check
@@ -74,6 +74,9 @@ jobs:
         if: ${{ matrix.platform == 'macos-13' }}
         run: |
           brew install protobuf
+      - name: 'Setup Docker (MacOS)'
+        if: ${{ matrix.platform == 'macos-13' }}
+        uses: douglascamata/setup-docker-macos-action@v1-alpha
       - name: 'Setup Rust'
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
@@ -96,7 +99,7 @@ jobs:
         run: |
           # NOTE: cargo-component doesn't invoke build.rs as expected when
           # performing checked format
-          cd ./rust/common-interpreter
+          cd ./rust/common-javascript-interpreter
           RUST_LOG=trace wit-deps
       - name: 'Run Rust tests'
         shell: bash
@@ -107,7 +110,11 @@ jobs:
           ${{ matrix.features }}
           ${{ matrix.toolchain}}" > test-results/target
 
-          cargo +${{ matrix.toolchain }} component nextest run --release --profile ci --color always 2>&1 | tee test-results/log
+          cargo +${{ matrix.toolchain }} nextest run \
+            --release \
+            --workspace \
+            --exclude common-javascript-interpreter \
+            --profile ci --color always 2>&1 | tee test-results/log
         env:
           RUST_LOG: debug
       - uses: actions/upload-artifact@v3

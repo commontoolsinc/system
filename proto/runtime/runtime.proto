@@ -4,18 +4,11 @@ import public "common/common.proto";
 
 package runtime;
 
-enum InstantiationMode {
-  COMPILE = 0;
-  INTERPRET = 1;
-}
-
 message InstantiateModuleRequest {
   oneof module_reference {
     common.ModuleSignature module_signature = 1;
     common.ModuleSource module_source = 2;
   }
-
-  InstantiationMode mode = 3;
 
   map<string, common.ValueKind> output_shape = 4;
   map<string, common.Value> default_input = 5;

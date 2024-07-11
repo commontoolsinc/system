@@ -1,4 +1,4 @@
-use crate::ContentType;
+use crate::{CommonRuntimeError, ContentType};
 use bytes::Bytes;
 use common_protos::common;
 use common_wit::Target;
@@ -12,6 +12,23 @@ pub struct ModuleSource {
 
     /// A mapping of unique name to input [SourceCode]
     pub source_code: BTreeMap<String, SourceCode>,
+}
+
+impl ModuleSource {
+    /// Get the "entrypoint" source file, which for now is based on an
+    /// unspecified ordering. Instead, we just pull the first source file out of
+    /// the list; user beware!
+    ///
+    /// TODO(#34): Support multiple source files
+    pub fn entrypoint(&self) -> Result<(String, SourceCode), CommonRuntimeError> {
+        let Some((name, source_code)) = self.source_code.iter().next() else {
+            return Err(CommonRuntimeError::InvalidModuleSource(
+                "No sources provided".into(),
+            ));
+        };
+
+        Ok((name.clone(), source_code.clone()))
+    }
 }
 
 /// A pairing of raw source code bytes and an associated [ContentType]
@@ -28,6 +45,7 @@ impl From<common::ModuleSource> for ModuleSource {
         ModuleSource {
             target: match value.target() {
                 common::Target::CommonModule => Target::CommonModule,
+                common::Target::CommonScript => Target::CommonScript,
             },
             source_code: value
                 .source_code
@@ -43,6 +61,7 @@ impl From<ModuleSource> for common::ModuleSource {
         common::ModuleSource {
             target: match value.target {
                 Target::CommonModule => common::Target::CommonModule.into(),
+                Target::CommonScript => common::Target::CommonScript.into(),
             },
             source_code: value
                 .source_code

@@ -7,7 +7,10 @@ enum ContentType {
   PYTHON = 1;
 }
 
-enum Target { COMMON_MODULE = 0; }
+enum Target {
+  COMMON_MODULE = 0;
+  COMMON_SCRIPT = 1;
+}
 
 enum ValueKind {
   STRING = 0;

@@ -5,17 +5,17 @@ use sieve_cache::SieveCache;
 use tokio::sync::Mutex;
 use wasmtime::{
     component::{Component, Linker},
-    Config, Engine, OptLevel,
+    Engine,
 };
 
 use crate::{
-    wasmtime::bindings::Common, CommonRuntimeError, InputOutput, ModuleDefinition, ModuleId,
-    ModulePreparer, ToWasmComponent,
+    wasmtime::bindings::common_module::Common, CommonRuntimeError, InputOutput, ModuleDefinition,
+    ModuleId, ModulePreparer, ToWasmComponent,
 };
 
 use super::WasmtimeCompiledModule;
 
-/// A [WasmtimeBuilder] prepares a [CommonModule] by converting the full set of
+/// A [WasmtimeCompiler] prepares a Common Module by converting the full set of
 /// sources into a single Wasm Component. The first time this is done for a
 /// unique set of input sources, it entails an relatively expensive compilation
 /// and assembly process. This cost is amortized across all successive
@@ -36,15 +36,7 @@ where
     Io: InputOutput,
 {
     /// Instantiate a [WasmtimeCompiler]
-    pub fn new() -> Result<Self, CommonRuntimeError> {
-        let mut config = Config::default();
-
-        config.cranelift_opt_level(OptLevel::Speed);
-        config.async_support(false);
-
-        let engine = Engine::new(&config)
-            .map_err(|error| CommonRuntimeError::SandboxCreationFailed(format!("{error}")))?;
-
+    pub fn new(engine: Engine) -> Result<Self, CommonRuntimeError> {
         Ok(Self {
             engine,
             prepared_modules: Arc::new(Mutex::new(
@@ -71,7 +63,7 @@ where
         debug!("Checking cache for prepared module...");
 
         let module_id = module.id().await?;
-        let has_module = { self.prepared_modules.lock().await.contains_key(module_id) };
+        let has_module = { self.prepared_modules.lock().await.contains_key(&module_id) };
 
         if !has_module {
             debug!("No prepared module found in cache; preparing...");
@@ -82,10 +74,10 @@ where
 
             let mut linker = Linker::new(&self.engine);
 
-            wasmtime_wasi::add_to_linker_sync(&mut linker)
+            wasmtime_wasi::add_to_linker_async(&mut linker)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-            wasmtime_wasi_http::proxy::sync::add_only_http_to_linker(&mut linker)
+            wasmtime_wasi_http::proxy::add_only_http_to_linker(&mut linker)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
             Common::add_to_linker(&mut linker, |environment| environment)
@@ -110,7 +102,7 @@ where
         self.prepared_modules
             .lock()
             .await
-            .get(module_id)
+            .get(&module_id)
             .ok_or_else(|| {
                 CommonRuntimeError::PreparationFailed(
                     "Prepared module unexpectedly missing from cache".into(),
