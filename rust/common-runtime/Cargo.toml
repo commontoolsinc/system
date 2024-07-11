@@ -40,3 +40,8 @@ wit-parser = { workspace = true }
 [dev-dependencies]
 common-builder = { workspace = true }
 common-test-fixtures = { workspace = true }
+criterion = { workspace = true, features = ["async_tokio"] }
+
+[[bench]]
+name = "runtime_bench"
+harness = false
