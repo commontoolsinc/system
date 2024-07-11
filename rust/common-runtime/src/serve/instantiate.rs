@@ -1,19 +1,15 @@
-use std::sync::Arc;
-
+use crate::{CommonRuntimeError, CompiledModule, ModuleDefinition, RawModule, Runtime, RuntimeIo};
+use common_protos::{
+    self as protos,
+    runtime::{
+        instantiate_module_request::ModuleReference, InstantiateModuleRequest,
+        InstantiateModuleResponse,
+    },
+};
 use common_wit::Target;
 use http::Uri;
+use std::sync::Arc;
 use tokio::sync::Mutex;
-
-use crate::{
-    protos::{
-        self,
-        runtime::{
-            instantiate_module_request::ModuleReference, InstantiateModuleRequest,
-            InstantiateModuleResponse,
-        },
-    },
-    CommonRuntimeError, CompiledModule, ModuleDefinition, RawModule, Runtime, RuntimeIo,
-};
 
 /// Instantiate a module using the provided [WasmtimeCompile] sandbox and cache the live instance
 /// in the provided [BTreeMap] against its instance ID.
@@ -56,7 +52,6 @@ pub async fn instantiate_module(
             };
 
             let initial_io = RuntimeIo::try_from((request.default_input, request.output_shape))?;
-
             let mut runtime = runtime.lock().await;
             let instance_id = runtime.compile(module, initial_io).await?;
 

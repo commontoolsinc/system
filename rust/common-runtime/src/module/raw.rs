@@ -1,23 +1,18 @@
+use super::{ModuleDefinition, ToModuleSources, ToWasmComponent};
+use crate::{CommonRuntimeError, ModuleId, ModuleSource, SourceCode};
 use async_trait::async_trait;
 use bytes::Bytes;
+use common_protos::{
+    builder::{
+        builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
+        ReadComponentRequest, ReadComponentResponse,
+    },
+    MAX_MESSAGE_SIZE,
+};
+use common_wit::Target;
 use http::Uri;
 use std::collections::BTreeMap;
 use tokio::sync::OnceCell;
-
-use common_wit::Target;
-
-use crate::{
-    protos::{
-        builder::{
-            builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
-            ReadComponentRequest, ReadComponentResponse,
-        },
-        MAX_MESSAGE_SIZE,
-    },
-    CommonRuntimeError, ModuleId, ModuleSource, SourceCode,
-};
-
-use super::{ModuleDefinition, ToModuleSources, ToWasmComponent};
 
 /// A [RawModule] embodies all the source information necessary to
 /// compile a Common Module as a Wasm Component.

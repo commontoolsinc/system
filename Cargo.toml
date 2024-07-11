@@ -3,6 +3,7 @@ members = [
   "rust/common-builder",
   "rust/common-interpreter",
   "rust/common-macros",
+  "rust/common-protos",
   "rust/common-runtime",
   "rust/common-test-fixtures",
   "rust/common-tracing",
@@ -26,6 +27,7 @@ clap = { version = "4.5" }
 common-builder = { path = "./rust/common-builder" }
 common-runtime = { path = "./rust/common-runtime" }
 common-macros = { path = "./rust/common-macros" }
+common-protos = { path = "./rust/common-protos", default-features = false }
 common-test-fixtures = { path = "./rust/common-test-fixtures" }
 common-tracing = { path = "./rust/common-tracing" }
 common-wit = { path = "./rust/common-wit" }

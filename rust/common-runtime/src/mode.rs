@@ -1,3 +1,5 @@
+use common_protos::runtime;
+
 /// The mode with which to attempt to instantiate a Common Module. The
 /// [InstantiationMode] should be taken as a stated preference; it is observed
 /// on a best-effort basis, and may be substituted for a different mode if the
@@ -12,4 +14,22 @@ pub enum InstantiationMode {
     /// run such a Wasm Component if it is already compiled. Sources must be
     /// available if the component is not already available in a compiled form.
     Compile,
+}
+
+impl From<runtime::InstantiationMode> for InstantiationMode {
+    fn from(value: runtime::InstantiationMode) -> Self {
+        match value {
+            runtime::InstantiationMode::Compile => InstantiationMode::Compile,
+            runtime::InstantiationMode::Interpret => InstantiationMode::Interpret,
+        }
+    }
+}
+
+impl From<InstantiationMode> for runtime::InstantiationMode {
+    fn from(value: InstantiationMode) -> Self {
+        match value {
+            InstantiationMode::Compile => runtime::InstantiationMode::Compile,
+            InstantiationMode::Interpret => runtime::InstantiationMode::Interpret,
+        }
+    }
 }

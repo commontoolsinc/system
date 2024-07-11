@@ -1,20 +1,14 @@
-use std::sync::Arc;
-
-use crate::{
-    protos::{
-        runtime::{
-            runtime_server::{Runtime as RuntimeServerHandlers, RuntimeServer},
-            InstantiateModuleRequest, InstantiateModuleResponse, RunModuleRequest,
-            RunModuleResponse,
-        },
-        MAX_MESSAGE_SIZE,
-    },
-    run::run_module,
-    serve::instantiate::instantiate_module,
-    CommonRuntimeError, Runtime,
-};
+use crate::{run::run_module, serve::instantiate::instantiate_module, CommonRuntimeError, Runtime};
 use async_trait::async_trait;
+use common_protos::{
+    runtime::{
+        runtime_server::{Runtime as RuntimeServerHandlers, RuntimeServer},
+        InstantiateModuleRequest, InstantiateModuleResponse, RunModuleRequest, RunModuleResponse,
+    },
+    MAX_MESSAGE_SIZE,
+};
 use http::Uri;
+use std::sync::Arc;
 use tokio::{net::TcpListener, sync::Mutex};
 use tonic::{transport::Server as TonicServer, Status};
 

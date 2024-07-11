@@ -1,0 +1,18 @@
+[package]
+name = "common-protos"
+description = "A Common server"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+tonic = { workspace = true }
+prost = { workspace = true }
+
+[build-dependencies]
+tonic-build = { workspace = true }
+
+[features]
+default = ["runtime", "builder"]
+runtime = []
+builder = []

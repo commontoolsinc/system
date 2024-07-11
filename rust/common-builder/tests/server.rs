@@ -1,11 +1,11 @@
-use common_builder::protos::{
+use common_builder::serve;
+use common_protos::{
     builder::{
         builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
         BundleSourceCodeRequest, BundleSourceCodeResponse,
     },
     common::{ContentType, ModuleSource, SourceCode, Target},
 };
-use common_builder::serve;
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::*;
 use tokio::net::TcpListener;

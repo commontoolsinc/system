@@ -1,15 +1,12 @@
+use crate::{CommonRuntimeError, ModuleDefinition, ModuleId, ToWasmComponent};
 use async_trait::async_trait;
 use bytes::Bytes;
+use common_protos::{
+    builder::{builder_client::BuilderClient, ReadComponentRequest, ReadComponentResponse},
+    MAX_MESSAGE_SIZE,
+};
 use common_wit::Target;
 use http::Uri;
-
-use crate::{
-    protos::{
-        builder::{builder_client::BuilderClient, ReadComponentRequest, ReadComponentResponse},
-        MAX_MESSAGE_SIZE,
-    },
-    CommonRuntimeError, ModuleDefinition, ModuleId, ToWasmComponent,
-};
 
 /// A [CompiledModule] represents a reference to a Common Module that is already
 /// compiled as a fully-fledged Wasm Component. The compiled artifact is

@@ -1,25 +1,24 @@
 use std::str::FromStr;
 
-use async_trait::async_trait;
-use blake3::Hash;
-use common_wit::Target;
-use tokio::net::TcpListener;
-use tonic::{transport::Server as TonicServer, Request, Response, Status};
-
 use crate::{
     error::BuilderError,
-    protos::{
-        builder::{
-            builder_server::{Builder as BuilderProto, BuilderServer},
-            BuildComponentRequest, BuildComponentResponse, BundleSourceCodeRequest,
-            BundleSourceCodeResponse, ReadComponentRequest, ReadComponentResponse,
-        },
-        common::{ContentType, ModuleSource, Target as TargetProto},
-        MAX_MESSAGE_SIZE,
-    },
     storage::{HashStorage, PersistedHashStorage},
     Bake, Baker, JavaScriptBundler,
 };
+use async_trait::async_trait;
+use blake3::Hash;
+use common_protos::{
+    builder::{
+        builder_server::{Builder as BuilderProto, BuilderServer},
+        BuildComponentRequest, BuildComponentResponse, BundleSourceCodeRequest,
+        BundleSourceCodeResponse, ReadComponentRequest, ReadComponentResponse,
+    },
+    common::{ContentType, ModuleSource, Target as TargetProto},
+    MAX_MESSAGE_SIZE,
+};
+use common_wit::Target;
+use tokio::net::TcpListener;
+use tonic::{transport::Server as TonicServer, Request, Response, Status};
 
 pub struct Builder {
     storage: PersistedHashStorage,

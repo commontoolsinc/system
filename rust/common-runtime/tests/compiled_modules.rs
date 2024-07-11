@@ -1,10 +1,7 @@
 use anyhow::Result;
 use common_builder::serve as serve_builder;
-
-use common_runtime::{
-    protos::{builder, common, runtime},
-    serve as serve_runtime,
-};
+use common_protos::{builder, common, runtime};
+use common_runtime::serve as serve_runtime;
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
 use tokio::net::TcpListener;
