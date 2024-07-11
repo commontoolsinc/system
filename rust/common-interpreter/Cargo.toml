@@ -1,0 +1,30 @@
+[package]
+name = "common-interpreter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+blake3 = { workspace = true }
+boa_engine = { workspace = true, features = ["js"] }
+boa_gc = { workspace = true }
+boa_runtime = { workspace = true }
+once_cell = { workspace = true }
+wit-bindgen-rt = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+common-test-fixtures = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component.target]
+path = "wit/deps/module/module.wit"
+world = "common"
+
+[package.metadata.component.target.dependencies."common:data"]
+path = "wit/deps/data/data.wit"
+
+[package.metadata.component.target.dependencies."common:io"]
+path = "wit/deps/io/io.wit"
+

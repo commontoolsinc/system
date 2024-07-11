@@ -8,4 +8,5 @@ lib
 .vscode
 __pycache__
 cache
+deps
 typescript/packages/planning-server/.env

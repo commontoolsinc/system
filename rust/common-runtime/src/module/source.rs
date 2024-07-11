@@ -6,7 +6,7 @@ use common_wit::Target;
 use crate::ContentType;
 
 /// A structured collection of source inputs needed to build a module with the given [WitTarget].
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ModuleSource {
     /// The target that the source inputs implement
     pub target: Target,
@@ -16,7 +16,7 @@ pub struct ModuleSource {
 }
 
 /// A pairing of raw source code bytes and an associated [ContentType]
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct SourceCode {
     /// The mime of the source
     pub content_type: ContentType,

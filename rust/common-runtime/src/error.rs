@@ -1,6 +1,8 @@
 use std::fmt::Debug;
 use thiserror::Error;
 
+use crate::ModuleInstanceId;
+
 /// Various errors that may be encountered when invoking runtime code.
 #[derive(Error, Debug)]
 pub enum CommonRuntimeError {
@@ -28,8 +30,17 @@ pub enum CommonRuntimeError {
     #[error("Internal error")]
     InternalError(String),
 
-    /// A provided value was empty or of an unexpected shape
-    #[error("Invalid value")]
+    /// A specified Common Module ID was not valid
+    #[error("Invalid Common Module ID: {0}")]
+    InvalidModuleId(String),
+
+    /// The specified Common Module instance ID did not correspond to a living
+    /// instance
+    #[error("Unknown Common Module instance ID: {0}")]
+    UnknownInstanceId(ModuleInstanceId),
+
+    /// A provided Value was empty or of an unexpected shape
+    #[error("Invalid Value")]
     InvalidValue,
 }
 

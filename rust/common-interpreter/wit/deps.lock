@@ -1,9 +1,13 @@
 [data]
-path = "../../data/wit"
 sha256 = "edb3fa962337292260fb5e1257b6a7f770d6f4a2865c88ddb68a7f4fb8169bbd"
 sha512 = "aa6f16d180975d35dde3ebcd1b6a21992ee9e38ba9edf3f5535ff3415c3933792c8be5a9a9233e02ac713c3ac129a6f2f65b734f357c6405ddbbff69ebe3f793"
 
 [io]
-path = "../../io/wit"
 sha256 = "3d6c8ae11439a90d1260d64030dc9ac003a72f2f7277df787b95c5a8f54d7474"
 sha512 = "87c77c5a22fdc2c9850ff9e6672f94a86c7c32a6f665d714caca5613f6bc2a1cca76d7ebb26ddf3bae80c32d5d692baab803aff61207aaaa87ffdbd8e6cdc109"
+
+[module]
+path = "../../../typescript/common/module/wit"
+sha256 = "cc4b0b5358ef2f51743b26a09a4a81bca23cb647f0561691387d28bc48dbbd26"
+sha512 = "7ff0a2fc4fa76decae57a3a8b8ee7f68c25c813eb1405e90e0c89a8045056b9cf5c1f3fa419845579cf920fd7e00f9c923b25664dc282dbff232a1dbd6e295d2"
+deps = ["data", "io"]

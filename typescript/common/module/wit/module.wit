@@ -1,18 +1,14 @@
 package common:module@0.0.1;
 
-interface module {
-  resource body {
-    // Invoke the module's substantive procedure
-    run: func();
-  }
-
-  // Instantiate the module
-  create: func() -> body;
+interface reflect {
+  input-keys: func() -> list<string>;
+  output-keys: func() -> list<string>;
 }
 
 world common {
   import common:data/types@0.0.1;
   import common:io/state@0.0.1;
+  import reflect;
 
-  export module;
+  export run: func() -> result<_, string>;
 }
