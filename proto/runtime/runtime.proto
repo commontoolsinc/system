@@ -11,18 +11,18 @@ enum InstantiationMode {
 
 message InstantiateModuleRequest {
   oneof module_reference {
-    common.ModuleId module_id = 1;
+    common.ModuleSignature module_signature = 1;
     common.ModuleSource module_source = 2;
   }
 
   InstantiationMode mode = 3;
 
-  map<string, common.ValueType> output_shape = 4;
+  map<string, common.ValueKind> output_shape = 4;
   map<string, common.Value> default_input = 5;
 }
 
 message InstantiateModuleResponse {
-  common.ModuleId module_id = 1;
+  common.ModuleSignature module_signature = 1;
   string instance_id = 2;
 }
 

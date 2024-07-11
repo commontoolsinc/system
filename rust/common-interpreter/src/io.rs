@@ -62,7 +62,7 @@ pub fn create_io_state_module(context: &mut Context) -> Module {
 
             let value = match args.get_or_undefined(1) {
                 JsValue::Null | JsValue::Undefined | JsValue::BigInt(_) | JsValue::Symbol(_) => {
-                    todo!()
+                    todo!("Not sure what to do about JS null|undefined|BigInt yet")
                 }
                 JsValue::Boolean(boolean) => HostValue::Boolean(*boolean),
                 JsValue::String(string) => {

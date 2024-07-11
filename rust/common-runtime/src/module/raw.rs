@@ -14,22 +14,22 @@ use crate::{
         },
         MAX_MESSAGE_SIZE,
     },
-    CommonRuntimeError, ModuleSource, SourceCode,
+    CommonRuntimeError, ModuleId, ModuleSource, SourceCode,
 };
 
-use super::{Module, ToModuleSources, ToWasmComponent};
+use super::{ModuleDefinition, ToModuleSources, ToWasmComponent};
 
-/// A [WillCompileModule] embodies all the source information necessary to
+/// A [RawModule] embodies all the source information necessary to
 /// compile a Common Module as a Wasm Component.
-#[derive(Clone)]
-pub struct WillCompileModule {
+#[derive(Debug, Clone)]
+pub struct RawModule {
     module_source: ModuleSource,
     builder_address: Option<Uri>,
-    wasm: OnceCell<(String, Bytes)>,
+    wasm: OnceCell<(ModuleId, Bytes)>,
 }
 
-impl WillCompileModule {
-    /// Instantiate the [WillCompileModule]. It will only be able to compile if
+impl RawModule {
+    /// Instantiate the [RawModule]. It will only be able to compile if
     /// a `builder_address` is provided.
     pub fn new(module_source: ModuleSource, builder_address: Option<Uri>) -> Self {
         Self {
@@ -39,7 +39,7 @@ impl WillCompileModule {
         }
     }
 
-    async fn wasm(&self) -> Result<(&str, Bytes), CommonRuntimeError> {
+    async fn wasm(&self) -> Result<(&ModuleId, Bytes), CommonRuntimeError> {
         let (id, bytes) = self
             .wasm
             .get_or_try_init(|| async {
@@ -68,28 +68,28 @@ impl WillCompileModule {
                     .map_err(|error| CommonRuntimeError::PreparationFailed(format!("{error}")))?
                     .into_inner();
 
-                let id = blake3::hash(&component);
-                Ok((id.to_string(), component.into()))
+                let id = ModuleId::Hash(blake3::hash(&component));
+                Ok((id, component.into()))
             })
             .await?;
-        Ok((id.as_str(), bytes.clone()))
+        Ok((id, bytes.clone()))
     }
 }
 
 #[async_trait]
-impl Module for WillCompileModule {
+impl ModuleDefinition for RawModule {
     fn target(&self) -> Target {
         self.module_source.target
     }
 
-    async fn id(&self) -> Result<&str, CommonRuntimeError> {
+    async fn id(&self) -> Result<&ModuleId, CommonRuntimeError> {
         let (id, _) = self.wasm().await?;
         Ok(id)
     }
 }
 
 #[async_trait]
-impl ToModuleSources for WillCompileModule {
+impl ToModuleSources for RawModule {
     async fn to_module_sources(
         &self,
     ) -> Result<Option<BTreeMap<String, SourceCode>>, CommonRuntimeError> {
@@ -98,7 +98,7 @@ impl ToModuleSources for WillCompileModule {
 }
 
 #[async_trait]
-impl ToWasmComponent for WillCompileModule {
+impl ToWasmComponent for RawModule {
     async fn to_wasm_component(&self) -> Result<Bytes, CommonRuntimeError> {
         let (_, bytes) = self.wasm().await?;
         Ok(bytes)
