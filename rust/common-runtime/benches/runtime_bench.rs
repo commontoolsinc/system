@@ -1,48 +1,45 @@
 use anyhow::Result;
 use common_builder::{serve as serve_builder, BuilderError};
-use common_protos::{
-    builder::{builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse},
-    common::{
-        self as common, ContentType, ModuleSignature, ModuleSource, SourceCode, Target, Value,
-    },
-    runtime::{
-        instantiate_module_request::ModuleReference, runtime_client::RuntimeClient,
-        InstantiateModuleRequest, InstantiateModuleResponse, InstantiationMode, RunModuleRequest,
-        RunModuleResponse,
-    },
+use common_runtime::{
+    ContentType, ModuleSource, RawModule, Runtime, RuntimeIo, SourceCode, Value, ValueKind,
 };
-use common_runtime::{serve as serve_runtime, CommonRuntimeError};
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
+use common_wit::Target;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
-use std::collections::HashMap;
+use http::Uri;
+use std::collections::BTreeMap;
 use tokio::{net::TcpListener, task::JoinHandle};
-use tonic::transport::Channel;
 
-async fn init_servers() -> Result<(
-    RuntimeClient<Channel>,
-    BuilderClient<Channel>,
-    JoinHandle<Result<(), CommonRuntimeError>>,
-    JoinHandle<Result<(), BuilderError>>,
-)> {
+/// Start a build server, returning its address and a task handler.
+async fn init_build_server() -> Result<(Uri, JoinHandle<Result<(), BuilderError>>)> {
     let builder_listener = TcpListener::bind("127.0.0.1:0").await?;
-    let builder_address = builder_listener.local_addr()?;
+    let builder_url = format!("http://{}", builder_listener.local_addr()?);
     let builder_task = tokio::task::spawn(serve_builder(builder_listener));
-    let builder_client = BuilderClient::connect(format!("http://{}", builder_address)).await?;
 
-    std::env::set_var("BUILDER_ADDRESS", format!("http://{}", builder_address));
-    let runtime_listener = TcpListener::bind("127.0.0.1:0").await?;
-    let runtime_address = runtime_listener.local_addr()?;
-    let runtime_task = tokio::task::spawn(serve_runtime(runtime_listener));
-
-    let runtime_client = RuntimeClient::connect(format!("http://{}", runtime_address)).await?;
-
-    Ok((runtime_client, builder_client, runtime_task, builder_task))
+    Ok((builder_url.parse()?, builder_task))
 }
 
-async fn build(builder_client: &mut BuilderClient<Channel>) -> Result<String> {
-    let BuildComponentResponse { id: module_id } = builder_client
-        .build_component(BuildComponentRequest {
-            module_source: Some(ModuleSource {
+/// Wrapper for module prefabs for benchmarks, containing
+/// module source, default input, and output shape.
+struct BenchModule {
+    module_source: ModuleSource,
+    output_shape: BTreeMap<String, ValueKind>,
+    default_input: BTreeMap<String, Value>,
+}
+
+impl BenchModule {
+    /// Turns this [BenchModule] into a [RawModule] and [RuntimeIo], the
+    /// needed components to compile this module.
+    pub fn into_components(self, builder_address: Option<Uri>) -> (RawModule, RuntimeIo) {
+        let module = RawModule::new(self.module_source, builder_address);
+        let initial_io = RuntimeIo::new(self.default_input, self.output_shape);
+        (module, initial_io)
+    }
+
+    /// Module definition for [BASIC_MODULE_JS].
+    pub fn new_basic_js_module() -> Self {
+        Self {
+            module_source: ModuleSource {
                 target: Target::CommonModule.into(),
                 source_code: [(
                     "module".to_owned(),
@@ -52,56 +49,11 @@ async fn build(builder_client: &mut BuilderClient<Channel>) -> Result<String> {
                     },
                 )]
                 .into(),
-            }),
-        })
-        .await?
-        .into_inner();
-    Ok(module_id)
-}
-
-async fn instantiate(
-    runtime_client: &mut RuntimeClient<Channel>,
-    module_id: String,
-) -> Result<String> {
-    let InstantiateModuleResponse { instance_id, .. } = runtime_client
-        .instantiate_module(InstantiateModuleRequest {
-            mode: InstantiationMode::Compile.into(),
-            output_shape: [("bar".into(), common::ValueKind::String.into())].into(),
-            default_input: [(
-                "foo".into(),
-                Value {
-                    variant: Some(common::value::Variant::String("initial foo".into())),
-                },
-            )]
-            .into(),
-            module_reference: Some(ModuleReference::ModuleSignature(ModuleSignature {
-                target: Target::CommonModule.into(),
-                id: module_id,
-            })),
-        })
-        .await?
-        .into_inner();
-    Ok(instance_id)
-}
-
-async fn run(
-    mut runtime_client: RuntimeClient<Channel>,
-    instance_id: String,
-) -> Result<HashMap<String, Value>> {
-    let RunModuleResponse { output } = runtime_client
-        .run_module(RunModuleRequest {
-            instance_id,
-            input: [(
-                "foo".into(),
-                common::Value {
-                    variant: Some(common::value::Variant::String("updated foo".into())),
-                },
-            )]
-            .into(),
-        })
-        .await?
-        .into_inner();
-    Ok(output)
+            },
+            output_shape: [("bar".into(), ValueKind::String)].into(),
+            default_input: [("foo".into(), Value::String("initial foo".into()))].into(),
+        }
+    }
 }
 
 fn run_benchmark(c: &mut Criterion) {
@@ -110,28 +62,32 @@ fn run_benchmark(c: &mut Criterion) {
         .build()
         .unwrap();
 
-    let (instance_id, runtime_client, _builder_client, _runtime_task, _builder_task) =
-        async_runtime.block_on(async {
-            let (mut runtime_client, mut builder_client, runtime_task, builder_task) =
-                init_servers().await.unwrap();
-            let module_id = build(&mut builder_client).await.unwrap();
-            let instance_id = instantiate(&mut runtime_client, module_id).await.unwrap();
-            (
-                instance_id,
-                runtime_client,
-                builder_client,
-                runtime_task,
-                builder_task,
-            )
-        });
+    let (runtime, instance_id, _builder_task) = async_runtime.block_on(async {
+        let (builder_address, builder_task) = init_build_server().await.unwrap();
+        let mut runtime = Runtime::new().unwrap();
+        let (module, initial_io) =
+            BenchModule::new_basic_js_module().into_components(Some(builder_address.clone()));
+        let instance_id = runtime.compile(module, initial_io).await.unwrap();
 
-    let input = 0;
+        (runtime, instance_id, builder_task)
+    });
+
+    let bench_input = {
+        let input = [("foo".into(), Value::String("updated foo".into()))].into();
+        let output_shape = runtime.output_shape(&instance_id).unwrap().to_owned();
+        RuntimeIo::new(input, output_shape)
+    };
+
     c.bench_with_input(
-        BenchmarkId::new("Runtime::run_module", &input),
-        &input,
-        move |b, _| {
-            b.to_async(&async_runtime)
-                .iter(|| run(runtime_client.clone(), instance_id.clone()));
+        BenchmarkId::new("Runtime::run_module", ""),
+        &bench_input,
+        |b, runtime_io| {
+            b.to_async(&async_runtime).iter(|| {
+                // As RuntimeIo is owned, containing dynamic BTreeMaps,
+                // we can't avoid either construction or cloning, responsible
+                // for ~70us
+                runtime.run(&instance_id, runtime_io.to_owned())
+            })
         },
     );
 }
