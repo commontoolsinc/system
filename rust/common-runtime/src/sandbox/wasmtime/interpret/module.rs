@@ -116,9 +116,10 @@ where
 {
     id: ModuleId,
 
-    // TODO: There is a re-factor that will let us share a lot of overlapping
-    // implementation with the compiler; we need to make the compiler generic
-    // over host bindings so that we can re-spawn it interpreter mode.
+    // TODO(#36): There is a re-factor that will let us share a lot of
+    // overlapping implementation with the compiler; we need to make the
+    // compiler generic over host bindings so that we can re-spawn it
+    // interpreter mode.
     engine: Engine,
     linker: Linker<ScriptHostState<Io>>,
     component: Component,

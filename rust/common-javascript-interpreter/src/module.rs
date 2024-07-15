@@ -75,7 +75,8 @@ impl ModuleLoader for CommonModuleLoader {
         _module: &JsModule,
         _context: &mut Context,
     ) {
-        // TODO
+        // TODO(#35): If we don't configure this correctly, we may inadvertently expose that
+        // the environment is a VM running within Wasm.
     }
 }
 
@@ -166,8 +167,6 @@ impl Module {
                                 println!("Module error: {}", error.display())
                             }
                         };
-
-                        println!("LOGGING TEST");
 
                         let run = module
                             .namespace(&mut context)

@@ -24,7 +24,6 @@ COPY ./typescript ./typescript
 WORKDIR /build-root
 
 RUN cargo component build -p common-javascript-interpreter --release
-# RUN chmod +r ./target/wasm32-wasip1/release/*.wasm
 
 WORKDIR /host
 VOLUME /host

@@ -83,18 +83,6 @@ pub fn create_io_state_module(context: &mut Context) -> Module {
                     "Write received an unsupported type".into(),
                 ))),
             }?;
-            // let value = match args.get_or_undefined(1) {
-            //     JsValue::Null | JsValue::Undefined | JsValue::BigInt(_) | JsValue::Symbol(_) => {
-            //         todo!("Not sure what to do about JS null|undefined|BigInt yet")
-            //     }
-            //     JsValue::Boolean(boolean) => HostValue::Boolean(*boolean),
-            //     JsValue::String(string) => {
-            //         HostValue::String(string.to_std_string().unwrap_or_default())
-            //     }
-            //     JsValue::Rational(number) => HostValue::Number(*number),
-            //     JsValue::Integer(number) => HostValue::Number(*number as f64),
-            //     JsValue::Object(_object) => todo!("Uint8Array support"),
-            // };
 
             state::write(&name, &value);
 
