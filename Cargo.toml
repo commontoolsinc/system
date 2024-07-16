@@ -18,7 +18,7 @@ anyhow = { version = "1" }
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
 axum = { version = "0.7" }
-blake3 = { version = "1.5" }
+blake3 = { version = "=1.5.1" }
 boa_engine = { version = "0.18"}
 boa_gc = { version = "0.18" }
 boa_runtime = { version = "0.18" }

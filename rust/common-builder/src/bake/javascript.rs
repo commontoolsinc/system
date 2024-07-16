@@ -77,6 +77,12 @@ impl Bake for JavaScriptBaker {
             warn!("{}", String::from_utf8_lossy(&output.stderr));
         }
 
+        debug!(
+            "jco exit status: {:#?} {:#?}",
+            output.status.success(),
+            output.status.code()
+        );
+        debug!("jco stdout: {:#?}", String::from_utf8_lossy(&output.stdout));
         debug!("Finished building with jco");
 
         for entry in std::fs::read_dir(workspace.path())? {
