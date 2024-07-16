@@ -1,7 +1,5 @@
-use crate::JavaScriptBundler;
-
-use super::fs::write_file;
-use super::Bake;
+use super::{fs::write_file, Bake};
+use crate::{BuilderError, JavaScriptBundler};
 use async_trait::async_trait;
 use bytes::Bytes;
 use common_wit::{Target, WitTargetFileMap};
@@ -75,6 +73,9 @@ impl Bake for JavaScriptBaker {
 
         if !output.stderr.is_empty() {
             warn!("{}", String::from_utf8_lossy(&output.stderr));
+        }
+        if !output.status.success() {
+            return Err(BuilderError::Internal("jco exited with a failure.".into()));
         }
 
         debug!("Finished building with jco");

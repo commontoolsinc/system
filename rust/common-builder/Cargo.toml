@@ -17,6 +17,7 @@ common-protos = { workspace = true, features = ["builder"] }
 common-tracing = { workspace = true }
 deno_emit = { workspace = true }
 deno_graph = { workspace = true }
+js-component-bindgen = { workspace = true }
 mime_guess = { workspace = true }
 redb = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls", "charset", "http2", "macos-system-configuration"] }
@@ -29,6 +30,7 @@ tonic = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 url = { workspace = true }
+wasmtime-environ = { workspace = true }
 wit-parser = { workspace = true }
 
 [dev-dependencies]

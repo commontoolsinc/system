@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use crate::{
     error::BuilderError,
+    polyfill,
     storage::{HashStorage, PersistedHashStorage},
     Bake, Baker, JavaScriptBundler,
 };
@@ -10,8 +11,9 @@ use blake3::Hash;
 use common_protos::{
     builder::{
         builder_server::{Builder as BuilderProto, BuilderServer},
-        BuildComponentRequest, BuildComponentResponse, BundleSourceCodeRequest,
-        BundleSourceCodeResponse, ReadComponentRequest, ReadComponentResponse,
+        BuildComponentRequest, BuildComponentResponse, BuilderFile, BundleSourceCodeRequest,
+        BundleSourceCodeResponse, ReadComponentCompatRequest, ReadComponentCompatResponse,
+        ReadComponentRequest, ReadComponentResponse,
     },
     common::{ContentType, ModuleSource, Target as TargetProto},
     MAX_MESSAGE_SIZE,
@@ -98,6 +100,29 @@ impl BuilderProto for Builder {
                 .ok_or(BuilderError::ModuleNotFound)?
                 .to_vec(),
         }))
+    }
+
+    async fn read_component_compat(
+        &self,
+        request: Request<ReadComponentCompatRequest>,
+    ) -> Result<Response<ReadComponentCompatResponse>, Status> {
+        let request = request.into_inner();
+        let hash = Hash::from_str(&request.id)
+            .map_err(|error| Status::invalid_argument(format!("Could not parse ID: {error}")))?;
+
+        let bytes = self
+            .storage
+            .read(&hash)
+            .await?
+            .ok_or(BuilderError::ModuleNotFound)?
+            .to_vec();
+        let artifacts = polyfill("module", bytes, None).await?;
+        let files = artifacts
+            .files
+            .into_iter()
+            .map(|(name, data)| BuilderFile { name, data })
+            .collect();
+        Ok(Response::new(ReadComponentCompatResponse { files }))
     }
 
     async fn bundle_source_code(

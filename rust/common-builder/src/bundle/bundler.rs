@@ -11,7 +11,7 @@ use deno_graph::source::LoadResponse;
 use reqwest::Client;
 use url::Url;
 
-use crate::BuilderError;
+use crate::{bundle::wasi_shim::JavaScriptWasiShim, BuilderError};
 
 const ROOT_MODULE_URL: &str = "bundler:root";
 const ROOT_MODULE_SCHEME: &str = "bundler";
@@ -52,9 +52,21 @@ impl Loader for JavaScriptLoader {
                     specifier,
                     maybe_headers: None,
                 })),
-                "common" => Ok(Some(LoadResponse::External {
-                    specifier: specifier.clone(),
-                })),
+                "common" => {
+                    if let Ok(wasi_shim) =
+                        JavaScriptWasiShim::from_import_specifier(specifier.as_str())
+                    {
+                        Ok(Some(LoadResponse::Module {
+                            content: Vec::<u8>::try_from(wasi_shim)?.into(),
+                            specifier,
+                            maybe_headers: None,
+                        }))
+                    } else {
+                        Ok(Some(LoadResponse::External {
+                            specifier: specifier.clone(),
+                        }))
+                    }
+                }
                 "http" | "https" => {
                     let response = client.get(specifier.as_str()).send().await?;
                     let headers = response.headers().to_owned();

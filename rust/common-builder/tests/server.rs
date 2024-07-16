@@ -2,9 +2,11 @@ use common_builder::serve;
 use common_protos::{
     builder::{
         builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
-        BundleSourceCodeRequest, BundleSourceCodeResponse,
+        BundleSourceCodeRequest, BundleSourceCodeResponse, ReadComponentCompatRequest,
+        ReadComponentCompatResponse,
     },
     common::{ContentType, ModuleSource, SourceCode, Target},
+    MAX_MESSAGE_SIZE,
 };
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::*;
@@ -82,6 +84,56 @@ async fn it_builds_javascript_modules() -> anyhow::Result<()> {
         .into_inner();
 
     assert!(!id.is_empty());
+
+    handler.abort();
+    Ok(())
+}
+
+#[tokio::test]
+#[common_tracing]
+async fn it_polyfills_javascript_modules() -> anyhow::Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:0").await?;
+    let addr = listener.local_addr()?;
+    let handler = tokio::spawn(async { serve(listener).await.unwrap() });
+
+    let source_code = Vec::from(BASIC_MODULE_JS);
+
+    let mut client = BuilderClient::connect(format!("http://{}", addr))
+        .await?
+        .max_decoding_message_size(MAX_MESSAGE_SIZE)
+        .max_encoding_message_size(MAX_MESSAGE_SIZE);
+
+    let BuildComponentResponse { id } = client
+        .build_component(BuildComponentRequest {
+            module_source: Some(ModuleSource {
+                target: Target::CommonModule.into(),
+                source_code: [(
+                    "module".to_owned(),
+                    SourceCode {
+                        content_type: ContentType::JavaScript.into(),
+                        body: source_code,
+                    },
+                )]
+                .into(),
+            }),
+        })
+        .await?
+        .into_inner();
+
+    let ReadComponentCompatResponse { files } = client
+        .read_component_compat(ReadComponentCompatRequest { id })
+        .await?
+        .into_inner();
+
+    assert_eq!(files.len(), 4);
+
+    let js_file = files
+        .iter()
+        .find(|file| file.name.ends_with(".js"))
+        .unwrap();
+    assert!(String::from_utf8(js_file.data.clone())
+        .unwrap()
+        .contains("const monotonicClock ="));
 
     handler.abort();
     Ok(())
