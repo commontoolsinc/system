@@ -79,6 +79,20 @@ impl Bake for JavaScriptBaker {
 
         debug!("Finished building with jco");
 
+        for entry in std::fs::read_dir(workspace.path())? {
+            let entry = entry?;
+            let path = entry.path();
+            let metadata = entry.metadata()?;
+            debug!(
+                "{:#?}: size: {}, is_file:{}",
+                path,
+                metadata.len(),
+                metadata.is_file()
+            );
+        }
+
+        info!("Reading wasm at {}", wasm_path.display().to_string());
+
         let wasm_bytes = tokio::fs::read(&wasm_path).await?;
 
         info!("Finished baking");
