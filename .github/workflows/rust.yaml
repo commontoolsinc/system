@@ -59,23 +59,23 @@ jobs:
     needs: ['lints']
     strategy:
       matrix:
-        platform: ['ubuntu-latest', 'macos-13']
+        platform: ['ubuntu-22.04-large', 'macos-13-large']
         toolchain: ['stable', 'nightly']
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
-        if: ${{ matrix.platform == 'ubuntu-latest' }}
+        if: ${{ matrix.platform == 'ubuntu-22.04-large' }}
         run: |
           sudo apt update && sudo apt upgrade -y
           sudo apt install -y protobuf-compiler libprotobuf-dev
       - name: 'Install OS packages (MacOS)'
-        if: ${{ matrix.platform == 'macos-13' }}
+        if: ${{ matrix.platform == 'macos-13-large' }}
         run: |
           brew install protobuf
       - name: 'Setup Docker (MacOS)'
-        if: ${{ matrix.platform == 'macos-13' }}
+        if: ${{ matrix.platform == 'macos-13-large' }}
         uses: douglascamata/setup-docker-macos-action@v1-alpha
       - name: 'Setup Rust'
         run: |
@@ -92,7 +92,7 @@ jobs:
           cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
           cd typescript
           npm ci
       - name: 'Run wit-deps on Wasm Component projects'
