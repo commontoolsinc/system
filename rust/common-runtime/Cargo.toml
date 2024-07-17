@@ -37,6 +37,9 @@ wasmtime-wasi = { workspace = true }
 wasmtime-wasi-http = { workspace = true }
 wit-parser = { workspace = true }
 
+[build-dependencies]
+tempfile = { workspace = true }
+
 [dev-dependencies]
 common-builder = { workspace = true }
 common-test-fixtures = { workspace = true }

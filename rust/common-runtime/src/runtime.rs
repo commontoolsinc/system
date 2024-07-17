@@ -1,10 +1,12 @@
 use crate::{
-    wasmtime::WasmtimeCompiler, CommonRuntimeError, InputOutput, ModuleDefinition, ModuleInstance,
-    ModuleInstanceId, ModulePreparer, OutputShape, PreparedModule, ToModuleSources,
-    ToWasmComponent, Value, ValueKind,
+    wasmtime::{WasmtimeCompiler, WasmtimeInterpreter},
+    CommonRuntimeError, InputOutput, ModuleDefinition, ModuleInstance, ModuleInstanceId,
+    ModulePreparer, OutputShape, PreparedModule, ToModuleSources, ToWasmComponent, Value,
+    ValueKind,
 };
 use common_protos::common;
 use std::collections::{BTreeMap, HashMap};
+use wasmtime::{Config, Engine, OptLevel};
 
 /// An implementation of [InputOutput] that is suitable for use with a
 /// [Runtime].
@@ -58,6 +60,7 @@ impl InputOutput for RuntimeIo {
 /// instantiation, and appropriately sandboxing them ahead of invocation.
 pub struct Runtime {
     compiler: WasmtimeCompiler<RuntimeIo>,
+    interpreter: WasmtimeInterpreter<RuntimeIo>,
     module_instances: BTreeMap<
         ModuleInstanceId,
         (
@@ -70,8 +73,18 @@ pub struct Runtime {
 impl Runtime {
     /// Initialize a new [Runtime]
     pub fn new() -> Result<Self, CommonRuntimeError> {
+        let mut config = Config::default();
+
+        config.cranelift_opt_level(OptLevel::Speed);
+        config.async_support(true);
+        config.wasm_backtrace(true);
+
+        let wasmtime_engine = Engine::new(&config)
+            .map_err(|error| CommonRuntimeError::SandboxCreationFailed(format!("{error}")))?;
+
         Ok(Runtime {
-            compiler: WasmtimeCompiler::new()?,
+            compiler: WasmtimeCompiler::new(wasmtime_engine.clone())?,
+            interpreter: WasmtimeInterpreter::new(wasmtime_engine)?,
             module_instances: Default::default(),
         })
     }
@@ -84,7 +97,7 @@ impl Runtime {
         io: RuntimeIo,
     ) -> Result<ModuleInstanceId, CommonRuntimeError> {
         let output_shape = io.output_shape().clone();
-        debug!(?output_shape, "Collected output shape");
+        debug!(?output_shape);
         let prepared_module = self.compiler.prepare(module).await?;
         debug!("Retrieved prepared module");
         let instance = prepared_module.instantiate(io).await?;
@@ -98,12 +111,25 @@ impl Runtime {
     }
 
     /// Instantiate the given Common Module in interpreted mode (if supported)
-    pub async fn interpret<Module: ModuleDefinition + ToModuleSources + 'static>(
+    pub async fn interpret<
+        Module: ModuleDefinition + ToModuleSources + ToWasmComponent + 'static,
+    >(
         &mut self,
-        _module: Module,
-        _io: RuntimeIo,
+        module: Module,
+        io: RuntimeIo,
     ) -> Result<ModuleInstanceId, CommonRuntimeError> {
-        todo!();
+        let output_shape = io.output_shape().clone();
+        debug!(?output_shape);
+        let prepared_module = self.interpreter.prepare(module).await?;
+        debug!("Retrieved prepared module");
+        let instance = prepared_module.instantiate(io).await?;
+        let instance_id = instance.id().clone();
+        debug!(?instance_id, "Instantiated the module");
+
+        self.module_instances
+            .insert(instance_id.clone(), (Box::new(instance), output_shape));
+
+        Ok(instance_id)
     }
 
     /// For a given live Common Module instance, get the [OutputShape] that was

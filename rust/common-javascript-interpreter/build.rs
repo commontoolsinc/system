@@ -4,6 +4,7 @@ const TYPESCRIPT_SOURCE_DEPENDENCIES: &[&str] = &[
     "common/io/wit/io.wit",
     "common/data/wit/data.wit",
     "common/module/wit/module.wit",
+    "common/script/wit/script.wit",
 ];
 
 fn main() {

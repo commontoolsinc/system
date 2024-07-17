@@ -42,6 +42,14 @@ pub enum CommonRuntimeError {
     /// A provided Value was empty or of an unexpected shape
     #[error("Invalid Value")]
     InvalidValue,
+
+    /// The provided module sources were missing or otherwise invalid
+    #[error("Invalid module source: {0}")]
+    InvalidModuleSource(String),
+
+    /// The provided instantiation parameters are not supported
+    #[error("Invalid instantiation parameters: {0}")]
+    InvalidInstantiationParameters(String),
 }
 
 impl From<tonic::transport::Error> for CommonRuntimeError {

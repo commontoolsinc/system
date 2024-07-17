@@ -17,19 +17,26 @@ pub const COMMON_IO_WIT: &[u8] = include_bytes!("../../../typescript/common/io/w
 /// WIT definition for `common:data`
 pub const COMMON_DATA_WIT: &[u8] = include_bytes!("../../../typescript/common/data/wit/data.wit");
 
+/// WIT definition for `common:script`
+pub const COMMON_SCRIPT_WIT: &[u8] =
+    include_bytes!("../../../typescript/common/script/wit/script.wit");
+
 /// A target that some candidate source code may express the implementation of
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Target {
     /// The most basic target: a Common Module
     #[serde(rename = "common:module")]
     CommonModule,
+    /// Effectively the same as a Common Module, but intepreted w/o a compile step
+    #[serde(rename = "common:script")]
+    CommonScript,
 }
 
 impl Target {
     /// The presumptive WIT world that corresponds to a give [WitTarget]
     pub fn world(&self) -> &'static str {
         match self {
-            Target::CommonModule => "common",
+            Target::CommonModule | Target::CommonScript => "common",
         }
     }
 }
@@ -40,6 +47,7 @@ impl FromStr for Target {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             "common:module" => Target::CommonModule,
+            "common:script" => Target::CommonScript,
             _ => {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
@@ -57,6 +65,7 @@ impl std::fmt::Display for Target {
             "{}",
             match self {
                 Target::CommonModule => "common:module",
+                Target::CommonScript => "common:script",
             }
         )
     }
@@ -129,6 +138,12 @@ impl From<Target> for WitTargetFileMap {
 impl From<&Target> for WitTargetFileMap {
     fn from(value: &Target) -> Self {
         WitTargetFileMap(match value {
+            Target::CommonScript => BTreeMap::from([
+                ("target.wit".into(), COMMON_SCRIPT_WIT),
+                ("deps/io/io.wit".into(), COMMON_IO_WIT),
+                ("deps/data/data.wit".into(), COMMON_DATA_WIT),
+                ("deps/module/module.wit".into(), COMMON_MODULE_WIT),
+            ]),
             Target::CommonModule => BTreeMap::from([
                 ("target.wit".into(), COMMON_MODULE_WIT),
                 ("deps/io/io.wit".into(), COMMON_IO_WIT),

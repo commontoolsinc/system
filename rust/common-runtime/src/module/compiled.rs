@@ -29,8 +29,8 @@ impl ModuleDefinition for CompiledModule {
         self.target
     }
 
-    async fn id(&self) -> Result<&ModuleId, CommonRuntimeError> {
-        Ok(&self.module_id)
+    async fn id(&self) -> Result<ModuleId, CommonRuntimeError> {
+        Ok(self.module_id.clone())
     }
 }
 

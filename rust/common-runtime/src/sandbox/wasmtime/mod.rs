@@ -10,4 +10,4 @@ mod compile;
 pub use compile::*;
 
 mod interpret;
-// pub use interpreter::*;
+pub use interpret::*;

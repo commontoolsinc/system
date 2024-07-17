@@ -32,6 +32,7 @@ impl Builder {
         if let Some(module_source) = module_source {
             let target = match module_source.target() {
                 TargetProto::CommonModule => Target::CommonModule,
+                TargetProto::CommonScript => Target::CommonScript,
             };
             let source_code = module_source.source_code;
 

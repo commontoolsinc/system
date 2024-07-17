@@ -8,8 +8,8 @@ use wasmtime::{
 };
 
 use crate::{
-    wasmtime::bindings::Common, CommonRuntimeError, InputOutput, ModuleId, ModuleInstance,
-    ModuleInstanceId, PreparedModule,
+    wasmtime::bindings::common_module::Common, CommonRuntimeError, InputOutput, ModuleId,
+    ModuleInstance, ModuleInstanceId, PreparedModule,
 };
 
 use super::bindings::ModuleHostState;
@@ -61,8 +61,12 @@ where
     ) -> Result<Self::ModuleInstance, CommonRuntimeError> {
         let mut store = Store::new(&self.engine, ModuleHostState::new(io));
 
-        let (common, instance) = Common::instantiate(&mut store, &self.component, &self.linker)
-            .map_err(|error| CommonRuntimeError::ModuleInstantiationFailed(format!("{error}")))?;
+        let (common, instance) =
+            Common::instantiate_async(&mut store, &self.component, &self.linker)
+                .await
+                .map_err(|error| {
+                    CommonRuntimeError::ModuleInstantiationFailed(format!("{error}"))
+                })?;
 
         Ok(WasmtimeModuleInstance {
             id: self.id.clone().try_into()?,
@@ -102,6 +106,7 @@ where
 
         self.common
             .call_run(store.as_context_mut())
+            .await
             .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?
             .map_err(|error| CommonRuntimeError::ModuleRunFailed(error.to_string()))?;
 

@@ -15,7 +15,7 @@ pub trait ModuleDefinition: std::fmt::Debug + Clone + ConditionalSync {
     fn target(&self) -> Target;
 
     /// Reports a unique ID for the [ModuleDefinition]
-    async fn id(&self) -> Result<&ModuleId, CommonRuntimeError>;
+    async fn id(&self) -> Result<ModuleId, CommonRuntimeError>;
 }
 
 /// A trait that may be implemented by anything that can be converted to Wasm

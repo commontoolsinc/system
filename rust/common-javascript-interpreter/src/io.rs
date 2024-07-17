@@ -7,16 +7,6 @@ use boa_engine::{
     Context, JsArgs, JsError, JsValue, Module, NativeFunction,
 };
 
-pub fn read_script() -> Option<String> {
-    match state::read(&String::from("script")) {
-        Some(reference) => match reference.deref() {
-            Ok(Some(HostValue::String(script))) => Some(script),
-            _ => None,
-        },
-        _ => None,
-    }
-}
-
 pub fn create_io_state_module(context: &mut Context) -> Module {
     let read = FunctionObjectBuilder::new(
         context.realm(),
@@ -30,13 +20,7 @@ pub fn create_io_state_module(context: &mut Context) -> Module {
                     JsError::from_opaque(JsValue::String(format!("{error}").into()))
                 })?;
 
-            let maybe_reference = if let Some(inputs) = state::read(&String::from("input")) {
-                inputs.read(&name)
-            } else {
-                None
-            };
-
-            let Some(reference) = maybe_reference else {
+            let Some(reference) = state::read(&name) else {
                 return Ok(JsValue::undefined());
             };
 
@@ -50,7 +34,7 @@ pub fn create_io_state_module(context: &mut Context) -> Module {
 
     let write = FunctionObjectBuilder::new(
         context.realm(),
-        NativeFunction::from_fn_ptr(|_, args, _context| {
+        NativeFunction::from_fn_ptr(|_, args, context| {
             let name = args
                 .get_or_undefined(0)
                 .as_string()
@@ -61,17 +45,44 @@ pub fn create_io_state_module(context: &mut Context) -> Module {
                 })?;
 
             let value = match args.get_or_undefined(1) {
-                JsValue::Null | JsValue::Undefined | JsValue::BigInt(_) | JsValue::Symbol(_) => {
-                    todo!("Not sure what to do about JS null|undefined|BigInt yet")
+                JsValue::Object(object) => {
+                    let tag = object
+                        .get(js_string!("tag"), context)?
+                        .as_string()
+                        .ok_or_else(|| {
+                            JsError::from_opaque(JsValue::String(js_string!(
+                                "Unexpected type for 'tag' property"
+                            )))
+                        })?
+                        .to_std_string()
+                        .map_err(|error| {
+                            JsError::from_opaque(JsValue::String(format!("{error}").into()))
+                        })?;
+
+                    let val = object.get(js_string!("val"), context)?;
+
+                    match tag.as_str() {
+                        "string" => {
+                            let value = val
+                                .as_string()
+                                .ok_or_else(|| {
+                                    JsError::from_opaque(JsValue::String(
+                                        "Unexpected type for 'tag' property".into(),
+                                    ))
+                                })?
+                                .to_std_string()
+                                .map_err(|error| {
+                                    JsError::from_opaque(JsValue::String(format!("{error}").into()))
+                                })?;
+                            Ok(HostValue::String(value))
+                        }
+                        _ => todo!("FUUU"),
+                    }
                 }
-                JsValue::Boolean(boolean) => HostValue::Boolean(*boolean),
-                JsValue::String(string) => {
-                    HostValue::String(string.to_std_string().unwrap_or_default())
-                }
-                JsValue::Rational(number) => HostValue::Number(*number),
-                JsValue::Integer(number) => HostValue::Number(*number as f64),
-                JsValue::Object(_object) => todo!("Uint8Array support"),
-            };
+                _ => Err(JsError::from_opaque(JsValue::String(
+                    "Write received an unsupported type".into(),
+                ))),
+            }?;
 
             state::write(&name, &value);
 
@@ -81,15 +92,17 @@ pub fn create_io_state_module(context: &mut Context) -> Module {
     .build();
 
     Module::synthetic(
-        &[js_string!("read")],
+        &[js_string!("read"), js_string!("write")],
         SyntheticModuleInitializer::from_copy_closure_with_captures(
-            |module, fns, _| {
+            |module, fns, context| {
+                context.register_global_class::<Reference>()?;
                 module.set_export(&js_string!("read"), fns.0.clone().into())?;
                 module.set_export(&js_string!("write"), fns.1.clone().into())?;
                 Ok(())
             },
             (read, write),
         ),
+        None,
         None,
         context,
     )

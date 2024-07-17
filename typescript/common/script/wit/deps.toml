@@ -1,0 +1,3 @@
+data = "../../data/wit"
+io = "../../io/wit"
+module = "../../module/wit"
