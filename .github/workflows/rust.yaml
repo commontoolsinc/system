@@ -59,7 +59,10 @@ jobs:
     needs: ['lints']
     strategy:
       matrix:
-        platform: ['ubuntu-22.04-large', 'macos-13-large']
+        # Disable 'macos-13-large' tests, currently taking ~80
+        # minutes each to finish.
+        # platform: ['ubuntu-22.04-large', 'macos-13-large']
+        platform: ['ubuntu-22.04-large']
         toolchain: ['stable', 'nightly']
     runs-on: ${{ matrix.platform }}
     steps:
