@@ -1,11 +1,10 @@
 use crate::wasmtime::bindings::common_script::*;
-
 use axum::async_trait;
+use common_wasi::{WasiCtx, WasiView};
 use wasmtime::component::{Resource, ResourceTable};
 
 // NOTE: This module comes from wasmtime::component::bindgen
 use common::data::types::{Reference, Value as BindingValue};
-use wasmtime_wasi::{WasiCtx, WasiView};
 
 use crate::{InputOutput, Value};
 
@@ -71,7 +70,7 @@ where
             references: ResourceTable::default(),
 
             view_resources: ResourceTable::default(),
-            view_ctx: WasiCtx::builder().inherit_stdio().build(),
+            view_ctx: WasiCtx::builder().build(),
         }
     }
 

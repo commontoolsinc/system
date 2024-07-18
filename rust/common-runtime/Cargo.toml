@@ -15,6 +15,7 @@ blake3 = { workspace = true }
 bytes = { workspace = true }
 common-protos = { workspace = true, features = ["runtime"] }
 common-tracing = { workspace = true }
+common-wasi = { workspace = true }
 common-wit = { workspace = true }
 http = { workspace = true }
 hyper-util = { workspace = true }
@@ -33,8 +34,6 @@ tower-http = { workspace = true, features = ["cors"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 wasmtime = { workspace = true }
-wasmtime-wasi = { workspace = true }
-wasmtime-wasi-http = { workspace = true }
 wit-parser = { workspace = true }
 
 [build-dependencies]

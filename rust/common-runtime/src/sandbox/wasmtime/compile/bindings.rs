@@ -1,14 +1,12 @@
 //! Host binding details for use when instantiating Common Module guests
 
 use crate::wasmtime::bindings::common_module::*;
-
 use axum::async_trait;
+use common_wasi::{WasiCtx, WasiView};
 use wasmtime::component::{Resource, ResourceTable};
-use wasmtime_wasi::{WasiCtx, WasiView};
 
 // NOTE: This module comes from wasmtime::component::bindgen
 use common::data::types::{Reference, Value as BindingValue};
-use wasmtime_wasi_http::{WasiHttpCtx, WasiHttpView};
 
 use crate::{InputOutput, Value};
 
@@ -48,9 +46,6 @@ pub struct ModuleHostState<Io: InputOutput> {
 
     view_resources: ResourceTable,
     view_ctx: WasiCtx,
-
-    http_resources: ResourceTable,
-    http_ctx: WasiHttpCtx,
 }
 
 impl<Io> ModuleHostState<Io>
@@ -77,16 +72,7 @@ where
             references: ResourceTable::default(),
 
             view_resources: ResourceTable::default(),
-            view_ctx: WasiCtx::builder()
-                .allow_tcp(false)
-                .allow_udp(false)
-                .allow_ip_name_lookup(false)
-                .allow_blocking_current_thread(false)
-                .inherit_stdout()
-                .build(),
-
-            http_resources: ResourceTable::default(),
-            http_ctx: WasiHttpCtx::new(),
+            view_ctx: WasiCtx::builder().build(),
         }
     }
 
@@ -182,18 +168,5 @@ where
 
     fn ctx(&mut self) -> &mut WasiCtx {
         &mut self.view_ctx
-    }
-}
-
-impl<Io> WasiHttpView for ModuleHostState<Io>
-where
-    Io: InputOutput,
-{
-    fn ctx(&mut self) -> &mut wasmtime_wasi_http::WasiHttpCtx {
-        &mut self.http_ctx
-    }
-
-    fn table(&mut self) -> &mut ResourceTable {
-        &mut self.http_resources
     }
 }

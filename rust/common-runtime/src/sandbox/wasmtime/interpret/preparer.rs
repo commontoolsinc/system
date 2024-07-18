@@ -79,7 +79,7 @@ where
 
             let mut linker = Linker::new(&self.engine);
 
-            wasmtime_wasi::add_to_linker_async(&mut linker)
+            common_wasi::add_to_linker_async(&mut linker)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
             Common::add_to_linker(&mut linker, |environment| environment)
