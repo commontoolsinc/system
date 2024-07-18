@@ -10,3 +10,4 @@ __pycache__
 cache
 deps
 typescript/packages/planning-server/.env
+.wasm_cache
