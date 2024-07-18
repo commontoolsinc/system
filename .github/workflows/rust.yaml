@@ -54,29 +54,76 @@ jobs:
       - name: 'Run Linter'
         run: cargo +${{matrix.toolchain}} component clippy --all -- -D warnings
 
+  build-wasm-components:
+    name: 'Build Wasm Components'
+    needs: ['lints']
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: 'Install OS packages (Ubuntu)'
+        run: |
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install -y protobuf-compiler libprotobuf-dev
+      - name: 'Setup Rust'
+        run: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y
+          rustup toolchain install stable 
+      - name: 'Setup Node/NPM'
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.4.4
+      - name: Install binaries from cargo
+        run: |
+          cargo binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
+      - name: 'Install NPM dependencies'
+        run: |
+          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
+          cd typescript
+          npm ci
+      - name: 'Run wit-deps on Wasm Component projects'
+        run: |
+          # NOTE: cargo-component doesn't invoke build.rs as expected when
+          # performing checked format
+          cd ./rust/common-javascript-interpreter
+          RUST_LOG=trace wit-deps
+      - name: 'Build Rust-based Wasm Components'
+        shell: bash
+        run: |
+          cargo component build \
+            -p common-javascript-interpreter \
+            --release
+        env:
+          RUST_LOG: debug
+      - uses: actions/upload-artifact@v3
+        with:
+          name: wasm-components
+          path: ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm
+
+
   native-target-tests:
     name: 'Native target tests'
-    needs: ['lints']
+    needs: ['lints', 'build-wasm-components']
     strategy:
       matrix:
-        platform: ['ubuntu-22.04-large', 'macos-13-large']
+        platform: ['ubuntu-latest', 'macos-13']
         toolchain: ['stable', 'nightly']
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
+      - uses: actions/download-artifact@v3
       - name: 'Install OS packages (Ubuntu)'
-        if: ${{ matrix.platform == 'ubuntu-22.04-large' }}
+        if: ${{ matrix.platform == 'ubuntu-latest' }}
         run: |
           sudo apt update && sudo apt upgrade -y
-          sudo apt install -y protobuf-compiler libprotobuf-dev
+          sudo apt install -y protobuf-compiler libprotobuf-dev tree
       - name: 'Install OS packages (MacOS)'
-        if: ${{ matrix.platform == 'macos-13-large' }}
+        if: ${{ matrix.platform == 'macos-13' }}
         run: |
-          brew install protobuf
-      - name: 'Setup Docker (MacOS)'
-        if: ${{ matrix.platform == 'macos-13-large' }}
-        uses: douglascamata/setup-docker-macos-action@v1-alpha
+          brew install protobuf tree
       - name: 'Setup Rust'
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
@@ -104,6 +151,7 @@ jobs:
       - name: 'Run Rust tests'
         shell: bash
         run: |
+          mv ./wasm-components ./.wasm_cache
           mkdir -p test-results
 
           echo "${{ matrix.platform }}

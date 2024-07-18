@@ -36,6 +36,20 @@ Once all dependencies are set up, run:
 cargo test
 ```
 
+## Optimizations
+
+### Wasm Components
+
+Currently, when you build some crates (like `common-runtime`), the `build.rs`
+will invoke a Docker build step to produce some Wasm Component artifacts. This
+can be quite slow in some environments.
+
+If you can produce any needed Wasm artifacts as a pre-build step (either
+compiling locally or perhaps pulling the artifacts from a cache), you can place
+them in a `.wasm_cache` folder in the root of this workspace.
+
+For an example of this, refer to the [`rust.yaml` Github Workflow](./.github/workflows/rust.yaml)
+
 [cargo]: https://doc.rust-lang.org/cargo/getting-started/installation.html
 [binstall]: https://github.com/cargo-bins/cargo-binstall
 [node.js]: https://nodejs.org/en/learn/getting-started/how-to-install-nodejs
