@@ -5,14 +5,19 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 
-[dependencies]
-tonic = { workspace = true }
-prost = { workspace = true }
-
-[build-dependencies]
-tonic-build = { workspace = true }
-
 [features]
 default = ["runtime", "builder"]
 runtime = []
 builder = []
+
+[dependencies]
+prost = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tonic = { workspace = true, features = ["codegen", "prost", "transport"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+tonic = { workspace = true, default-features = false, features = ["codegen", "prost"] }
+
+[build-dependencies]
+tonic-build = { workspace = true, default-features = false, features = ["prost", "transport"] }

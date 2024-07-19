@@ -1,6 +1,8 @@
 use crate::{CommonRuntimeError, ModuleDefinition, ModuleId, ToWasmComponent};
 use async_trait::async_trait;
 use bytes::Bytes;
+
+#[cfg(not(target_arch = "wasm32"))]
 use common_protos::{
     builder::{builder_client::BuilderClient, ReadComponentRequest, ReadComponentResponse},
     MAX_MESSAGE_SIZE,
@@ -23,7 +25,8 @@ pub struct CompiledModule {
     pub builder_address: Option<Uri>,
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ModuleDefinition for CompiledModule {
     fn target(&self) -> Target {
         self.target
@@ -34,8 +37,15 @@ impl ModuleDefinition for CompiledModule {
     }
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ToWasmComponent for CompiledModule {
+    #[cfg(target_arch = "wasm32")]
+    async fn to_wasm_component(&self) -> Result<Bytes, CommonRuntimeError> {
+        todo!();
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     async fn to_wasm_component(&self) -> Result<Bytes, CommonRuntimeError> {
         let mut client = if let Some(address) = &self.builder_address {
             BuilderClient::connect(address.to_string())

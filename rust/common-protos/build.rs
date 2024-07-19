@@ -27,7 +27,10 @@ fn main() {
         sources.push(BUILDER_SOURCE);
     }
 
+    let target = env::var("TARGET").unwrap();
+
     tonic_build::configure()
+        .build_transport(target != "wasm32-unknown-unknown")
         .file_descriptor_set_path(out_dir.join("protos_descriptor.bin"))
         // Will always rebuild unless `emit_rerun_if_changed` is false.
         .emit_rerun_if_changed(false)

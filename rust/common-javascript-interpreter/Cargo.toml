@@ -11,6 +11,9 @@ boa_runtime = { workspace = true }
 once_cell = { workspace = true }
 wit-bindgen-rt = { workspace = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { workspace = true }
+
 [build-dependencies]
 common-wit = { workspace = true }
 

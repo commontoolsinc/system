@@ -1,6 +1,6 @@
 use crate::wasmtime::bindings::common_script::*;
 
-use axum::async_trait;
+use async_trait::async_trait;
 use wasmtime::component::{Resource, ResourceTable};
 
 // NOTE: This module comes from wasmtime::component::bindgen

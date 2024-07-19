@@ -2,7 +2,7 @@
 
 use crate::wasmtime::bindings::common_module::*;
 
-use axum::async_trait;
+use async_trait::async_trait;
 use wasmtime::component::{Resource, ResourceTable};
 use wasmtime_wasi::{WasiCtx, WasiView};
 

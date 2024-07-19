@@ -52,6 +52,7 @@ pub enum CommonRuntimeError {
     InvalidInstantiationParameters(String),
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl From<tonic::transport::Error> for CommonRuntimeError {
     fn from(value: tonic::transport::Error) -> Self {
         CommonRuntimeError::InternalError(format!("{value}"))

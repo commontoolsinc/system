@@ -1,11 +1,18 @@
 use crate::{
-    wasmtime::{WasmtimeCompiler, WasmtimeInterpreter},
     CommonRuntimeError, InputOutput, ModuleDefinition, ModuleInstance, ModuleInstanceId,
     ModulePreparer, OutputShape, PreparedModule, ToModuleSources, ToWasmComponent, Value,
     ValueKind,
 };
 use common_protos::common;
 use std::collections::{BTreeMap, HashMap};
+
+#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+use crate::browser::{BrowserCompiler, BrowserInterpreter};
+
+#[cfg(not(target_arch = "wasm32"))]
+use crate::wasmtime::{WasmtimeCompiler, WasmtimeInterpreter};
+
+#[cfg(not(target_arch = "wasm32"))]
 use wasmtime::{Config, Engine, OptLevel};
 
 /// An implementation of [InputOutput] that is suitable for use with a
@@ -59,8 +66,16 @@ impl InputOutput for RuntimeIo {
 /// invocation. It manages the details of preparing Common Modules for
 /// instantiation, and appropriately sandboxing them ahead of invocation.
 pub struct Runtime {
+    #[cfg(not(target_arch = "wasm32"))]
     compiler: WasmtimeCompiler<RuntimeIo>,
+    #[cfg(not(target_arch = "wasm32"))]
     interpreter: WasmtimeInterpreter<RuntimeIo>,
+
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+    compiler: BrowserCompiler<RuntimeIo>,
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+    interpreter: BrowserInterpreter<RuntimeIo>,
+
     module_instances: BTreeMap<
         ModuleInstanceId,
         (
@@ -73,18 +88,29 @@ pub struct Runtime {
 impl Runtime {
     /// Initialize a new [Runtime]
     pub fn new() -> Result<Self, CommonRuntimeError> {
-        let mut config = Config::default();
+        #[cfg(not(target_arch = "wasm32"))]
+        let wasmtime_engine = {
+            let mut config = Config::default();
 
-        config.cranelift_opt_level(OptLevel::Speed);
-        config.async_support(true);
-        config.wasm_backtrace(true);
+            config.cranelift_opt_level(OptLevel::Speed);
+            config.async_support(true);
+            config.wasm_backtrace(true);
 
-        let wasmtime_engine = Engine::new(&config)
-            .map_err(|error| CommonRuntimeError::SandboxCreationFailed(format!("{error}")))?;
+            Engine::new(&config)
+                .map_err(|error| CommonRuntimeError::SandboxCreationFailed(format!("{error}")))
+        }?;
 
         Ok(Runtime {
+            #[cfg(not(target_arch = "wasm32"))]
             compiler: WasmtimeCompiler::new(wasmtime_engine.clone())?,
+            #[cfg(not(target_arch = "wasm32"))]
             interpreter: WasmtimeInterpreter::new(wasmtime_engine)?,
+
+            #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+            compiler: BrowserCompiler::new(),
+            #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+            interpreter: BrowserInterpreter::new(),
+
             module_instances: Default::default(),
         })
     }
@@ -111,6 +137,7 @@ impl Runtime {
     }
 
     /// Instantiate the given Common Module in interpreted mode (if supported)
+    #[instrument(skip(self, module, io))]
     pub async fn interpret<
         Module: ModuleDefinition + ToModuleSources + ToWasmComponent + 'static,
     >(
