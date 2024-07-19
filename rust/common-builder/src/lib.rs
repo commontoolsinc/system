@@ -1,3 +1,4 @@
+#![cfg(not(target_arch = "wasm32"))]
 #![warn(missing_docs)]
 //! Utilities for compiling/bundling JavaScript into
 //! a single source.

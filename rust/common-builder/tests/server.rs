@@ -1,3 +1,5 @@
+#![cfg(not(target_arch = "wasm32"))]
+
 use common_builder::serve;
 use common_protos::{
     builder::{

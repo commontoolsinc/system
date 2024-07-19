@@ -9,8 +9,8 @@ publish = false
 proc-macro = true
 
 [dependencies]
-quote = "1.0.36"
-syn = "2.0.71"
+quote = { workspace = true }
+syn = { workspace = true }
 
 [features]
 tracing = []

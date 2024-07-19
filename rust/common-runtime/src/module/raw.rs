@@ -1,10 +1,14 @@
 use super::{ModuleDefinition, ToModuleSources, ToWasmComponent};
+// REASON: They will be used when we fill out the wasm32 impls
+#[cfg_attr(target_arch = "wasm32", allow(unused_imports))]
 use crate::{
     CommonRuntimeError, ContentType, ModuleId, ModuleSource, SourceCode,
     COMMON_JAVASCRIPT_INTERPRETER_WASM,
 };
 use async_trait::async_trait;
 use bytes::Bytes;
+
+#[cfg(not(target_arch = "wasm32"))]
 use common_protos::{
     builder::{
         builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
@@ -19,6 +23,8 @@ use tokio::sync::OnceCell;
 
 /// A [RawModule] embodies all the source information necessary to
 /// compile a Common Module as a Wasm Component.
+// REASON: Dead code will not be dead when we fill out wasm32 impls
+#[cfg_attr(target_arch = "wasm32", allow(dead_code))]
 #[derive(Debug, Clone)]
 pub struct RawModule {
     module_source: ModuleSource,
@@ -37,6 +43,12 @@ impl RawModule {
         }
     }
 
+    #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+    async fn wasm(&self) -> Result<(ModuleId, Bytes), CommonRuntimeError> {
+        todo!()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
     async fn wasm(&self) -> Result<(ModuleId, Bytes), CommonRuntimeError> {
         match self.module_source.target {
             Target::CommonModule => {
@@ -95,7 +107,8 @@ impl RawModule {
     }
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ModuleDefinition for RawModule {
     fn target(&self) -> Target {
         self.module_source.target
@@ -107,7 +120,8 @@ impl ModuleDefinition for RawModule {
     }
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ToModuleSources for RawModule {
     async fn to_module_sources(
         &self,
@@ -116,7 +130,8 @@ impl ToModuleSources for RawModule {
     }
 }
 
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl ToWasmComponent for RawModule {
     async fn to_wasm_component(&self) -> Result<Bytes, CommonRuntimeError> {
         let (_, bytes) = self.wasm().await?;

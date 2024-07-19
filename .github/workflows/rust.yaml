@@ -6,6 +6,10 @@ on:
 
 name: 'Rust'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lints:
     name: 'Lints'
@@ -19,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: Swatinem/rust-cache@v2
-      - name: 'Install OS packages'
+      - name: 'Install OS packages (Ubuntu)'
         run: |
           sudo apt update && sudo apt upgrade -y
           sudo apt install -y protobuf-compiler libprotobuf-dev
@@ -53,6 +57,52 @@ jobs:
         run: cargo +${{matrix.toolchain}} component fmt --all -- --check
       - name: 'Run Linter'
         run: cargo +${{matrix.toolchain}} component clippy --all -- -D warnings
+
+  build-wasm32-unknown-unknown:
+    name: 'Build wasm32-unknown-unknown'
+    needs: ['lints']
+    runs-on: 'ubuntu-latest'
+    continue-on-error: false
+    steps:
+      - uses: actions/checkout@v3
+      - uses: Swatinem/rust-cache@v2
+      - name: 'Install OS packages (Ubuntu)'
+        run: |
+          sudo apt update && sudo apt upgrade -y
+          sudo apt install -y protobuf-compiler libprotobuf-dev
+      - name: 'Setup Rust'
+        run: |
+          curl -sSf https://sh.rustup.rs | sh -s -- -y
+          rustup toolchain install stable
+          rustup target add wasm32-unknown-unknown
+      - name: 'Setup Node/NPM'
+        uses: actions/setup-node@v3
+        with:
+          node-version: lts/*
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.4.4
+      - name: Install binaries from cargo
+        run: |
+          cargo binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
+      - name: 'Install NPM dependencies'
+        run: |
+          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          cd typescript
+          npm ci
+      - name: 'Run wit-deps on Wasm Component projects'
+        run: |
+          # NOTE: cargo-component doesn't invoke build.rs as expected when
+          # performing checked format
+          cd ./rust/common-javascript-interpreter
+          RUST_LOG=trace wit-deps
+      - name: 'Generate bindings for Wasm Components'
+        run: |
+          # NOTE: cargo-component doesn't invoke build.rs as expected when
+          # performing checked format
+          cd ./rust/common-javascript-interpreter
+          cargo component check
+      - name: 'Build wasm32-unknown-unknown'
+        run: cargo build --target wasm32-unknown-unknown
 
   build-wasm-components:
     name: 'Build Wasm Components'

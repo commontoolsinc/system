@@ -26,7 +26,9 @@ pub use value::*;
 mod module;
 pub use module::*;
 
+#[cfg(not(target_arch = "wasm32"))]
 mod serve;
+#[cfg(not(target_arch = "wasm32"))]
 pub use serve::*;
 
 mod io;

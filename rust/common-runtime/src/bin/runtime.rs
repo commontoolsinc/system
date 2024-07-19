@@ -1,13 +1,19 @@
+#[cfg(not(target_arch = "wasm32"))]
 #[macro_use]
 extern crate tracing;
 
-use std::net::SocketAddr;
+#[cfg(target_arch = "wasm32")]
+pub fn main() {
+    unimplemented!("Binary not supported for wasm32")
+}
 
-use common_runtime::{serve, CommonRuntimeError};
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
-
+#[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
-pub async fn main() -> Result<(), CommonRuntimeError> {
+pub async fn main() -> Result<(), common_runtime::CommonRuntimeError> {
+    use common_runtime::serve;
+    use std::net::SocketAddr;
+    use tracing_subscriber::{EnvFilter, FmtSubscriber};
+
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish();

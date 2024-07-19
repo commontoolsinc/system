@@ -1,3 +1,5 @@
+#![cfg(not(target_arch = "wasm32"))]
+
 use anyhow::Result;
 use common_builder::serve as serve_builder;
 
