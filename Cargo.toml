@@ -25,7 +25,7 @@ boa_runtime = { version = "0.19" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
 common-builder = { path = "./rust/common-builder" }
-common-javascript-interpreter = { path = "./rust/common-javasript-interpreter" }
+common-javascript-interpreter = { path = "./rust/common-javascript-interpreter" }
 common-macros = { path = "./rust/common-macros" }
 common-protos = { path = "./rust/common-protos", default-features = false }
 common-runtime = { path = "./rust/common-runtime" }
