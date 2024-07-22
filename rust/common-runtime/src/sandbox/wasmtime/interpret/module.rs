@@ -1,17 +1,14 @@
+use super::super::HostState;
+use crate::{CommonRuntimeError, ModuleId, ModuleInstance, ModuleInstanceId, PreparedModule};
 use async_trait::async_trait;
+use common_bindings::{instantiate_async_script, CommonScriptEntry};
+use common_wit::InputOutput;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use wasmtime::{
     component::{Component, Instance, Linker},
     AsContextMut, Engine, Store,
 };
-
-use crate::{
-    wasmtime::bindings::common_script::Common, CommonRuntimeError, InputOutput, ModuleId,
-    ModuleInstance, ModuleInstanceId, PreparedModule,
-};
-
-use super::bindings::ScriptHostState;
 
 /// An instantiated interpreter than may be "loaded" with the source code of a
 /// Common Module in the language that the interpreter supports.
@@ -22,8 +19,8 @@ where
     id: ModuleInstanceId,
 
     // TODO: Synchronization wrapper may not be needed after we stub wasi:*
-    store: Arc<Mutex<Store<ScriptHostState<Io>>>>,
-    common: Common,
+    store: Arc<Mutex<Store<HostState<Io>>>>,
+    common: CommonScriptEntry,
 
     // REASON: Instance must be retained until module is dropped
     #[allow(dead_code)]
@@ -121,7 +118,7 @@ where
     // compiler generic over host bindings so that we can re-spawn it
     // interpreter mode.
     engine: Engine,
-    linker: Linker<ScriptHostState<Io>>,
+    linker: Linker<HostState<Io>>,
     component: Component,
 }
 
@@ -133,7 +130,7 @@ where
     pub fn new(
         id: ModuleId,
         engine: Engine,
-        linker: Linker<ScriptHostState<Io>>,
+        linker: Linker<HostState<Io>>,
         component: Component,
     ) -> Self {
         Self {
@@ -158,10 +155,10 @@ where
         &self,
         io: Self::InputOutput,
     ) -> Result<Self::ModuleInstance, CommonRuntimeError> {
-        let mut store = Store::new(&self.engine, ScriptHostState::new(io));
+        let mut store = Store::new(&self.engine, HostState::new(io));
 
         let (common, instance) =
-            Common::instantiate_async(&mut store, &self.component, &self.linker)
+            instantiate_async_script(&mut store, &self.component, &self.linker)
                 .await
                 .map_err(|error| {
                     CommonRuntimeError::ModuleInstantiationFailed(format!("{error}"))

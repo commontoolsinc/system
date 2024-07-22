@@ -1,5 +1,3 @@
-mod bindings;
-
 mod preparer;
 pub use preparer::*;
 

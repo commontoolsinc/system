@@ -6,6 +6,8 @@ edition = "2021"
 publish = false
 
 [dependencies]
+anyhow = { workspace = true }
+common-protos = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }

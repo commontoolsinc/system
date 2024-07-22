@@ -20,9 +20,6 @@ pub use error::*;
 mod content_type;
 pub use content_type::*;
 
-mod value;
-pub use value::*;
-
 mod module;
 pub use module::*;
 
@@ -31,10 +28,5 @@ mod serve;
 #[cfg(not(target_arch = "wasm32"))]
 pub use serve::*;
 
-mod io;
-pub use io::*;
-
 mod runtime;
 pub use runtime::*;
-
-pub mod sync;

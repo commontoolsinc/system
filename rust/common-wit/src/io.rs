@@ -1,6 +1,5 @@
+use crate::{ConditionalSend, Value, ValueKind};
 use std::collections::BTreeMap;
-
-use crate::{sync::ConditionalSync, Value, ValueKind};
 
 /// A convenience alias for the expected shape of Common Module outputs
 pub type Output = BTreeMap<String, Value>;
@@ -10,7 +9,8 @@ pub type OutputShape = BTreeMap<String, ValueKind>;
 
 /// A generic trait for a reference to state. The implementation may embody
 /// state that is opaque, readable and/or writable.
-pub trait InputOutput: Clone + Default + ConditionalSync + std::fmt::Debug {
+pub trait InputOutput: ConditionalSend + Clone + std::fmt::Debug + Default {
+    //}: Clone + Default + ConditionalSend + std::fmt::Debug {
     /// Attempt to read some [Value] from state that is assigned some well-known
     /// `key`. A value may be returned if it is part of the state, and the reader
     /// is allowed to read it.

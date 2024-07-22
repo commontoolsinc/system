@@ -1,19 +1,14 @@
-use std::sync::Arc;
-
+use super::WasmtimeCompiledModule;
+use crate::{CommonRuntimeError, ModuleDefinition, ModuleId, ModulePreparer, ToWasmComponent};
 use async_trait::async_trait;
+use common_wit::InputOutput;
 use sieve_cache::SieveCache;
+use std::sync::Arc;
 use tokio::sync::Mutex;
 use wasmtime::{
     component::{Component, Linker},
     Engine,
 };
-
-use crate::{
-    wasmtime::bindings::common_module::Common, CommonRuntimeError, InputOutput, ModuleDefinition,
-    ModuleId, ModulePreparer, ToWasmComponent,
-};
-
-use super::WasmtimeCompiledModule;
 
 /// A [WasmtimeCompiler] prepares a Common Module by converting the full set of
 /// sources into a single Wasm Component. The first time this is done for a
@@ -74,13 +69,9 @@ where
 
             let mut linker = Linker::new(&self.engine);
 
-            wasmtime_wasi::add_to_linker_async(&mut linker)
+            common_bindings::link_common_module(&mut linker)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
-
-            wasmtime_wasi_http::proxy::add_only_http_to_linker(&mut linker)
-                .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
-
-            Common::add_to_linker(&mut linker, |environment| environment)
+            common_bindings::link_wasi_async(&mut linker)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
             self.prepared_modules.lock().await.insert(

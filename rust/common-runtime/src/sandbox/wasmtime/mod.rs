@@ -4,7 +4,8 @@
 //! network-connected remote computer that is considered to be within the user's
 //! logical trust domain.
 
-pub mod bindings;
+mod state;
+pub use state::*;
 
 mod compile;
 pub use compile::*;

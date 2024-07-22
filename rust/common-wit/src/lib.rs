@@ -3,9 +3,16 @@
 //! This crate contains shared Common WIT definitions and helpers for assembling
 //! them during build steps and other logistical processes.
 
-use std::{collections::BTreeMap, str::FromStr};
+mod io;
+mod sync;
+mod value;
 
 use serde::{Deserialize, Serialize};
+use std::{collections::BTreeMap, str::FromStr};
+
+pub use io::*;
+pub use sync::*;
+pub use value::*;
 
 /// WIT definition for `common:module`
 pub const COMMON_MODULE_WIT: &[u8] =

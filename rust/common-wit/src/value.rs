@@ -1,4 +1,4 @@
-use crate::CommonRuntimeError;
+use anyhow::{anyhow, Error, Result};
 use common_protos::common;
 
 /// An intrinsic value type within a Common Runtime
@@ -41,10 +41,10 @@ pub enum ValueKind {
 }
 
 impl TryFrom<common::Value> for Value {
-    type Error = CommonRuntimeError;
+    type Error = Error;
 
     fn try_from(value: common::Value) -> Result<Self, Self::Error> {
-        let value = value.variant.ok_or(CommonRuntimeError::InvalidValue)?;
+        let value = value.variant.ok_or_else(|| anyhow!("Invalid value."))?;
         Ok(match value {
             common::value::Variant::String(string) => Value::String(string),
             common::value::Variant::Number(number) => Value::Number(number),
