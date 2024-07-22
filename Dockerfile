@@ -39,8 +39,23 @@ RUN rustc -V
 
 FROM rust-node-builder as rust-node-wasm-builder
 
-RUN rustup target add wasm32-wasi
-RUN cargo install wasm-tools wit-deps-cli
+RUN apt-get update && apt-get install -y \
+  curl \
+  build-essential \
+  pkg-config \
+  libssl-dev \
+  protobuf-compiler \
+  libprotobuf-dev && \
+  rm -rf /var/lib/apt/lists/*
+
+# Add rust target and cargo tools
+RUN . $HOME/.cargo/env && \
+  rustup target add wasm32-unknown-unknown && \
+  cargo install cargo-binstall && \
+  cargo binstall cargo-component --no-confirm && \
+  cargo binstall cargo-nextest --no-confirm && \
+  cargo binstall wit-deps-cli --no-confirm && \
+  cargo binstall wasm-tools --no-confirm
 
 WORKDIR /build-root
 
