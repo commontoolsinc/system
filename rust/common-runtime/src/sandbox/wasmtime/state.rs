@@ -24,14 +24,19 @@ where
         }
     }
 
+    /// Return the [InputOutput] component.
     pub fn io(&self) -> &Io {
         &self.ctx.io
     }
 
+    /// Take the [InputOutput] component, replacing
+    /// the internal [InputOutput] with its default.
     pub fn take_io(&mut self) -> Io {
         std::mem::take(&mut self.ctx.io)
     }
 
+    /// Replace[InputOutput] component, replacing
+    /// the internal [InputOutput] with its default.
     pub fn replace_io(&mut self, io: Io) {
         self.ctx.io = io;
     }

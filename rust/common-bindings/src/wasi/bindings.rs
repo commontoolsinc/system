@@ -5,7 +5,7 @@ pub mod sync {
 
         wasmtime::component::bindgen!({
             path: "wit",
-            world: "common:wasi/imports",
+            world: "wasi:common/imports",
             tracing: true,
             trappable_error_type: {
                 "wasi:io/streams/stream-error" => StreamError,
@@ -54,7 +54,7 @@ pub mod sync {
 mod async_io {
     wasmtime::component::bindgen!({
         path: "wit",
-        world: "common:wasi/imports",
+        world: "wasi:common/imports",
         tracing: true,
         trappable_imports: true,
         async: {
