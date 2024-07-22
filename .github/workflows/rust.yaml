@@ -54,9 +54,9 @@ jobs:
           cd ./rust/common-javascript-interpreter
           RUST_LOG=trace wit-deps
       - name: 'Check Format'
-        run: cargo +${{matrix.toolchain}} component fmt --all -- --check
+        run: cargo +${{matrix.toolchain}} fmt --all -- --check
       - name: 'Run Linter'
-        run: cargo +${{matrix.toolchain}} component clippy --all -- -D warnings
+        run: cargo +${{matrix.toolchain}} clippy --all -- -D warnings
 
   build-wasm32-unknown-unknown:
     name: 'Build wasm32-unknown-unknown'
