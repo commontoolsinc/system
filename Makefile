@@ -17,12 +17,12 @@ base:
 	docker tag $(BASE_IMAGE_NAME) $(BASE_IMAGE_DIGEST)
 
 # Build the common-builder image
-common-builder: base
-	docker build --build-arg BASE_IMAGE=$(BASE_IMAGE_NAME) -f rust/common-builder/Dockerfile -t $(COMMON_BUILDER_IMAGE_NAME) .
+common-builder:
+	@$(MAKE) base
 
 # Build the common-runtime image
-common-runtime: base
-	docker build --build-arg BASE_IMAGE=$(BASE_IMAGE_NAME) -f rust/common-runtime/Dockerfile -t $(COMMON_RUNTIME_IMAGE_NAME) .
+common-runtime:
+	@$(MAKE) base
 
 # Clean up the images
 clean:
