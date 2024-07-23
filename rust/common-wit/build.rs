@@ -9,6 +9,17 @@ const TYPESCRIPT_SOURCE_DEPENDENCIES: &[&str] = &[
 ];
 
 fn main() {
+    // Clean node_modules directory to avoid file conflicts
+    if !Command::new("rm")
+        .arg("-rf")
+        .arg("../../typescript/node_modules")
+        .status()
+        .unwrap()
+        .success()
+    {
+        panic!("Failed to clean node_modules directory");
+    }
+
     if !Command::new("npm")
         .arg("ci")
         .current_dir("../../typescript")
