@@ -14,10 +14,9 @@
   "scripts": {
     "build": "wireit",
     "clean": "wireit",
-    "prepare": "wireit",
+    "prebuild": "wireit",
     "update:wit": "wireit",
-    "lint:wit": "wireit",
-    "build:wit:inline": "wireit"
+    "lint:wit": "wireit"
   },
   "repository": {
     "type": "git",
@@ -34,13 +33,13 @@
     "wireit": "^0.14.5"
   },
   "wireit": {
-    "prepare": {
+    "prebuild": {
       "dependencies": [
         "install:wit"
       ]
     },
     "install:wit": {
-      "command": "wit-deps",
+      "command": "cargo install wit-deps-cli && ~/.cargo/bin/wit-deps",
       "files": [
         "./wit/deps.*"
       ],
@@ -58,7 +57,7 @@
       ]
     },
     "update:wit": {
-      "command": "wit-deps update",
+      "command": "$(dirname $(which cargo))/wit-deps update",
       "files": [
         "./wit/deps.toml"
       ],

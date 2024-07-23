@@ -1,0 +1,29 @@
+services:
+  base:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    # image: common-tools/base
+    command: sh -c 'sleep 5 && echo "one done"'
+
+
+  common-builder:
+    build:
+      context: .
+      dockerfile: rust/common-builder/Dockerfile
+      args:
+        BASE_IMAGE: library/system-base
+    container_name: common-builder
+    depends_on:
+      - base
+
+  common-runtime:
+    build:
+      context: .
+      dockerfile: rust/common-runtime/Dockerfile
+      args:
+        BASE_IMAGE: library/system-base
+    container_name: common-runtime
+    depends_on:
+      - base

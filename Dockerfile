@@ -8,7 +8,8 @@ ARG NODE_VERSION=latest
 RUN apt update && apt install -y \
   curl \
   build-essential \
-  ca-certificates && \
+  ca-certificates \
+  make && \
   rm -rf /var/lib/apt/lists/*
 
 # Install Rust
@@ -61,20 +62,23 @@ WORKDIR /build-root
 
 COPY . .
 
+# remove node modules
+RUN rm -rf /build-root/typescript/node_modules
+
+# Set the working directory to /build-root/typescript and install npm dependencies
 WORKDIR /build-root/typescript
+RUN npm ci && npm run build
 
-RUN npm ci
-RUN npm run build
-
-# Set the working directory to /build-root
+# Set the working directory back to /build-root
 WORKDIR /build-root
 
-# Build the common-javascript-interpreter to generate the wasm file
-RUN cargo build --release -p common-javascript-interpreter
-
+# Run incremental make targets
+# RUN make setup
+# RUN make build-wasm32-unknown-unknown
+# RUN make build-wasm-components
+RUN make build-common-javascript-interpreter
 # Expose the path to the wasm file as an environment variable
-ENV COMMON_JAVASCRIPT_INTERPRETER_WASM_PATH=/build-root/target/release/deps/common_javascript_interpreter.wasm
-
+ENV COMMON_JAVASCRIPT_INTERPRETER_WASM_PATH=/build-root/target/wasm32-unknown-unknown/release/common_javascript_interpreter.wasm
 
 # Set the build context back to the root for subsequent builds
 WORKDIR /build-root
