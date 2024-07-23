@@ -47,12 +47,10 @@ jobs:
           npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
           cd typescript
           npm ci
-#      - name: 'Run wit-deps on Wasm Component projects'
-#        run: |
-#          # NOTE: cargo-component doesn't invoke build.rs as expected when
-#          # performing checked format
-#          cd ./rust/common-javascript-interpreter
-#          RUST_LOG=trace wit-deps
+      - name: 'Run wit-deps on Wasm Component projects'
+        run: |
+          cd ./rust/common-javascript-interpreter
+          cargo component check
       - name: 'Check Format'
         run: cargo +${{matrix.toolchain}} component fmt --all -- --check
       - name: 'Run Linter'
