@@ -102,7 +102,7 @@ jobs:
           cd ./rust/common-javascript-interpreter
           cargo component check
       - name: 'Build wasm32-unknown-unknown'
-        run: cargo build --target wasm32-unknown-unknown
+        run: cargo build -vv --target wasm32-unknown-unknown
 
   build-wasm-components:
     name: 'Build Wasm Components'
