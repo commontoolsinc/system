@@ -20,6 +20,7 @@ fn main() {
         panic!("Failed to clean node_modules directory");
     }
 
+    // Run npm ci
     if !Command::new("npm")
         .arg("ci")
         .current_dir("../../typescript")
@@ -30,6 +31,7 @@ fn main() {
         panic!("Failed to run npm install");
     }
 
+    // Run npm build
     if !Command::new("npm")
         .arg("run")
         .arg("build")
@@ -41,6 +43,7 @@ fn main() {
         panic!("Failed to run npm build");
     }
 
+    // Track changes in TypeScript source dependencies
     for fragment in TYPESCRIPT_SOURCE_DEPENDENCIES.iter() {
         println!("cargo:rerun-if-changed=../../typescript/{fragment}");
     }
