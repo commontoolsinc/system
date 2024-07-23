@@ -12,6 +12,15 @@ message ReadComponentRequest { string id = 1; }
 
 message ReadComponentResponse { bytes component = 1; }
 
+message BuilderFile {
+  string name = 1;
+  bytes data = 2;
+}
+
+message ReadComponentCompatRequest { string id = 1; }
+
+message ReadComponentCompatResponse { repeated BuilderFile files = 1; }
+
 message BundleSourceCodeRequest { common.ModuleSource module_source = 1; }
 
 message BundleSourceCodeResponse { string bundled_source_code = 1; }
@@ -20,6 +29,8 @@ service Builder {
   rpc BuildComponent(BuildComponentRequest) returns (BuildComponentResponse) {}
 
   rpc ReadComponent(ReadComponentRequest) returns (ReadComponentResponse) {}
+  
+  rpc ReadComponentCompat(ReadComponentCompatRequest) returns (ReadComponentCompatResponse) {}
 
   rpc BundleSourceCode(BundleSourceCodeRequest)
       returns (BundleSourceCodeResponse) {}
