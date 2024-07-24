@@ -48,10 +48,12 @@ RUN rustc -V
 # Add rust target and cargo tools
 RUN . $HOME/.cargo/env && \
   cargo install cargo-binstall && \
-  cargo binstall cargo-component --no-confirm && \
-  cargo binstall cargo-nextest --no-confirm && \
-  cargo binstall wit-deps-cli --no-confirm && \
-  cargo binstall wasm-tools --no-confirm
+  cargo binstall \
+  cargo-component \
+  cargo-nextest \
+  wit-deps-cli \
+  wasm-tools \
+  --no-confirm
 
 # install npm install -g wireit
 RUN npm install -g \
