@@ -16,8 +16,7 @@
     "clean": "wireit",
     "prepare": "wireit",
     "update:wit": "wireit",
-    "lint:wit": "wireit",
-    "build:wit:inline": "wireit"
+    "lint:wit": "wireit"
   },
   "repository": {
     "type": "git",
