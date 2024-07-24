@@ -19,6 +19,8 @@
 !**/*.wit
 !**/*.yaml
 
+!**/[Mm]akefile*
+
 # re-exclude specific directories
 /target
 .wireit
