@@ -219,6 +219,14 @@ jobs:
         with:
           name: test-results-${{ hashFiles('./test-results') }}
           path: ./test-results
+      - uses: actions/upload-artifact@v3
+        with:
+          name: runtime
+          path: ./target/release/runtime
+      - uses: actions/upload-artifact@v3
+        with:
+          name: builder
+          path: ./target/release/builder
 
   workflow-analysis:
     name: 'Workflow analysis'
@@ -229,17 +237,3 @@ jobs:
     if: github.ref != 'refs/heads/main'
     uses: ./.github/workflows/workflow_analysis.yaml
     secrets: inherit
-
-  upload-workflow-artifacts:
-    name: 'Upload workflow artifacts'
-    needs: [ 'native-target-tests' ]
-    runs-on: 'ubuntu-latest'
-    steps:
-      - uses: actions/upload-artifact@v3
-        with:
-          name: runtime
-          path: ./target/release/runtime
-      - uses: actions/upload-artifact@v3
-        with:
-          name: builder
-          path: ./target/release/builder
