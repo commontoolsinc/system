@@ -6,13 +6,7 @@ fn main() {
     let project_root_dir = manifest_dir.parent().unwrap().parent().unwrap();
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").unwrap());
 
-    // If the environment variable is not set, set it to the path of the generated WASM file
-    if std::env::var("COMMON_JAVASCRIPT_INTERPRETER_WASM_PATH").is_err() {
-        println!(
-            "cargo:rustc-env=COMMON_JAVASCRIPT_INTERPRETER_WASM_PATH={}/common_javascript_interpreter.wasm",
-            out_dir.display()
-        );
-    }
+    println!("cargo::rustc-env=COMMON_JAVASCRIPT_INTERPRETER_WASM_PATH={}/common_javascript_interpreter.wasm", out_dir.display());
 
     let cached_artifact_file = project_root_dir
         .join(".wasm_cache")
