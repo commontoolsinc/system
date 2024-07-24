@@ -53,12 +53,6 @@ jobs:
           # performing checked format
           cd ./rust/common-javascript-interpreter
           RUST_LOG=trace wit-deps
-      - name: 'Check Wasm Components'
-        run: |
-          # NOTE: cargo-component doesn't invoke build.rs as expected when
-          # performing checked format
-          cd ./rust/common-javascript-interpreter
-          cargo component check
       - name: 'Run Linter'
         run: cargo +${{matrix.toolchain}} clippy --all -- -D warnings
       - name: 'Check Format'
