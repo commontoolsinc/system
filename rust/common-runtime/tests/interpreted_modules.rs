@@ -14,14 +14,13 @@ use tokio::net::TcpListener;
 #[common_tracing]
 async fn it_interprets_and_runs_a_common_script() -> Result<()> {
     let builder_listener = TcpListener::bind("127.0.0.1:0").await?;
-    let builder_address = builder_listener.local_addr()?;
+    let builder_address: http::Uri =
+        format!("http://{}", builder_listener.local_addr()?).parse()?;
     let builder_task = tokio::task::spawn(serve_builder(builder_listener));
-
-    std::env::set_var("BUILDER_ADDRESS", format!("http://{}", builder_address));
 
     let runtime_listener = TcpListener::bind("127.0.0.1:0").await?;
     let runtime_address = runtime_listener.local_addr()?;
-    let runtime_task = tokio::task::spawn(serve_runtime(runtime_listener));
+    let runtime_task = tokio::task::spawn(serve_runtime(runtime_listener, Some(builder_address)));
 
     let mut runtime_client =
         runtime::runtime_client::RuntimeClient::connect(format!("http://{}", runtime_address))

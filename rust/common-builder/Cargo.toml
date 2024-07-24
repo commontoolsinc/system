@@ -11,6 +11,7 @@ async-stream = { workspace = true }
 async-trait = { workspace = true }
 blake3 = { workspace = true }
 bytes = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
 common-protos = { workspace = true, features = ["builder"] }
 common-tracing = { workspace = true }
 common-wit = { workspace = true }

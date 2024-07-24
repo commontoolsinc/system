@@ -2,15 +2,6 @@
 #[macro_use]
 extern crate tracing;
 
-#[cfg(not(target_arch = "wasm32"))]
-use common_builder::{serve, BuilderError};
-
-#[cfg(not(target_arch = "wasm32"))]
-use std::net::SocketAddr;
-
-#[cfg(not(target_arch = "wasm32"))]
-use tracing_subscriber::{EnvFilter, FmtSubscriber};
-
 #[cfg(target_arch = "wasm32")]
 pub fn main() {
     unimplemented!("Binary not supported for wasm32")
@@ -18,13 +9,27 @@ pub fn main() {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
-pub async fn main() -> Result<(), BuilderError> {
+pub async fn main() -> Result<(), common_builder::BuilderError> {
+    use clap::Parser;
+    use common_builder::serve;
+    use std::net::SocketAddr;
+    use tracing_subscriber::{EnvFilter, FmtSubscriber};
+
     let subscriber = FmtSubscriber::builder()
         .with_env_filter(EnvFilter::from_default_env())
         .finish();
     tracing::subscriber::set_global_default(subscriber)?;
 
-    let port = std::env::var("PORT").unwrap_or("8081".into());
+    #[derive(clap::Parser)]
+    #[command(version, about, long_about = None)]
+    struct Cli {
+        /// Set build server to listen on provided port.
+        #[arg(short, long, default_value_t = 8082)]
+        port: u16,
+    }
+
+    let cli = Cli::parse();
+    let port = cli.port;
     let socket_address: SocketAddr = format!("0.0.0.0:{port}").parse()?;
     let listener = tokio::net::TcpListener::bind(socket_address).await?;
 

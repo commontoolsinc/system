@@ -81,18 +81,15 @@ impl From<CommonRuntimeError> for Status {
 
 /// Start the Common Runtime server, listening to incoming connections on the
 /// provided [TcpListener]
-pub async fn serve(listener: TcpListener) -> Result<(), CommonRuntimeError> {
+pub async fn serve(
+    listener: TcpListener,
+    builder_address: Option<Uri>,
+) -> Result<(), CommonRuntimeError> {
     let incoming_stream = async_stream::stream! {
         loop {
             let (stream, _) = listener.accept().await?;
             yield Ok::<_, std::io::Error>(stream);
         }
-    };
-
-    let builder_address = if let Ok(raw_uri) = std::env::var("BUILDER_ADDRESS") {
-        raw_uri.parse().ok()
-    } else {
-        None
     };
 
     let runtime_server = RuntimeServer::new(Server::new(builder_address)?)
