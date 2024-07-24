@@ -67,7 +67,7 @@ pub fn create_io_state_module(context: &mut Context) -> Module {
                                 .as_string()
                                 .ok_or_else(|| {
                                     JsError::from_opaque(JsValue::String(
-                                        "Unexpected type for 'tag' property".into(),
+                                        "'val' type does not match 'tag' type".into(),
                                     ))
                                 })?
                                 .to_std_string()
