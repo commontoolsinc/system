@@ -101,7 +101,7 @@ build_typescript: .build_typescript_done
 
 # Target to perform rust build
 build_rust: .build_rust_done
-.build_rust_done: $(wildcard rust/**/Cargo.toml) $(wildcard rust/**/*.rs) $(wildcard rust/common-test-fixtures/fixtures/**/*.js)
+.build_rust_done: $(wildcard **/Cargo.toml) $(wildcard **/Cargo.lock) $(wildcard **/deps.lock) $(wildcard rust/**/*.rs) $(wildcard rust/common-test-fixtures/fixtures/**/*.js)
 	cargo build --release
 	touch .build_rust_done
 
