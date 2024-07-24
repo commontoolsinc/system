@@ -53,10 +53,10 @@ jobs:
           # performing checked format
           cd ./rust/common-javascript-interpreter
           RUST_LOG=trace wit-deps
-      - name: 'Check Format'
-        run: cargo +${{matrix.toolchain}} component fmt --all -- --check
       - name: 'Run Linter'
-        run: cargo +${{matrix.toolchain}} component clippy --all -- -D warnings
+        run: cargo +${{matrix.toolchain}} clippy --all -- -D warnings
+      - name: 'Check Format'
+        run: cargo +${{matrix.toolchain}} fmt --all -- --check
 
   build-wasm32-unknown-unknown:
     name: 'Build wasm32-unknown-unknown'
@@ -152,7 +152,6 @@ jobs:
           name: wasm-components
           path: ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm
 
-
   native-target-tests:
     name: 'Native target tests'
     needs: ['lints', 'build-wasm-components']
@@ -192,12 +191,6 @@ jobs:
           npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
           cd typescript
           npm ci
-      - name: 'Run wit-deps on Wasm Component projects'
-        run: |
-          # NOTE: cargo-component doesn't invoke build.rs as expected when
-          # performing checked format
-          cd ./rust/common-javascript-interpreter
-          RUST_LOG=trace wit-deps
       - name: 'Run Rust tests'
         shell: bash
         run: |
@@ -211,7 +204,6 @@ jobs:
           cargo +${{ matrix.toolchain }} nextest run \
             --release \
             --workspace \
-            --exclude common-javascript-interpreter \
             --profile ci --color always 2>&1 | tee test-results/log
         env:
           RUST_LOG: debug
