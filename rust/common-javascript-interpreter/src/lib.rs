@@ -6,40 +6,50 @@
 //! do in a AOT-compiled scenario. Notably: this package is designed to be
 //! compiled as a Wasm Component exporting the `common:script` target. This
 //! enables us to evaluate `common:module` JavaScript within a Wasm sandbox.
-
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 #[allow(warnings)]
 mod bindings;
 
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 mod data;
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 mod io;
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 mod module;
 
-use bindings::Guest;
-// use io::read_script;
-use module::Module;
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+mod guest {
+    use crate::bindings::Guest;
+    // use io::read_script;
+    use crate::module::Module;
 
-struct JavaScriptInterpreter;
+    pub struct JavaScriptInterpreter;
 
-impl Guest for JavaScriptInterpreter {
-    fn run() -> Result<(), String> {
-        let module = Module::get().ok_or("No script source has been set!")?;
-        let mut module = module.write().map_err(|error| format!("{error}"))?;
+    impl Guest for JavaScriptInterpreter {
+        fn run() -> Result<(), String> {
+            let module = Module::get().ok_or("No script source has been set!")?;
+            let mut module = module.write().map_err(|error| format!("{error}"))?;
 
-        module.run()?;
+            module.run()?;
 
-        Ok(())
+            Ok(())
+        }
+
+        fn set_source(source: String) -> Result<(), String> {
+            Module::load(Some(source))?;
+            Ok(())
+        }
     }
 
-    fn set_source(source: String) -> Result<(), String> {
-        Module::load(Some(source))?;
-        Ok(())
+    impl Drop for JavaScriptInterpreter {
+        fn drop(&mut self) {
+            Module::reset();
+        }
     }
 }
 
-impl Drop for JavaScriptInterpreter {
-    fn drop(&mut self) {
-        Module::reset();
-    }
-}
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+use guest::*;
 
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 bindings::export!(JavaScriptInterpreter with_types_in bindings);
