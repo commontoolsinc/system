@@ -161,8 +161,12 @@ impl Module {
                         context.run_jobs();
 
                         match module_evaluates.state() {
-                            PromiseState::Fulfilled(_) => println!("Module evaluated"),
-                            PromiseState::Pending => println!("Module didn't evaluate!"),
+                            PromiseState::Fulfilled(_) => {
+                                println!("Module evaluated")
+                            }
+                            PromiseState::Pending => {
+                                println!("Module didn't evaluate!")
+                            }
                             PromiseState::Rejected(error) => {
                                 println!("Module error: {}", error.display())
                             }
