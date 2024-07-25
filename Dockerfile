@@ -1,23 +1,62 @@
-ARG BASE_IMAGE=common-tools-base
-ARG RUNTIME_BASE_IMAGE
-ARG BINARY_PATH="/bin/bash"
-ARG EXPOSED_PORT=
+ARG BASE_IMAGE=debian:latest
+FROM ${BASE_IMAGE} AS rust-node-base
 
-FROM ${BASE_IMAGE} as common-tools-monolith
+# Define arguments for the versions of Rust and Node.js, defaulting to 'latest'
+ARG RUST_VERSION=latest
+ARG NODE_VERSION=latest
 
-COPY . .
+# Install dependencies
+RUN apt update && apt install -y \
+  build-essential \
+  ca-certificates \
+  curl \
+  libprotobuf-dev \
+  libssl-dev \
+  make \
+  pkg-config \
+  protobuf-compiler \
+  tree \
+  && \
+  rm -rf /var/lib/apt/lists/*
 
-# Build the project
-RUN make build_typescript
-RUN make build_rust
+# Install Rust
+RUN if [ "$RUST_VERSION" = "latest" ]; then \
+  curl https://sh.rustup.rs -sSf | sh -s -- -y; \
+  else \
+  curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain ${RUST_VERSION}; \
+  fi && \
+  . $HOME/.cargo/env && \
+  rustc --version
 
-RUN make list_outputs
+# Install Node.js
+RUN if [ "$NODE_VERSION" = "latest" ]; then \
+  curl -sL https://deb.nodesource.com/setup_current.x | bash -; \
+  else \
+  curl -sL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash -; \
+  fi && \
+  apt-get install -y nodejs && \
+  node -v && \
+  npm -v
 
-FROM ${RUNTIME_BASE_IMAGE} as runtime
+# Make sure Rust and Node.js are in the PATH
+ENV PATH=$PATH:/root/.cargo/bin
 
-ARG FILES="target/*"
+# Verify installations
+RUN node -v
+RUN rustc -V
 
-COPY --from=common-tools-monolith ${FILES} .
+# Add rust target and cargo tools
+RUN . $HOME/.cargo/env && \
+  cargo install cargo-binstall && \
+  cargo binstall \
+  cargo-component \
+  cargo-nextest \
+  wit-deps-cli \
+  wasm-tools \
+  --no-confirm
 
-EXPOSE ${EXPOSED_PORT}
-ENTRYPOINT [$BINARY_PATH]
+# install npm install -g wireit
+RUN npm install -g \
+  wireit \
+  @bytecodealliance/jco \
+  @bytecodealliance/componentize-js

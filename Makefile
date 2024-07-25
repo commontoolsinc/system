@@ -38,20 +38,20 @@ docker: docker_base docker_monolith docker_builder docker_runtime
 ########################################
 
 # Build the base image
-docker_base: .docker_base_done
-.docker_base_done: Dockerfile.base
-	docker build -f Dockerfile.base \
+docker_base: .docker_base.done
+.docker_base.done: Dockerfile
+	docker build -f Dockerfile \
 	--tag $(BASE_IMAGE_NAME) . \
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
 	--build-arg BASE_IMAGE=$(RUNTIME_BASE_IMAGE)
 
-	touch .docker_base_done
+	touch .docker_base.done
 
 # Build monolithic image
-docker_monolith: .docker_monolith_done
-.docker_monolith_done: Dockerfile docker_base
-	docker build -f Dockerfile \
+docker_monolith: .docker_monolith.done
+.docker_monolith.done: rust/Dockerfile docker_base
+	docker build -f rust/Dockerfile \
 	--tag $(COMMON_MONOLITH_IMAGE_NAME) . \
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
@@ -59,12 +59,12 @@ docker_monolith: .docker_monolith_done
 	--build-arg RUNTIME_BASE_IMAGE=$(RUNTIME_BASE_IMAGE) \
 	--build-arg FILES="target/release/*"
 
-	touch .docker_monolith_done
+	touch .docker_monolith.done
 
 # Build builder image
-docker_builder: .docker_builder_done
-.docker_builder_done: Dockerfile docker_base
-	docker build -f Dockerfile \
+docker_builder: .docker_builder.done
+.docker_builder.done: rust/Dockerfile docker_base
+	docker build -f rust/Dockerfile \
 	--tag $(COMMON_BUILDER_IMAGE_NAME) . \
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
@@ -74,12 +74,12 @@ docker_builder: .docker_builder_done
 	--build-arg BINARY_PATH="target/release/builder" \
 	--build-arg EXPOSED_PORT=8080
 
-	touch .docker_builder_done
+	touch .docker_builder.done
 
 # Build runtime image
-docker_runtime: .docker_runtime_done
-.docker_runtime_done: Dockerfile docker_base
-	docker build -f Dockerfile \
+docker_runtime: .docker_runtime.done
+.docker_runtime.done: rust/Dockerfile docker_base
+	docker build -f rust/Dockerfile \
 	--tag $(COMMON_RUNTIME_IMAGE_NAME) . \
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
@@ -89,24 +89,24 @@ docker_runtime: .docker_runtime_done
 	--build-arg BINARY_PATH="target/release/runtime" \
 	--build-arg EXPOSED_PORT=8081
 
-	touch .docker_runtime_done
+	touch .docker_runtime.done
 
 ########################################
 
 # Target to install npm dependencies and build
-build_typescript: .build_typescript_done
-.build_typescript_done: $(wildcard typescript/**/*.ts) $(wildcard typescript/**/package-lock.json) $(wildcard typescript/**/package.json)
+build_typescript: .build_typescript.done
+.build_typescript.done: $(wildcard typescript/**/*.ts) $(wildcard typescript/**/package-lock.json) $(wildcard typescript/**/package.json)
 	cd typescript && npm ci && npm run build
-	touch .build_typescript_done
+	touch .build_typescript.done
 
 # Target to perform rust build
-build_rust: .build_rust_done
-.build_rust_done: $(wildcard rust/**/Cargo.toml) $(wildcard rust/**/*.rs) $(wildcard rust/common-test-fixtures/fixtures/**/*.js)
+build_rust: .build_rust.done
+.build_rust.done: $(wildcard rust/**/Cargo.toml) $(wildcard rust/**/*.rs) $(wildcard rust/common-test-fixtures/fixtures/**/*.js)
 	cargo build --release
-	touch .build_rust_done
+	touch .build_rust.done
 
 # Target to list rust build outputs
-list_outputs: .build_rust_done
+list_outputs: .build_rust.done
 	ls -alvh target/release
 
 ########################################
