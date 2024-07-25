@@ -84,8 +84,8 @@ jobs:
           cache-to: type=gha,mode=max,ref=${{ needs.setup.outputs.base_image_name }}
           push: ${{ github.ref == 'refs/heads/main' }}
           provenance: true
-          tags:
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:${{ github.sha }}
+          tags: >
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:${{ github.sha }},
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:latest
           build-args: |
             BASE_IMAGE=${{ env.RUNTIME_BASE_IMAGE }}
