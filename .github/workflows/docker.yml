@@ -96,6 +96,7 @@ jobs:
             BASE_IMAGE=${{ env.RUNTIME_BASE_IMAGE }}
 
       - name: Generate artifact attestation
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: ${{ needs.setup.outputs.base_image_path }}
