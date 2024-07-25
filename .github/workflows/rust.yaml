@@ -183,7 +183,7 @@ jobs:
             --release
         env:
           RUST_LOG: debug
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: wasm-components
           path: ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm
@@ -255,7 +255,7 @@ jobs:
             --profile ci --color always 2>&1 | tee test-results/log
         env:
           RUST_LOG: debug
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ hashFiles('./test-results') }}
           path: ./test-results
