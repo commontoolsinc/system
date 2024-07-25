@@ -2,9 +2,9 @@ name: Build Docker Images
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches:
-  #     - main
+  push:
+    branches:
+      - main
 
 env:
   REGISTRY: ghcr.io
@@ -41,7 +41,7 @@ jobs:
           context: .
           file: ./Dockerfile
           cache-from: commontools/base
-          push: true
+          push: ${{ github.ref == 'refs/heads/main' }}
           provenance: true
           tags:
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:${{ github.sha }}
@@ -54,4 +54,4 @@ jobs:
         with:
           subject-name: ${{ env.REGISTRY }}/${{ github.repository_owner }}/base
           subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+          push-to-registry: ${{ github.ref == 'refs/heads/main' }}
