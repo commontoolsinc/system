@@ -81,9 +81,12 @@ jobs:
           context: .
           file: ./Dockerfile
           cache-from: |
-            type=gha,ref=${{ github.ref }}
+            type=gha,ref=${{ needs.setup.outputs.base_image_name }}
+            type=gha,ref=${{ github.ref }}/${{ needs.setup.outputs.base_image_name }}
             type=registry,ref=${{ needs.setup.outputs.base_image_path }}
-          cache-to: type=gha,mode=max,ref=${{ needs.setup.outputs.base_image_name }}
+          cache-to: |
+            type=gha,mode=max,ref=${{ needs.setup.outputs.base_image_name }}
+            type=gha,mode=max,ref=${{ github.ref }}/${{ needs.setup.outputs.base_image_name }}
           push: ${{ github.ref == 'refs/heads/main' }}
           provenance: true
           tags: >
