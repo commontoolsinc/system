@@ -59,6 +59,32 @@ For an example of this, refer to the [`rust.yaml` Github Workflow](./.github/wor
 
 This `Makefile` coordinates the build process for a Rust and TypeScript project using Docker. It integrates various development tools and dependencies for efficient multi-environment builds. Below are key targets and variables.
 
+### Usage
+
+- **Default build**:
+
+```sh
+make
+```
+
+- **Build all Docker images**:
+
+```sh
+make docker
+```
+
+- **Local build**:
+
+```sh
+make local
+```
+
+- **Force a build step**:
+
+```sh
+make -B <target>
+```
+
 ### Variables
 
 - **`BASE_IMAGE_NAME`**: Base Docker image name.
@@ -141,32 +167,6 @@ The `.done` files are used to track the completion of build steps.
 - `build_typescript`
 - `build_rust`
 - `list_outputs`
-
-### Usage
-
-- **Default build**:
-
-```sh
-make
-```
-
-- **Build all Docker images**:
-
-```sh
-make docker
-```
-
-- **Local build**:
-
-```sh
-make local
-```
-
-- **Force a build step**:
-
-```sh
-make -B <target>
-```
 
 ### The `.done` Files
 
