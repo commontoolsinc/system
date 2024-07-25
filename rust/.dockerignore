@@ -1,0 +1,31 @@
+# exclude all files and directories
+*
+
+# include only the globs we want
+!**/*.dockerignore
+!**/*.gitignore
+!**/*.js
+!**/*.json
+!**/*.lock
+!**/*.md
+!**/*.png
+!**/*.proto
+!**/*.rs
+!**/*.sh
+!**/*.toml
+!**/*.ts
+!**/*.txt
+!**/*.webp
+!**/*.wit
+!**/*.yaml
+
+!**/[Mm]akefile*
+
+# re-exclude specific directories
+/target
+.wireit
+lib
+dist
+node_modules
+
+.git/

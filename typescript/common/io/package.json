@@ -84,9 +84,9 @@
       "dependencies": [
         "build:jco"
       ],
-      "command": "cat ./wit/*.wit | ./scripts/generate-wit-module.sh > ./lib/index.js",
+      "command": "cat ./wit/*.wit | ../module/scripts/generate-wit-module.sh > ./lib/index.js",
       "files": [
-        "./scripts/generate-wit-module.sh",
+        "../module/scripts/generate-wit-module.sh",
         "./wit/*.wit"
       ]
     },
