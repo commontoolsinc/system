@@ -40,6 +40,7 @@ jobs:
           file: ./Dockerfile
           cache-from: commontools/base
           push: ${{ github.ref == 'refs/heads/main' }}
+          outputs: ${{ github.ref != 'refs/heads/main' && 'type=cacheonly' }}
           provenance: true
           tags:
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:${{ github.sha }}
