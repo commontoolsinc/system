@@ -36,6 +36,7 @@ wasmtime-wasi-http = { workspace = true }
 getrandom = { workspace = true, features = ["js"]}
 tokio = { workspace = true, features = ["rt"] }
 tonic = { workspace = true, features = ["codegen", "prost"] }
+tonic-web-wasm-client = { workspace = true }
 
 [build-dependencies]
 tempfile = { workspace = true }
