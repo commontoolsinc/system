@@ -21,7 +21,7 @@ jobs:
           - toolchain: stable
           - toolchain: nightly
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -35,7 +35,7 @@ jobs:
           rustup +${{matrix.toolchain}} component add rustfmt
 
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
@@ -76,7 +76,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     continue-on-error: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -89,7 +89,7 @@ jobs:
           rustup target add wasm32-unknown-unknown
 
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
@@ -133,7 +133,7 @@ jobs:
     needs: ['lints']
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -145,7 +145,7 @@ jobs:
           rustup toolchain install stable
 
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
@@ -197,7 +197,7 @@ jobs:
         toolchain: ['stable', 'nightly']
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: actions/download-artifact@v3
       - name: 'Install OS packages (Ubuntu)'
@@ -215,7 +215,7 @@ jobs:
           rustup toolchain install ${{matrix.toolchain}}
 
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
