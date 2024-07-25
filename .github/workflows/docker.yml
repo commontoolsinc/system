@@ -47,6 +47,7 @@ jobs:
       base_image_path: ${{ steps.base_image_path.outputs.IMAGE_PATH }}
 
   base-image:
+    name: Build base image
     needs:
       - setup
     runs-on: ubuntu-latest
