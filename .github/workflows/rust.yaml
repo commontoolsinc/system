@@ -33,10 +33,18 @@ jobs:
           rustup toolchain install ${{matrix.toolchain}}
           rustup +${{matrix.toolchain}} component add clippy
           rustup +${{matrix.toolchain}} component add rustfmt
+
       - name: 'Setup Node/NPM'
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
@@ -79,10 +87,18 @@ jobs:
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install stable
           rustup target add wasm32-unknown-unknown
+
       - name: 'Setup Node/NPM'
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
@@ -126,11 +142,19 @@ jobs:
       - name: 'Setup Rust'
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
-          rustup toolchain install stable 
+          rustup toolchain install stable
+
       - name: 'Setup Node/NPM'
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
@@ -189,10 +213,18 @@ jobs:
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install ${{matrix.toolchain}}
+
       - name: 'Setup Node/NPM'
         uses: actions/setup-node@v3
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
