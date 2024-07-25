@@ -7,9 +7,48 @@ on:
 env:
   REGISTRY: ghcr.io
   RUNTIME_BASE_IMAGE: debian:latest
+  BASE_IMAGE_NAME: base
 
 jobs:
-  build-and-push-image:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - id: short_hash
+        run: |
+          SHORT_HASH=$(git rev-parse --short ${{ github.sha }})
+          echo "SHORT_HASH=${SHORT_HASH}" >>${GITHUB_OUTPUT}
+
+      - name: Lowercase repository owner
+        id: lowercase_repo_owner
+        run: |
+          echo "REPO_OWNER=${REPO_OWNER,,}" >>${GITHUB_OUTPUT}
+        env:
+          REPO_OWNER: "${{ github.repository_owner }}"
+
+      - id: scoped_base_image_name
+        run: |
+          IMAGE_NAME=${{ steps.lowercase_repo_owner.outputs.REPO_OWNER }}/${{ env.BASE_IMAGE_NAME }}
+          echo "IMAGE_NAME=${IMAGE_NAME}" >>${GITHUB_OUTPUT}
+
+      - name: Base Image path
+        id: base_image_path
+        run: |
+          echo "IMAGE_PATH=${{ env.REGISTRY }}/${{ steps.scoped_base_image_name.outputs.IMAGE_NAME }}" >>${GITHUB_OUTPUT}
+
+    outputs:
+      repo_owner: ${{ steps.lowercase_repo_owner.outputs.REPO_OWNER }}
+      short_hash: ${{ steps.short_hash.outputs.SHORT_HASH }}
+
+      base_image_name: ${{ steps.scoped_base_image_name.outputs.IMAGE_NAME }}
+      base_image_path: ${{ steps.base_image_path.outputs.IMAGE_PATH }}
+
+  base-image:
+    needs:
+      - setup
     runs-on: ubuntu-latest
 
     permissions:
@@ -38,9 +77,11 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          cache-from: commontools/base
+          cache-from: |
+            type=gha,ref=${{ github.ref }}
+            type=registry,ref=${{ needs.setup.outputs.base_image_path }}
+          cache-to: type=gha,mode=max,ref=${{ needs.setup.outputs.base_image_name }}
           push: ${{ github.ref == 'refs/heads/main' }}
-          outputs: ${{ github.ref != 'refs/heads/main' && 'type=cacheonly' }}
           provenance: true
           tags:
             ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:${{ github.sha }}
