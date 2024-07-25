@@ -44,7 +44,11 @@ jobs:
           cargo +${{ matrix.toolchain }} binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run wit-deps on Wasm Component projects'
@@ -86,7 +90,11 @@ jobs:
           cargo binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run wit-deps on Wasm Component projects'
@@ -130,7 +138,11 @@ jobs:
           cargo binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js@0.9.0 \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run wit-deps on Wasm Component projects'
@@ -188,7 +200,11 @@ jobs:
           cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js@0.9.0 \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run Rust tests'
