@@ -50,4 +50,3 @@ criterion = { workspace = true, features = ["async_tokio"] }
 [[bench]]
 name = "runtime_bench"
 harness = false
-required-features = ["bench"]
