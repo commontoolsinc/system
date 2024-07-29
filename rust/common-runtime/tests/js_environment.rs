@@ -6,6 +6,7 @@ use common_protos::{
     common,
     runtime::{self, runtime_client::RuntimeClient},
 };
+use common_runtime::Value;
 use common_test_fixtures::sources::common::{GET_GLOBAL_THIS_PROPS, GET_IMPORT_META_PROPS};
 use common_tracing::common_tracing;
 use serde_json::json;
@@ -17,12 +18,7 @@ async fn it_has_an_empty_import_meta() -> Result<()> {
     let expected = "[]";
     let (mut runtime_client, _, _) = start_runtime().await?;
     let output = exec_module(&mut runtime_client, GET_IMPORT_META_PROPS).await?;
-    assert_eq!(
-        output,
-        Some(common::Value {
-            variant: Some(common::value::Variant::String(expected.to_string().into())),
-        }),
-    );
+    assert_eq!(output, Some(Value::String(expected.to_string())));
 
     Ok(())
 }
@@ -98,12 +94,7 @@ async fn it_has_expected_globals() -> Result<()> {
 
     let (mut runtime_client, _, _) = start_runtime().await?;
     let output = exec_module(&mut runtime_client, GET_GLOBAL_THIS_PROPS).await?;
-    assert_eq!(
-        output,
-        Some(common::Value {
-            variant: Some(common::value::Variant::String(expected.to_string().into())),
-        }),
-    );
+    assert_eq!(output, Some(Value::String(expected.to_string())));
 
     Ok(())
 }
@@ -113,7 +104,7 @@ async fn it_has_expected_globals() -> Result<()> {
 async fn exec_module(
     runtime_client: &mut RuntimeClient<tonic::transport::channel::Channel>,
     module_str: &str,
-) -> Result<Option<common::Value>> {
+) -> Result<Option<Value>> {
     let runtime::InstantiateModuleResponse { instance_id, .. } = runtime_client
         .instantiate_module(runtime::InstantiateModuleRequest {
             output_shape: [("output".into(), common::ValueKind::String.into())].into(),
@@ -148,8 +139,12 @@ async fn exec_module(
             instance_id,
             input: [(
                 "input".into(),
-                common::Value {
-                    variant: Some(common::value::Variant::String("updated foo".into())),
+                common::LabeledData {
+                    value: Some(common::Value {
+                        variant: Some(common::value::Variant::String("updated foo".into())),
+                    }),
+                    confidentiality: "Public".into(),
+                    integrity: "LowIntegrity".into(),
                 },
             )]
             .into(),
@@ -157,5 +152,11 @@ async fn exec_module(
         .await?
         .into_inner();
 
-    Ok(output.get("output").cloned())
+    match output.get("output").cloned() {
+        Some(data) => match data.value {
+            Some(value) => Ok(Some(value.try_into()?)),
+            _ => Ok(None),
+        },
+        _ => Ok(None),
+    }
 }

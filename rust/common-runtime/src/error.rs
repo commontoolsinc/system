@@ -1,10 +1,10 @@
+use crate::ModuleInstanceId;
+use common_ifc::IfcError;
 use std::fmt::Debug;
 use thiserror::Error;
 
-use crate::ModuleInstanceId;
-
 /// Various errors that may be encountered when invoking runtime code.
-#[derive(Error, Debug)]
+#[derive(Error, PartialEq, Debug)]
 pub enum CommonRuntimeError {
     /// A Wasm Component failed to prepare
     #[error("Failed to prepare a Wasm Component: {0}")]
@@ -50,11 +50,21 @@ pub enum CommonRuntimeError {
     /// The provided instantiation parameters are not supported
     #[error("Invalid instantiation parameters: {0}")]
     InvalidInstantiationParameters(String),
+
+    /// There was a policy failure.
+    #[error("Policy rejected invocation: {0}")]
+    PolicyRejection(IfcError),
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl From<tonic::transport::Error> for CommonRuntimeError {
     fn from(value: tonic::transport::Error) -> Self {
         CommonRuntimeError::InternalError(format!("{value}"))
+    }
+}
+
+impl From<IfcError> for CommonRuntimeError {
+    fn from(value: IfcError) -> Self {
+        CommonRuntimeError::PolicyRejection(value)
     }
 }

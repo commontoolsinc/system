@@ -75,6 +75,7 @@ impl From<CommonRuntimeError> for Status {
             CommonRuntimeError::InvalidInstantiationParameters(_) => {
                 Status::invalid_argument(format!("{value}"))
             }
+            CommonRuntimeError::PolicyRejection(_) => Status::invalid_argument(format!("{value}")),
         }
     }
 }

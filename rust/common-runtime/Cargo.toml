@@ -10,6 +10,8 @@ async-trait = { workspace = true }
 async-stream = { workspace = true }
 blake3 = { workspace = true }
 bytes = { workspace = true }
+common-ifc = { workspace = true }
+common-macros = { workspace = true }
 common-protos = { workspace = true, features = ["runtime", "builder"] }
 common-tracing = { workspace = true }
 common-wit = { workspace = true }

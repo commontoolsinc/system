@@ -19,6 +19,12 @@ enum ValueKind {
   BUFFER = 3;
 }
 
+message LabeledData {
+  Value value = 1;
+  string confidentiality = 2;
+  string integrity = 3;
+}
+
 message Value {
   oneof variant {
     string string = 1;
