@@ -1,28 +1,20 @@
 #![cfg(not(target_arch = "wasm32"))]
 
+mod shared;
+
 use anyhow::Result;
 use common_builder::serve as serve_builder;
 use common_protos::{builder, common, runtime};
 use common_runtime::serve as serve_runtime;
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
+use shared::start_runtime;
 use tokio::net::TcpListener;
 
 #[tokio::test]
 #[common_tracing]
 async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
-    let builder_listener = TcpListener::bind("127.0.0.1:0").await?;
-    let builder_address: http::Uri =
-        format!("http://{}", builder_listener.local_addr()?).parse()?;
-    let builder_task = tokio::task::spawn(serve_builder(builder_listener));
-
-    let runtime_listener = TcpListener::bind("127.0.0.1:0").await?;
-    let runtime_address = runtime_listener.local_addr()?;
-    let runtime_task = tokio::task::spawn(serve_runtime(runtime_listener, Some(builder_address)));
-
-    let mut runtime_client =
-        runtime::runtime_client::RuntimeClient::connect(format!("http://{}", runtime_address))
-            .await?;
+    let (mut runtime_client, _, _) = start_runtime().await?;
 
     let runtime::InstantiateModuleResponse { instance_id, .. } = runtime_client
         .instantiate_module(runtime::InstantiateModuleRequest {
@@ -73,9 +65,6 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
             variant: Some(common::value::Variant::String("updated foo:bar".into()))
         })
     );
-
-    builder_task.abort();
-    runtime_task.abort();
     Ok(())
 }
 
