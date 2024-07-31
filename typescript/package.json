@@ -15,12 +15,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/commontoolsinc/labs.git"
+    "url": "git+https://github.com/commontoolsinc/system.git"
   },
   "bugs": {
-    "url": "https://github.com/commontoolsinc/labs/issues"
+    "url": "https://github.com/commontoolsinc/system/issues"
   },
-  "homepage": "https://github.com/commontoolsinc/labs#readme",
+  "homepage": "https://github.com/commontoolsinc/system#readme",
   "devDependencies": {
     "wireit": "^0.14.5"
   },
@@ -29,16 +29,14 @@
       "dependencies": [
         "./common/data:build",
         "./common/io:build",
-        "./common/module:build",
-        "./common/script:build"
+        "./common/function:build"
       ]
     },
     "clean": {
       "dependencies": [
         "./common/data:clean",
         "./common/io:clean",
-        "./common/module:clean",
-        "./common/script:clean"
+        "./common/function:clean"
       ]
     }
   },

@@ -13,6 +13,8 @@ pub use components::*;
 
 pub mod sandbox;
 
+pub mod runtime_experiment;
+
 mod error;
 pub use error::*;
 

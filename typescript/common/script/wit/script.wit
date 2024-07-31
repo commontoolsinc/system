@@ -1,7 +1,0 @@
-package common:script@0.0.1;
-
-world common {
-  include common:module/common@0.0.1;
-
-  export set-source: func(source: string) -> result<_, string>;
-}

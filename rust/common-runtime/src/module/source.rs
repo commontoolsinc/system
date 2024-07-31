@@ -4,6 +4,27 @@ use common_protos::common;
 use common_wit::Target;
 use std::collections::BTreeMap;
 
+use super::ModuleId;
+
+pub struct ModuleSignature {
+    pub target: Target,
+    pub id: ModuleId,
+}
+
+pub enum ModuleReference {
+    Signature(ModuleSignature),
+    Source(ModuleSource),
+}
+
+impl ModuleReference {
+    pub fn target(&self) -> &Target {
+        match self {
+            ModuleReference::Signature(signature) => &signature.target,
+            ModuleReference::Source(source) => &source.target,
+        }
+    }
+}
+
 /// A structured collection of source inputs needed to build a module with the given [WitTarget].
 #[derive(Debug, Clone)]
 pub struct ModuleSource {
@@ -44,8 +65,8 @@ impl From<common::ModuleSource> for ModuleSource {
     fn from(value: common::ModuleSource) -> Self {
         ModuleSource {
             target: match value.target() {
-                common::Target::CommonModule => Target::CommonModule,
-                common::Target::CommonScript => Target::CommonScript,
+                common::Target::CommonModule => Target::CommonFunction,
+                common::Target::CommonScript => Target::CommonFunctionVm,
             },
             source_code: value
                 .source_code
@@ -60,8 +81,8 @@ impl From<ModuleSource> for common::ModuleSource {
     fn from(value: ModuleSource) -> Self {
         common::ModuleSource {
             target: match value.target {
-                Target::CommonModule => common::Target::CommonModule.into(),
-                Target::CommonScript => common::Target::CommonScript.into(),
+                Target::CommonFunction => common::Target::CommonModule.into(),
+                Target::CommonFunctionVm => common::Target::CommonScript.into(),
             },
             source_code: value
                 .source_code

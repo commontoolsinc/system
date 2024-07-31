@@ -8,8 +8,8 @@ use std::{collections::BTreeMap, str::FromStr};
 use serde::{Deserialize, Serialize};
 
 /// WIT definition for `common:module`
-pub const COMMON_MODULE_WIT: &[u8] =
-    include_bytes!("../../../typescript/common/module/wit/module.wit");
+pub const COMMON_FUNCTION_WIT: &[u8] =
+    include_bytes!("../../../typescript/common/function/wit/function.wit");
 
 /// WIT definition for `common:io`
 pub const COMMON_IO_WIT: &[u8] = include_bytes!("../../../typescript/common/io/wit/io.wit");
@@ -17,26 +17,23 @@ pub const COMMON_IO_WIT: &[u8] = include_bytes!("../../../typescript/common/io/w
 /// WIT definition for `common:data`
 pub const COMMON_DATA_WIT: &[u8] = include_bytes!("../../../typescript/common/data/wit/data.wit");
 
-/// WIT definition for `common:script`
-pub const COMMON_SCRIPT_WIT: &[u8] =
-    include_bytes!("../../../typescript/common/script/wit/script.wit");
-
 /// A target that some candidate source code may express the implementation of
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Target {
     /// The most basic target: a Common Module
-    #[serde(rename = "common:module")]
-    CommonModule,
+    #[serde(rename = "common:function/module")]
+    CommonFunction,
     /// Effectively the same as a Common Module, but intepreted w/o a compile step
-    #[serde(rename = "common:script")]
-    CommonScript,
+    #[serde(rename = "common:function/virtual-module")]
+    CommonFunctionVm,
 }
 
 impl Target {
     /// The presumptive WIT world that corresponds to a give [WitTarget]
     pub fn world(&self) -> &'static str {
         match self {
-            Target::CommonModule | Target::CommonScript => "common",
+            Target::CommonFunction => "module",
+            Target::CommonFunctionVm => "virtual-module",
         }
     }
 }
@@ -46,8 +43,8 @@ impl FromStr for Target {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
-            "common:module" => Target::CommonModule,
-            "common:script" => Target::CommonScript,
+            "common:function/module" => Target::CommonFunction,
+            "common:function/virtual-module" => Target::CommonFunctionVm,
             _ => {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
@@ -64,8 +61,8 @@ impl std::fmt::Display for Target {
             f,
             "{}",
             match self {
-                Target::CommonModule => "common:module",
-                Target::CommonScript => "common:script",
+                Target::CommonFunction => "common:function/module",
+                Target::CommonFunctionVm => "common:function/virtual-module",
             }
         )
     }
@@ -138,14 +135,8 @@ impl From<Target> for WitTargetFileMap {
 impl From<&Target> for WitTargetFileMap {
     fn from(value: &Target) -> Self {
         WitTargetFileMap(match value {
-            Target::CommonScript => BTreeMap::from([
-                ("target.wit".into(), COMMON_SCRIPT_WIT),
-                ("deps/io/io.wit".into(), COMMON_IO_WIT),
-                ("deps/data/data.wit".into(), COMMON_DATA_WIT),
-                ("deps/module/module.wit".into(), COMMON_MODULE_WIT),
-            ]),
-            Target::CommonModule => BTreeMap::from([
-                ("target.wit".into(), COMMON_MODULE_WIT),
+            Target::CommonFunction | Target::CommonFunctionVm => BTreeMap::from([
+                ("target.wit".into(), COMMON_FUNCTION_WIT),
                 ("deps/io/io.wit".into(), COMMON_IO_WIT),
                 ("deps/data/data.wit".into(), COMMON_DATA_WIT),
             ]),
@@ -163,7 +154,7 @@ mod tests {
     #[tokio::test]
     async fn it_can_write_a_wit_hierarchy_to_the_file_system() -> Result<()> {
         let output = TempDir::new()?;
-        let file_map: WitTargetFileMap = Target::CommonModule.into();
+        let file_map: WitTargetFileMap = Target::CommonFunction.into();
 
         file_map.clone().write_to(output.path()).await?;
 

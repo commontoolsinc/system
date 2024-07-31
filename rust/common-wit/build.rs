@@ -5,7 +5,7 @@ const TYPESCRIPT_SOURCE_DEPENDENCIES: &[&str] = &[
     "package-lock.json",
     "common/io/wit/io.wit",
     "common/data/wit/data.wit",
-    "common/module/wit/module.wit",
+    "common/function/wit/function.wit",
 ];
 
 fn main() {

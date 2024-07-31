@@ -4,7 +4,8 @@ members = [
   "rust/common-javascript-interpreter",
   "rust/common-macros",
   "rust/common-protos",
-  "rust/common-runtime",
+  # "rust/common-runtime",
+  "rust/common-runtime-experiment",
   "rust/common-test-fixtures",
   "rust/common-tracing",
   "rust/common-wit",
@@ -28,7 +29,7 @@ common-builder = { path = "./rust/common-builder" }
 common-javascript-interpreter = { path = "./rust/common-javasript-interpreter" }
 common-macros = { path = "./rust/common-macros" }
 common-protos = { path = "./rust/common-protos", default-features = false }
-common-runtime = { path = "./rust/common-runtime" }
+common-runtime = { path = "./rust/common-runtime-experiment" }
 common-test-fixtures = { path = "./rust/common-test-fixtures" }
 common-tracing = { path = "./rust/common-tracing" }
 common-wit = { path = "./rust/common-wit" }
