@@ -8,8 +8,8 @@ enum ContentType {
 }
 
 enum Target {
-  COMMON_MODULE = 0;
-  COMMON_SCRIPT = 1;
+  COMMON_FUNCTION = 0;
+  COMMON_FUNCTION_VM = 1;
 }
 
 enum ValueKind {

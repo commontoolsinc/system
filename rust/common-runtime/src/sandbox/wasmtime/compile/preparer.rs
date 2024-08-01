@@ -9,8 +9,8 @@ use wasmtime::{
 };
 
 use crate::{
-    wasmtime::bindings::common_module::Common, CommonRuntimeError, InputOutput, ModuleDefinition,
-    ModuleId, ModulePreparer, ToWasmComponent,
+    wasmtime::bindings::common_function::Module as FunctionModule, CommonRuntimeError, InputOutput,
+    ModuleDefinition, ModuleId, ModulePreparer, ToWasmComponent,
 };
 
 use super::WasmtimeCompiledModule;
@@ -80,7 +80,7 @@ where
             wasmtime_wasi_http::proxy::add_only_http_to_linker(&mut linker)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-            Common::add_to_linker(&mut linker, |environment| environment)
+            FunctionModule::add_to_linker(&mut linker, |environment| environment)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
             self.prepared_modules.lock().await.insert(

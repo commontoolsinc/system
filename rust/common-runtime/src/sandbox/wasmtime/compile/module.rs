@@ -8,7 +8,7 @@ use wasmtime::{
 };
 
 use crate::{
-    wasmtime::bindings::common_module::Common, CommonRuntimeError, InputOutput, ModuleId,
+    wasmtime::bindings::common_function::Module, CommonRuntimeError, InputOutput, ModuleId,
     ModuleInstance, ModuleInstanceId, PreparedModule,
 };
 
@@ -61,8 +61,8 @@ where
     ) -> Result<Self::ModuleInstance, CommonRuntimeError> {
         let mut store = Store::new(&self.engine, ModuleHostState::new(io));
 
-        let (common, instance) =
-            Common::instantiate_async(&mut store, &self.component, &self.linker)
+        let (module, instance) =
+            Module::instantiate_async(&mut store, &self.component, &self.linker)
                 .await
                 .map_err(|error| {
                     CommonRuntimeError::ModuleInstantiationFailed(format!("{error}"))
@@ -71,7 +71,7 @@ where
         Ok(WasmtimeModuleInstance {
             id: self.id.clone().try_into()?,
             store: Arc::new(Mutex::new(store)),
-            common,
+            module,
             instance,
         })
     }
@@ -85,7 +85,7 @@ where
     id: ModuleInstanceId,
     // TODO: Synchronization wrapper may not be needed after we stub wasi:*
     store: Arc<Mutex<Store<ModuleHostState<Io>>>>,
-    common: Common,
+    module: Module,
 
     // REASON: Instance must be retained until module is dropped
     #[allow(dead_code)]
@@ -104,7 +104,7 @@ where
 
         store.data_mut().replace_io(io);
 
-        self.common
+        self.module
             .call_run(store.as_context_mut())
             .await
             .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?

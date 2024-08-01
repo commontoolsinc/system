@@ -1,14 +1,20 @@
-package common:module@0.0.1;
+package common:function@0.0.1;
 
 interface reflect {
   input-keys: func() -> list<string>;
   output-keys: func() -> list<string>;
 }
 
-world common {
+world module {
   import common:data/types@0.0.1;
   import common:io/state@0.0.1;
   import reflect;
 
   export run: func() -> result<_, string>;
+}
+
+world virtual-module {
+  include module;
+
+  export set-source: func(source: string) -> result<_, string>;
 }

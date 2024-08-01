@@ -29,7 +29,7 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
             module_reference: Some(
                 runtime::instantiate_module_request::ModuleReference::ModuleSource(
                     common::ModuleSource {
-                        target: common::Target::CommonModule.into(),
+                        target: common::Target::CommonFunction.into(),
                         source_code: [(
                             "module".into(),
                             common::SourceCode {
@@ -82,7 +82,7 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
     let builder::BuildComponentResponse { id: module_id } = builder_client
         .build_component(builder::BuildComponentRequest {
             module_source: Some(common::ModuleSource {
-                target: common::Target::CommonModule.into(),
+                target: common::Target::CommonFunction.into(),
                 source_code: [(
                     "module".to_owned(),
                     common::SourceCode {
@@ -117,7 +117,7 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
             module_reference: Some(
                 runtime::instantiate_module_request::ModuleReference::ModuleSignature(
                     common::ModuleSignature {
-                        target: common::Target::CommonModule.into(),
+                        target: common::Target::CommonFunction.into(),
                         id: module_id,
                     },
                 ),

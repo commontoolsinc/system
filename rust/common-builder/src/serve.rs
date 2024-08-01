@@ -31,8 +31,8 @@ impl Builder {
     ) -> Option<(Target, ContentType, Vec<u8>)> {
         if let Some(module_source) = module_source {
             let target = match module_source.target() {
-                TargetProto::CommonModule => Target::CommonModule,
-                TargetProto::CommonScript => Target::CommonScript,
+                TargetProto::CommonFunction => Target::CommonFunction,
+                TargetProto::CommonFunctionVm => Target::CommonFunctionVm,
             };
             let source_code = module_source.source_code;
 
@@ -110,7 +110,7 @@ impl BuilderProto for Builder {
             self.take_one_from_module_source(request.module_source)
         {
             match (target, content_type) {
-                (Target::CommonModule, ContentType::JavaScript) => source_code,
+                (Target::CommonFunction, ContentType::JavaScript) => source_code,
                 _ => {
                     return Err(Status::invalid_argument(
                         "Only JavaScript targetting 'common:module' may be bundled!",

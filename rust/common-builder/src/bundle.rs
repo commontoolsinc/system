@@ -203,7 +203,7 @@ pub mod tests {
 
     #[tokio::test]
     #[common_tracing]
-    async fn it_skips_common_modules_when_bundling() -> Result<()> {
+    async fn it_skips_common_esm_modules_when_bundling() -> Result<()> {
         let candidate = r#"
 import { read, write } from "common:io/state@0.0.1";
 

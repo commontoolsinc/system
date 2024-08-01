@@ -30,7 +30,7 @@ async fn it_bundles_javascript() -> anyhow::Result<()> {
     } = client
         .bundle_source_code(BundleSourceCodeRequest {
             module_source: Some(ModuleSource {
-                target: Target::CommonModule.into(),
+                target: Target::CommonFunction.into(),
                 source_code: [(
                     "module".to_owned(),
                     SourceCode {
@@ -69,7 +69,7 @@ async fn it_builds_javascript_modules() -> anyhow::Result<()> {
     let BuildComponentResponse { id } = client
         .build_component(BuildComponentRequest {
             module_source: Some(ModuleSource {
-                target: Target::CommonModule.into(),
+                target: Target::CommonFunction.into(),
                 source_code: [(
                     "module".to_owned(),
                     SourceCode {

@@ -68,12 +68,12 @@ fn run_benchmark(c: &mut Criterion) {
         let (builder_address, builder_task) = init_build_server().await.unwrap();
         let mut runtime = Runtime::new().unwrap();
         let module_id = {
-            let (module, initial_io) = BenchModule::new_basic_js_module(Target::CommonModule)
+            let (module, initial_io) = BenchModule::new_basic_js_module(Target::CommonFunction)
                 .into_components(Some(builder_address.clone()));
             runtime.compile(module, initial_io).await.unwrap()
         };
         let script_id = {
-            let (module, initial_io) = BenchModule::new_basic_js_module(Target::CommonScript)
+            let (module, initial_io) = BenchModule::new_basic_js_module(Target::CommonFunctionVm)
                 .into_components(Some(builder_address.clone()));
             runtime.interpret(module, initial_io).await.unwrap()
         };

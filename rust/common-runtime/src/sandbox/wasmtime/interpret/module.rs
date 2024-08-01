@@ -7,11 +7,11 @@ use wasmtime::{
 };
 
 use crate::{
-    wasmtime::bindings::common_script::Common, CommonRuntimeError, InputOutput, ModuleId,
-    ModuleInstance, ModuleInstanceId, PreparedModule,
+    wasmtime::bindings::common_function_vm::VirtualModule, CommonRuntimeError, InputOutput,
+    ModuleId, ModuleInstance, ModuleInstanceId, PreparedModule,
 };
 
-use super::bindings::ScriptHostState;
+use super::bindings::FunctionVmHostState;
 
 /// An instantiated interpreter than may be "loaded" with the source code of a
 /// Common Module in the language that the interpreter supports.
@@ -22,8 +22,8 @@ where
     id: ModuleInstanceId,
 
     // TODO: Synchronization wrapper may not be needed after we stub wasi:*
-    store: Arc<Mutex<Store<ScriptHostState<Io>>>>,
-    common: Common,
+    store: Arc<Mutex<Store<FunctionVmHostState<Io>>>>,
+    virtual_module: VirtualModule,
 
     // REASON: Instance must be retained until module is dropped
     #[allow(dead_code)]
@@ -35,7 +35,7 @@ where
     Io: InputOutput,
 {
     async fn set_source(&mut self, source: &str) -> Result<(), CommonRuntimeError> {
-        self.common
+        self.virtual_module
             .call_set_source(self.store.lock().await.as_context_mut(), source)
             .await
             .map_err(|error| CommonRuntimeError::ModuleInstantiationFailed(format!("{error}")))?
@@ -64,7 +64,7 @@ where
 
         store.data_mut().replace_io(io);
 
-        self.common
+        self.virtual_module
             .call_run(store.as_context_mut())
             .await
             .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?
@@ -121,7 +121,7 @@ where
     // compiler generic over host bindings so that we can re-spawn it
     // interpreter mode.
     engine: Engine,
-    linker: Linker<ScriptHostState<Io>>,
+    linker: Linker<FunctionVmHostState<Io>>,
     component: Component,
 }
 
@@ -133,7 +133,7 @@ where
     pub fn new(
         id: ModuleId,
         engine: Engine,
-        linker: Linker<ScriptHostState<Io>>,
+        linker: Linker<FunctionVmHostState<Io>>,
         component: Component,
     ) -> Self {
         Self {
@@ -158,10 +158,10 @@ where
         &self,
         io: Self::InputOutput,
     ) -> Result<Self::ModuleInstance, CommonRuntimeError> {
-        let mut store = Store::new(&self.engine, ScriptHostState::new(io));
+        let mut store = Store::new(&self.engine, FunctionVmHostState::new(io));
 
         let (common, instance) =
-            Common::instantiate_async(&mut store, &self.component, &self.linker)
+            VirtualModule::instantiate_async(&mut store, &self.component, &self.linker)
                 .await
                 .map_err(|error| {
                     CommonRuntimeError::ModuleInstantiationFailed(format!("{error}"))
@@ -170,7 +170,7 @@ where
         Ok(WasmtimeLiveScript {
             id: self.id.clone().try_into()?,
             store: Arc::new(Mutex::new(store)),
-            common,
+            virtual_module: common,
             instance,
         })
     }

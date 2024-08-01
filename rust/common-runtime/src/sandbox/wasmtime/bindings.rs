@@ -1,21 +1,21 @@
 #![allow(missing_docs)]
 
-pub mod common_module {
+pub mod common_function {
     use wasmtime::component::bindgen;
 
     bindgen!({
-      world: "common",
-      path: "../../typescript/common/module/wit",
+      world: "module",
+      path: "../../typescript/common/function/wit",
       async: true
     });
 }
 
-pub mod common_script {
+pub mod common_function_vm {
     use wasmtime::component::bindgen;
 
     bindgen!({
-      world: "common",
-      path: "../../typescript/common/script/wit",
+      world: "virtual-module",
+      path: "../../typescript/common/function/wit",
       async: true
     });
 }
