@@ -90,7 +90,7 @@ async fn exec_module(
             module_reference: Some(
                 runtime::instantiate_module_request::ModuleReference::ModuleSource(
                     common::ModuleSource {
-                        target: common::Target::CommonScript.into(),
+                        target: common::Target::CommonFunctionVm.into(),
                         source_code: [(
                             "module".into(),
                             common::SourceCode {
