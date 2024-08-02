@@ -23,10 +23,11 @@ pub async fn instantiate_module(
         ModuleReference::ModuleSignature(module_signature) => {
             let module = CompiledModule {
                 target: match module_signature.target() {
-                    common_protos::common::Target::CommonModule => Target::CommonModule,
-                    common_protos::common::Target::CommonScript => {
+                    common_protos::common::Target::CommonFunction => Target::CommonFunction,
+                    common_protos::common::Target::CommonFunctionVm => {
                         return Err(CommonRuntimeError::InvalidInstantiationParameters(
-                            "Must provide sources to instantiate a common:script".into(),
+                            "Must provide sources to instantiate a common:function/virtual-module"
+                                .into(),
                         ));
                     }
                 },
@@ -62,8 +63,8 @@ pub async fn instantiate_module(
             let mut runtime = runtime.lock().await;
 
             let instance_id = match target {
-                Target::CommonModule => runtime.compile(module, initial_io).await?,
-                Target::CommonScript => runtime.interpret(module, initial_io).await?,
+                Target::CommonFunction => runtime.compile(module, initial_io).await?,
+                Target::CommonFunctionVm => runtime.interpret(module, initial_io).await?,
             };
             InstantiateModuleResponse {
                 module_signature: Some(module_signature),

@@ -44,8 +44,8 @@ impl From<common::ModuleSource> for ModuleSource {
     fn from(value: common::ModuleSource) -> Self {
         ModuleSource {
             target: match value.target() {
-                common::Target::CommonModule => Target::CommonModule,
-                common::Target::CommonScript => Target::CommonScript,
+                common::Target::CommonFunction => Target::CommonFunction,
+                common::Target::CommonFunctionVm => Target::CommonFunctionVm,
             },
             source_code: value
                 .source_code
@@ -60,8 +60,8 @@ impl From<ModuleSource> for common::ModuleSource {
     fn from(value: ModuleSource) -> Self {
         common::ModuleSource {
             target: match value.target {
-                Target::CommonModule => common::Target::CommonModule.into(),
-                Target::CommonScript => common::Target::CommonScript.into(),
+                Target::CommonFunction => common::Target::CommonFunction.into(),
+                Target::CommonFunctionVm => common::Target::CommonFunctionVm.into(),
             },
             source_code: value
                 .source_code

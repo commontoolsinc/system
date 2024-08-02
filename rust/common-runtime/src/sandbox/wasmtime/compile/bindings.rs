@@ -1,6 +1,6 @@
 //! Host binding details for use when instantiating Common Module guests
 
-use crate::wasmtime::bindings::common_module::*;
+use crate::wasmtime::bindings::common_function::*;
 
 use async_trait::async_trait;
 use wasmtime::component::{Resource, ResourceTable};
@@ -159,7 +159,7 @@ where
 impl<Io> common::data::types::Host for ModuleHostState<Io> where Io: InputOutput {}
 
 #[async_trait]
-impl<Io> common::module::reflect::Host for ModuleHostState<Io>
+impl<Io> common::function::reflect::Host for ModuleHostState<Io>
 where
     Io: InputOutput,
 {

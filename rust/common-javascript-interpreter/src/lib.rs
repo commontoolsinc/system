@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 
 //! This package implements a basic JavaScript VM for interpreting
-//! `common:module`-compatible JavaScript sources. The environment supports
+//! `common:function`-compatible JavaScript sources. The environment supports
 //! importing `common:*` APIs as the `common:module` JavaScript would otherwise
 //! do in a AOT-compiled scenario. Notably: this package is designed to be
 //! compiled as a Wasm Component exporting the `common:script` target. This

@@ -25,11 +25,8 @@ common-test-fixtures = { workspace = true }
 crate-type = ["cdylib"]
 
 [package.metadata.component.target]
-path = "wit/deps/script/script.wit"
-world = "common"
-
-[package.metadata.component.target.dependencies."common:module"]
-path = "wit/deps/module/module.wit"
+path = "wit/deps/function/function.wit"
+world = "virtual-module"
 
 [package.metadata.component.target.dependencies."common:data"]
 path = "wit/deps/data/data.wit"

@@ -62,8 +62,12 @@ impl Bake for JavaScriptBaker {
 
         let mut command = Command::new("jco");
 
+        // TODO: World name should be derived from the target
+
         command
             .arg("componentize")
+            .arg("-n")
+            .arg("module")
             .arg("-w")
             .arg(wit_path)
             .arg("-o")

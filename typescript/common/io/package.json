@@ -21,12 +21,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/commontoolsinc/labs.git"
+    "url": "git+https://github.com/commontoolsinc/system.git"
   },
   "bugs": {
-    "url": "https://github.com/commontoolsinc/labs/issues"
+    "url": "https://github.com/commontoolsinc/system/issues"
   },
-  "homepage": "https://github.com/commontoolsinc/labs#readme",
+  "homepage": "https://github.com/commontoolsinc/system#readme",
   "dependencies": {},
   "devDependencies": {
     "@bytecodealliance/jco": "^1.4.0",
@@ -84,9 +84,9 @@
       "dependencies": [
         "build:jco"
       ],
-      "command": "cat ./wit/*.wit | ../module/scripts/generate-wit-module.sh > ./lib/index.js",
+      "command": "cat ./wit/*.wit | ../function/scripts/generate-wit-module.sh > ./lib/index.js",
       "files": [
-        "../module/scripts/generate-wit-module.sh",
+        "../function/scripts/generate-wit-module.sh",
         "./wit/*.wit"
       ]
     },

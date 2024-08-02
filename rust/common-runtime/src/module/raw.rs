@@ -51,7 +51,7 @@ impl RawModule {
     #[cfg(not(target_arch = "wasm32"))]
     async fn wasm(&self) -> Result<(ModuleId, Bytes), CommonRuntimeError> {
         match self.module_source.target {
-            Target::CommonModule => {
+            Target::CommonFunction => {
                 let (id, bytes) = self
                     .wasm
                     .get_or_try_init(|| async {
@@ -91,7 +91,7 @@ impl RawModule {
                     .await?;
                 Ok((id.clone(), bytes.clone()))
             }
-            Target::CommonScript => {
+            Target::CommonFunctionVm => {
                 let (_, entrypoint) = self.module_source.entrypoint()?;
                 match entrypoint.content_type {
                     ContentType::JavaScript => {

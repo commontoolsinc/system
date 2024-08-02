@@ -27,7 +27,7 @@ async fn it_interprets_and_runs_a_common_script() -> Result<()> {
             module_reference: Some(
                 runtime::instantiate_module_request::ModuleReference::ModuleSource(
                     common::ModuleSource {
-                        target: common::Target::CommonScript.into(),
+                        target: common::Target::CommonFunctionVm.into(),
                         source_code: [(
                             "module".into(),
                             common::SourceCode {

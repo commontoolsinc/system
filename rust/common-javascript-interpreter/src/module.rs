@@ -195,7 +195,7 @@ mod tests {
     use super::Module;
 
     #[test]
-    fn it_runs_a_common_module() -> Result<(), String> {
+    fn it_runs_a_common_function() -> Result<(), String> {
         let script = r#"
         import { read, write } from 'common:io/state@0.0.1';
         export const run = () => console.log('hello');"#

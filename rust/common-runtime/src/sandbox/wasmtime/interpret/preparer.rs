@@ -8,7 +8,7 @@ use wasmtime::{
 };
 
 use crate::{
-    wasmtime::{bindings::common_script::Common, WasmtimePreparedScript},
+    wasmtime::{bindings::common_function_vm::VirtualModule, WasmtimePreparedScript},
     CommonRuntimeError, InputOutput, ModuleDefinition, ModuleId, ModulePreparer, ToModuleSources,
     ToWasmComponent,
 };
@@ -82,7 +82,7 @@ where
             wasmtime_wasi::add_to_linker_async(&mut linker)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-            Common::add_to_linker(&mut linker, |environment| environment)
+            VirtualModule::add_to_linker(&mut linker, |environment| environment)
                 .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
             self.prepared_interpreters.lock().await.insert(
