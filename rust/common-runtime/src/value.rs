@@ -54,6 +54,21 @@ impl TryFrom<common::Value> for Value {
     }
 }
 
+impl std::fmt::Display for Value {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Value::String(v) => v.to_string(),
+                Value::Boolean(v) => v.to_string(),
+                Value::Number(v) => v.to_string(),
+                Value::Buffer(v) => format!("Buffer<{}b>", v.len()),
+            }
+        )
+    }
+}
+
 impl From<Value> for common::Value {
     fn from(value: Value) -> Self {
         common::Value {

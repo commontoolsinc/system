@@ -1,0 +1,17 @@
+[package]
+name = "common-tools"
+description = "CLI tools for Common Runtime"
+version = "0.1.0"
+edition = "2021"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+common-builder = { workspace = true }
+common-protos = { workspace = true, features = ["runtime", "builder"] }
+common-runtime = { workspace = true }
+http = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "io-util", "process", "fs"] }
+tonic = { workspace = true, features = ["channel"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
