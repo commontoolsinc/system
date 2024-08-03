@@ -21,7 +21,7 @@ jobs:
           - toolchain: stable
           - toolchain: nightly
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -33,10 +33,18 @@ jobs:
           rustup toolchain install ${{matrix.toolchain}}
           rustup +${{matrix.toolchain}} component add clippy
           rustup +${{matrix.toolchain}} component add rustfmt
+
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
@@ -44,7 +52,11 @@ jobs:
           cargo +${{ matrix.toolchain }} binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run wit-deps on Wasm Component projects'
@@ -64,7 +76,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     continue-on-error: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -75,10 +87,18 @@ jobs:
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install stable
           rustup target add wasm32-unknown-unknown
+
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
@@ -86,7 +106,11 @@ jobs:
           cargo binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run wit-deps on Wasm Component projects'
@@ -109,7 +133,7 @@ jobs:
     needs: ['lints']
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -118,11 +142,19 @@ jobs:
       - name: 'Setup Rust'
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
-          rustup toolchain install stable 
+          rustup toolchain install stable
+
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
@@ -130,7 +162,11 @@ jobs:
           cargo binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js@0.9.0 \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run wit-deps on Wasm Component projects'
@@ -147,7 +183,7 @@ jobs:
             --release
         env:
           RUST_LOG: debug
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: wasm-components
           path: ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm
@@ -161,7 +197,7 @@ jobs:
         toolchain: ['stable', 'nightly']
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: actions/download-artifact@v3
       - name: 'Install OS packages (Ubuntu)'
@@ -177,10 +213,18 @@ jobs:
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install ${{matrix.toolchain}}
+
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
+
+      - name: NPM Cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: npm-${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
       - name: Install binaries from cargo
@@ -188,7 +232,11 @@ jobs:
           cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
+          npm install -g \
+            @bytecodealliance/jco \
+            @bytecodealliance/componentize-js@0.9.0 \
+            wireit
+
           cd typescript
           npm ci
       - name: 'Run Rust tests'
@@ -207,7 +255,7 @@ jobs:
             --profile ci --color always 2>&1 | tee test-results/log
         env:
           RUST_LOG: debug
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ hashFiles('./test-results') }}
           path: ./test-results

@@ -10,7 +10,7 @@ const TYPESCRIPT_SOURCE_DEPENDENCIES: &[&str] = &[
 
 fn main() {
     if !Command::new("npm")
-        .arg("ci")
+        .arg("install")
         .current_dir("../../typescript")
         .status()
         .unwrap()
