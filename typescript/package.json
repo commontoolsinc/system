@@ -21,8 +21,9 @@
     "url": "https://github.com/commontoolsinc/labs/issues"
   },
   "homepage": "https://github.com/commontoolsinc/labs#readme",
-  "devDependencies": {
-    "wireit": "^0.14.5"
+  "dependencies": {
+    "wireit": "^0.14.5",
+    "@bytecodealliance/jco": "^1.4.0"
   },
   "wireit": {
     "build": {
@@ -39,6 +40,5 @@
         "./common/function:clean"
       ]
     }
-  },
-  "dependencies": {}
+  }
 }

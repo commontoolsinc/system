@@ -34,8 +34,7 @@
     "url": "https://github.com/commontoolsinc/system/issues"
   },
   "homepage": "https://github.com/commontoolsinc/system#readme",
-  "dependencies": {},
-  "devDependencies": {
+  "dependencies": {
     "@bytecodealliance/jco": "^1.4.0",
     "typescript": "^5.5.4",
     "wireit": "^0.14.5"
@@ -79,7 +78,7 @@
         "install:wit",
         "lint:wit"
       ],
-      "command": "jco types -o ./lib --name index ./wit",
+      "command": "jco types -h -o ./lib --name index ./wit",
       "files": [
         "./wit/**/*"
       ],
@@ -91,9 +90,9 @@
       "dependencies": [
         "build:jco"
       ],
-      "command": "cat ./wit/*.wit | ../function/scripts/generate-wit-module.sh > ./lib/index.js",
+      "command": "cat ./wit/*.wit | bash ./scripts/generate-wit-module.sh > ./lib/index.js",
       "files": [
-        "../function/scripts/generate-wit-module.sh",
+        "./scripts/generate-wit-module.sh",
         "./wit/*.wit"
       ]
     },
@@ -101,7 +100,7 @@
       "dependencies": [
         "build:jco"
       ],
-      "command": "echo 'export const wit: string;' >> ./lib/index.d.ts",
+      "command": "mkdir -p ./lib && echo 'export const wit: string;' >> ./lib/index.d.ts",
       "files": [
         "./lib/index.d.ts"
       ]

@@ -72,7 +72,7 @@
         "install:wit",
         "lint:wit"
       ],
-      "command": "jco types -o ./lib --name index ./wit",
+      "command": "jco types -h -o ./lib --name index ./wit",
       "files": [
         "./wit/**/*"
       ],
@@ -84,7 +84,7 @@
       "dependencies": [
         "build:jco"
       ],
-      "command": "cat ./wit/*.wit | ../function/scripts/generate-wit-module.sh > ./lib/index.js",
+      "command": "cat ./wit/*.wit | bash ./scripts/generate-wit-module.sh > ./lib/index.js",
       "files": [
         "../function/scripts/generate-wit-module.sh",
         "./wit/*.wit"
@@ -94,7 +94,7 @@
       "dependencies": [
         "build:jco"
       ],
-      "command": "echo 'export const wit: string;' >> ./lib/index.d.ts",
+      "command": "mkdir -p ./lib && echo 'export const wit: string;' >> ./lib/index.d.ts",
       "files": [
         "./lib/index.d.ts"
       ]
