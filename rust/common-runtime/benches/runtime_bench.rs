@@ -2,8 +2,10 @@
 
 use anyhow::Result;
 use common_builder::{serve as serve_builder, BuilderError};
+use common_ifc::{Confidentiality, Integrity, Policy};
 use common_runtime::{
-    ContentType, ModuleSource, RawModule, Runtime, RuntimeIo, SourceCode, Value, ValueKind,
+    ContentType, IoData, IoShape, IoValues, ModuleSource, RawModule, Runtime, RuntimeIo,
+    SourceCode, Value, ValueKind,
 };
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_wit::Target;
@@ -25,8 +27,8 @@ async fn init_build_server() -> Result<(Uri, JoinHandle<Result<(), BuilderError>
 /// module source, default input, and output shape.
 struct BenchModule {
     module_source: ModuleSource,
-    output_shape: BTreeMap<String, ValueKind>,
-    default_input: BTreeMap<String, Value>,
+    output_shape: IoShape,
+    default_input: IoValues,
 }
 
 impl BenchModule {
@@ -34,7 +36,7 @@ impl BenchModule {
     /// needed components to compile this module.
     pub fn into_components(self, builder_address: Option<Uri>) -> (RawModule, RuntimeIo) {
         let module = RawModule::new(self.module_source, builder_address);
-        let initial_io = RuntimeIo::new(self.default_input, self.output_shape);
+        let initial_io = RuntimeIo::from_initial_state(self.default_input, self.output_shape);
         (module, initial_io)
     }
 
@@ -52,8 +54,11 @@ impl BenchModule {
                 )]
                 .into(),
             },
-            output_shape: [("bar".into(), ValueKind::String)].into(),
-            default_input: [("foo".into(), Value::String("initial foo".into()))].into(),
+            output_shape: IoShape::from(BTreeMap::from([("bar".into(), ValueKind::String)])),
+            default_input: IoValues::from(BTreeMap::from([(
+                "foo".into(),
+                Value::String("initial foo".into()),
+            )])),
         }
     }
 }
@@ -82,10 +87,19 @@ fn run_benchmark(c: &mut Criterion) {
     });
 
     let bench_input = {
-        let input = [("foo".into(), Value::String("updated foo".into()))].into();
+        let input = IoData::from(BTreeMap::from([(
+            "foo".into(),
+            (
+                Value::from("updated foo"),
+                Confidentiality::Public,
+                Integrity::LowIntegrity,
+            )
+                .into(),
+        )]));
         let output_shape = runtime.output_shape(&module_id).unwrap().to_owned();
         RuntimeIo::new(input, output_shape)
     };
+    let policy = Policy::with_defaults().unwrap();
 
     let mut group = c.benchmark_group("run_benchmark");
 
@@ -94,7 +108,7 @@ fn run_benchmark(c: &mut Criterion) {
         &bench_input.clone(),
         |b, runtime_io| {
             b.to_async(&async_runtime)
-                .iter(|| runtime.run(&module_id, runtime_io.to_owned()))
+                .iter(|| runtime.run(&module_id, runtime_io.to_owned(), &policy))
         },
     );
 
@@ -103,7 +117,7 @@ fn run_benchmark(c: &mut Criterion) {
         &bench_input.clone(),
         |b, runtime_io| {
             b.to_async(&async_runtime)
-                .iter(|| runtime.run(&script_id, runtime_io.to_owned()))
+                .iter(|| runtime.run(&script_id, runtime_io.to_owned(), &policy))
         },
     );
 }

@@ -1,10 +1,9 @@
 use crate::{
-    CommonRuntimeError, InputOutput, ModuleDefinition, ModuleInstance, ModuleInstanceId,
-    ModulePreparer, OutputShape, PreparedModule, ToModuleSources, ToWasmComponent, Value,
-    ValueKind,
+    CommonRuntimeError, InputOutput, IoData, IoShape, IoValues, ModuleDefinition, ModuleInstance,
+    ModuleInstanceId, ModulePreparer, PreparedModule, ToModuleSources, ToWasmComponent, Value,
 };
-use common_protos::common;
-use std::collections::{BTreeMap, HashMap};
+use common_ifc::{Context, Data, Label, ModuleEnvironment, Policy};
+use std::collections::BTreeMap;
 
 #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
 use crate::browser::{BrowserCompiler, BrowserInterpreter};
@@ -19,32 +18,47 @@ use wasmtime::{Config, Engine, OptLevel};
 /// [Runtime].
 #[derive(Debug, Default, Clone)]
 pub struct RuntimeIo {
-    input: BTreeMap<String, Value>,
-    output_shape: BTreeMap<String, ValueKind>,
-    output: BTreeMap<String, Value>,
+    input: IoData,
+    output: IoData,
+    output_shape: IoShape,
+    label_constraints: Label,
 }
 
 impl RuntimeIo {
     /// Instantiate a [RuntimeIo], providing initial input state, and the
     /// expected shape of output state.
-    pub fn new(input: BTreeMap<String, Value>, output_shape: BTreeMap<String, ValueKind>) -> Self {
+    pub fn new(input: IoData, output_shape: IoShape) -> Self {
+        let label_constraints = Label::constrain(input.iter());
         Self {
             input,
             output_shape,
-            output: BTreeMap::new(),
+            output: IoData::default(),
+            label_constraints,
         }
+    }
+
+    /// Takes input values [ValueIo] and an output shape, and converts
+    /// the values into [Data] with strictest labels. Used for
+    /// specifying initial state.
+    pub fn from_initial_state(input_values: IoValues, output_shape: IoShape) -> Self {
+        let mut map = BTreeMap::new();
+        for (key, value) in input_values.into_inner().into_iter() {
+            map.insert(key, Data::with_strict_labels(value));
+        }
+        RuntimeIo::new(IoData::from(map), output_shape)
     }
 }
 
 impl InputOutput for RuntimeIo {
     fn read(&self, key: &str) -> Option<Value> {
-        self.input.get(key).cloned()
+        self.input.get(key).map(|d| d.value.clone())
     }
 
     fn write(&mut self, key: &str, value: Value) {
         if let Some(kind) = self.output_shape.get(key) {
             if value.is_of_kind(kind) {
-                self.output.insert(key.into(), value);
+                let data = Data::from((value, self.label_constraints.clone()));
+                self.output.insert(key.into(), data);
             } else {
                 warn!("Ignoring write with unexpected shape to '{key}'");
             }
@@ -53,13 +67,23 @@ impl InputOutput for RuntimeIo {
         }
     }
 
-    fn output(&self) -> &BTreeMap<String, Value> {
+    fn input(&self) -> &IoData {
+        &self.input
+    }
+
+    fn output(&self) -> &IoData {
         &self.output
     }
 
-    fn output_shape(&self) -> &OutputShape {
+    fn output_shape(&self) -> &IoShape {
         &self.output_shape
     }
+}
+
+struct LiveModule {
+    pub instance: Box<dyn ModuleInstance<InputOutput = RuntimeIo>>,
+    pub output_shape: IoShape,
+    pub context: Context,
 }
 
 /// A [Runtime] is the main entrypoint for all Common Module instantiation and
@@ -76,13 +100,9 @@ pub struct Runtime {
     #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
     interpreter: BrowserInterpreter<RuntimeIo>,
 
-    module_instances: BTreeMap<
-        ModuleInstanceId,
-        (
-            Box<dyn ModuleInstance<InputOutput = RuntimeIo>>,
-            OutputShape,
-        ),
-    >,
+    module_instances: BTreeMap<ModuleInstanceId, LiveModule>,
+
+    module_environment: ModuleEnvironment,
 }
 
 impl Runtime {
@@ -100,6 +120,12 @@ impl Runtime {
                 .map_err(|error| CommonRuntimeError::SandboxCreationFailed(format!("{error}")))
         }?;
 
+        #[cfg(not(target_arch = "wasm32"))]
+        let module_environment = ModuleEnvironment::Server;
+
+        #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+        let module_environment = ModuleEnvironment::WebBrowser;
+
         Ok(Runtime {
             #[cfg(not(target_arch = "wasm32"))]
             compiler: WasmtimeCompiler::new(wasmtime_engine.clone())?,
@@ -112,6 +138,7 @@ impl Runtime {
             interpreter: BrowserInterpreter::new(),
 
             module_instances: Default::default(),
+            module_environment,
         })
     }
 
@@ -130,8 +157,14 @@ impl Runtime {
         let instance_id = instance.id().clone();
         debug!(?instance_id, "Instantiated the module");
 
-        self.module_instances
-            .insert(instance_id.clone(), (Box::new(instance), output_shape));
+        self.module_instances.insert(
+            instance_id.clone(),
+            LiveModule {
+                instance: Box::new(instance),
+                output_shape,
+                context: (self.module_environment.clone(),).into(),
+            },
+        );
 
         Ok(instance_id)
     }
@@ -153,8 +186,14 @@ impl Runtime {
         let instance_id = instance.id().clone();
         debug!(?instance_id, "Instantiated the module");
 
-        self.module_instances
-            .insert(instance_id.clone(), (Box::new(instance), output_shape));
+        self.module_instances.insert(
+            instance_id.clone(),
+            LiveModule {
+                instance: Box::new(instance),
+                output_shape,
+                context: (self.module_environment.clone(),).into(),
+            },
+        );
 
         Ok(instance_id)
     }
@@ -164,9 +203,9 @@ impl Runtime {
     pub fn output_shape(
         &self,
         instance_id: &ModuleInstanceId,
-    ) -> Result<&OutputShape, CommonRuntimeError> {
-        if let Some((_, output_shape)) = self.module_instances.get(instance_id) {
-            Ok(output_shape)
+    ) -> Result<&IoShape, CommonRuntimeError> {
+        if let Some(cached) = self.module_instances.get(instance_id) {
+            Ok(&cached.output_shape)
         } else {
             Err(CommonRuntimeError::UnknownInstanceId(instance_id.clone()))
         }
@@ -178,37 +217,16 @@ impl Runtime {
         &self,
         instance_id: &ModuleInstanceId,
         io: RuntimeIo,
+        policy: &Policy,
     ) -> Result<RuntimeIo, CommonRuntimeError> {
-        let Some((instance, _)) = self.module_instances.get(instance_id) else {
+        let Some(cached) = self.module_instances.get(instance_id) else {
             return Err(CommonRuntimeError::ModuleRunFailed(format!(
                 "No instance found for ID '{}'",
                 instance_id
             )));
         };
 
-        instance.run(io).await
-    }
-}
-
-impl TryFrom<(HashMap<String, common::Value>, HashMap<String, i32>)> for RuntimeIo {
-    type Error = CommonRuntimeError;
-
-    fn try_from(
-        (input_proto, output_shape_proto): (HashMap<String, common::Value>, HashMap<String, i32>),
-    ) -> Result<Self, Self::Error> {
-        let mut input = BTreeMap::new();
-        for (key, value) in input_proto.into_iter() {
-            input.insert(key, Value::try_from(value)?);
-        }
-
-        let mut output_shape = BTreeMap::new();
-
-        for (key, value_kind) in output_shape_proto.into_iter() {
-            let value_kind = common::ValueKind::try_from(value_kind)
-                .map_err(|_| CommonRuntimeError::InvalidValue)?;
-            output_shape.insert(key, ValueKind::from(value_kind));
-        }
-
-        Ok(RuntimeIo::new(input, output_shape))
+        policy.validate(io.input().iter(), &cached.context)?;
+        cached.instance.run(io).await
     }
 }

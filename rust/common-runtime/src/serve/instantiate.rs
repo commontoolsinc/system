@@ -35,7 +35,10 @@ pub async fn instantiate_module(
                 builder_address,
             };
 
-            let initial_io = RuntimeIo::try_from((request.default_input, request.output_shape))?;
+            let initial_io = RuntimeIo::from_initial_state(
+                request.default_input.try_into()?,
+                request.output_shape.try_into()?,
+            );
 
             let mut runtime = runtime.lock().await;
             let instance_id = runtime.compile(module, initial_io).await?;
@@ -58,7 +61,10 @@ pub async fn instantiate_module(
                 id: module_id.to_string(),
             };
 
-            let initial_io = RuntimeIo::try_from((request.default_input, request.output_shape))?;
+            let initial_io = RuntimeIo::from_initial_state(
+                request.default_input.try_into()?,
+                request.output_shape.try_into()?,
+            );
 
             let mut runtime = runtime.lock().await;
 

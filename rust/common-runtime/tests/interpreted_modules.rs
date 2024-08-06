@@ -48,8 +48,12 @@ async fn it_interprets_and_runs_a_common_script() -> Result<()> {
             instance_id,
             input: [(
                 "foo".into(),
-                common::Value {
-                    variant: Some(common::value::Variant::String("updated foo".into())),
+                common::LabeledData {
+                    value: Some(common::Value {
+                        variant: Some(common::value::Variant::String("updated foo".into())),
+                    }),
+                    confidentiality: "Public".into(),
+                    integrity: "LowIntegrity".into(),
                 },
             )]
             .into(),
@@ -59,8 +63,12 @@ async fn it_interprets_and_runs_a_common_script() -> Result<()> {
 
     assert_eq!(
         output.get("bar"),
-        Some(&common::Value {
-            variant: Some(common::value::Variant::String("updated foo:bar".into()))
+        Some(&common::LabeledData {
+            value: Some(common::Value {
+                variant: Some(common::value::Variant::String("updated foo:bar".into()))
+            }),
+            confidentiality: "Public".into(),
+            integrity: "LowIntegrity".into(),
         })
     );
     Ok(())

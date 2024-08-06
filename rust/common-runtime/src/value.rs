@@ -1,8 +1,8 @@
 use crate::CommonRuntimeError;
-use common_protos::common;
+use common_protos::common as proto;
 
 /// An intrinsic value type within a Common Runtime
-#[derive(Clone, Debug)]
+#[derive(PartialEq, Clone, Debug)]
 pub enum Value {
     /// A UTF-8 string
     String(String),
@@ -40,16 +40,16 @@ pub enum ValueKind {
     Buffer,
 }
 
-impl TryFrom<common::Value> for Value {
+impl TryFrom<proto::Value> for Value {
     type Error = CommonRuntimeError;
 
-    fn try_from(value: common::Value) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::Value) -> Result<Self, Self::Error> {
         let value = value.variant.ok_or(CommonRuntimeError::InvalidValue)?;
         Ok(match value {
-            common::value::Variant::String(string) => Value::String(string),
-            common::value::Variant::Number(number) => Value::Number(number),
-            common::value::Variant::Boolean(boolean) => Value::Boolean(boolean),
-            common::value::Variant::Buffer(buffer) => Value::Buffer(buffer),
+            proto::value::Variant::String(string) => Value::String(string),
+            proto::value::Variant::Number(number) => Value::Number(number),
+            proto::value::Variant::Boolean(boolean) => Value::Boolean(boolean),
+            proto::value::Variant::Buffer(buffer) => Value::Buffer(buffer),
         })
     }
 }
@@ -69,26 +69,56 @@ impl std::fmt::Display for Value {
     }
 }
 
-impl From<Value> for common::Value {
+impl From<Value> for proto::Value {
     fn from(value: Value) -> Self {
-        common::Value {
+        proto::Value {
             variant: Some(match value {
-                Value::String(string) => common::value::Variant::String(string),
-                Value::Boolean(number) => common::value::Variant::Boolean(number),
-                Value::Number(boolean) => common::value::Variant::Number(boolean),
-                Value::Buffer(buffer) => common::value::Variant::Buffer(buffer),
+                Value::String(string) => proto::value::Variant::String(string),
+                Value::Boolean(number) => proto::value::Variant::Boolean(number),
+                Value::Number(boolean) => proto::value::Variant::Number(boolean),
+                Value::Buffer(buffer) => proto::value::Variant::Buffer(buffer),
             }),
         }
     }
 }
 
-impl From<common::ValueKind> for ValueKind {
-    fn from(value_kind: common::ValueKind) -> Self {
+impl From<proto::ValueKind> for ValueKind {
+    fn from(value_kind: proto::ValueKind) -> Self {
         match value_kind {
-            common::ValueKind::String => ValueKind::String,
-            common::ValueKind::Boolean => ValueKind::Boolean,
-            common::ValueKind::Number => ValueKind::Number,
-            common::ValueKind::Buffer => ValueKind::Buffer,
+            proto::ValueKind::String => ValueKind::String,
+            proto::ValueKind::Boolean => ValueKind::Boolean,
+            proto::ValueKind::Number => ValueKind::Number,
+            proto::ValueKind::Buffer => ValueKind::Buffer,
         }
+    }
+}
+
+impl From<&str> for Value {
+    fn from(value: &str) -> Self {
+        String::from(value).into()
+    }
+}
+
+impl From<String> for Value {
+    fn from(value: String) -> Self {
+        Value::String(value)
+    }
+}
+
+impl From<bool> for Value {
+    fn from(value: bool) -> Self {
+        Value::Boolean(value)
+    }
+}
+
+impl From<f64> for Value {
+    fn from(value: f64) -> Self {
+        Value::Number(value)
+    }
+}
+
+impl From<Vec<u8>> for Value {
+    fn from(value: Vec<u8>) -> Self {
+        Value::Buffer(value)
     }
 }

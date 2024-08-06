@@ -50,8 +50,12 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
             instance_id,
             input: [(
                 "foo".into(),
-                common::Value {
-                    variant: Some(common::value::Variant::String("updated foo".into())),
+                common::LabeledData {
+                    value: Some(common::Value {
+                        variant: Some(common::value::Variant::String("updated foo".into())),
+                    }),
+                    confidentiality: "Public".into(),
+                    integrity: "LowIntegrity".into(),
                 },
             )]
             .into(),
@@ -61,8 +65,12 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
 
     assert_eq!(
         output.get("bar"),
-        Some(&common::Value {
-            variant: Some(common::value::Variant::String("updated foo:bar".into()))
+        Some(&common::LabeledData {
+            value: Some(common::Value {
+                variant: Some(common::value::Variant::String("updated foo:bar".into()))
+            }),
+            confidentiality: "Public".into(),
+            integrity: "LowIntegrity".into(),
         })
     );
     Ok(())
@@ -131,8 +139,12 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
             instance_id,
             input: [(
                 "foo".into(),
-                common::Value {
-                    variant: Some(common::value::Variant::String("updated foo".into())),
+                common::LabeledData {
+                    value: Some(common::Value {
+                        variant: Some(common::value::Variant::String("updated foo".into())),
+                    }),
+                    confidentiality: "Public".into(),
+                    integrity: "LowIntegrity".into(),
                 },
             )]
             .into(),
@@ -142,8 +154,12 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
 
     assert_eq!(
         output.get("bar"),
-        Some(&common::Value {
-            variant: Some(common::value::Variant::String("updated foo:bar".into()))
+        Some(&common::LabeledData {
+            value: Some(common::Value {
+                variant: Some(common::value::Variant::String("updated foo:bar".into()))
+            }),
+            confidentiality: "Public".into(),
+            integrity: "LowIntegrity".into(),
         })
     );
 

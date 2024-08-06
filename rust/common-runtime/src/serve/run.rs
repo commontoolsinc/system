@@ -1,12 +1,7 @@
-use crate::{CommonRuntimeError, InputOutput, ModuleInstanceId, Runtime, RuntimeIo, Value};
-use common_protos::{
-    self as protos,
-    runtime::{RunModuleRequest, RunModuleResponse},
-};
-use std::{
-    collections::{BTreeMap, HashMap},
-    sync::Arc,
-};
+use crate::{CommonRuntimeError, InputOutput, ModuleInstanceId, Runtime, RuntimeIo};
+use common_ifc::Policy;
+use common_protos::runtime::{RunModuleRequest, RunModuleResponse};
+use std::sync::Arc;
 use tokio::sync::Mutex;
 
 pub async fn run_module(
@@ -17,19 +12,12 @@ pub async fn run_module(
     let instance_id = ModuleInstanceId(request.instance_id);
 
     let output_shape = runtime.output_shape(&instance_id)?;
-    let mut input = BTreeMap::new();
-    for (key, value) in request.input.into_iter() {
-        input.insert(key, Value::try_from(value)?);
-    }
+    let input = request.input.try_into()?;
+    let policy = Policy::with_defaults()?;
     let io = RuntimeIo::new(input, output_shape.clone());
-    let io = runtime.run(&instance_id, io).await?;
+    let io = runtime.run(&instance_id, io, &policy).await?;
 
-    let output = io
-        .output()
-        .clone()
-        .into_iter()
-        .map(|(key, value)| (key, value.into()))
-        .collect::<HashMap<String, protos::common::Value>>();
+    let output = io.output().clone().into();
 
     Ok(RunModuleResponse { output })
 }

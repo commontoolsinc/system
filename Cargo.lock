@@ -771,6 +771,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "common-ifc"
+version = "0.1.0"
+dependencies = [
+ "common-macros",
+ "common-protos",
+ "common-tracing",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
 name = "common-javascript-interpreter"
 version = "0.1.0"
 dependencies = [
@@ -790,6 +801,7 @@ dependencies = [
 name = "common-macros"
 version = "0.1.0"
 dependencies = [
+ "common-ifc",
  "quote",
  "syn",
 ]
@@ -814,6 +826,8 @@ dependencies = [
  "bytes",
  "clap",
  "common-builder",
+ "common-ifc",
+ "common-macros",
  "common-protos",
  "common-test-fixtures",
  "common-tracing",

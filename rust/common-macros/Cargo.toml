@@ -10,7 +10,10 @@ proc-macro = true
 
 [dependencies]
 quote = { workspace = true }
-syn = { workspace = true }
+syn = { workspace = true, features = ["full"] }
 
 [features]
 tracing = []
+
+[dev-dependencies]
+common-ifc = { workspace = true }

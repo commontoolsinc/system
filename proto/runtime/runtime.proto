@@ -21,10 +21,10 @@ message InstantiateModuleResponse {
 
 message RunModuleRequest {
   string instance_id = 1;
-  map<string, common.Value> input = 2;
+  map<string, common.LabeledData> input = 2;
 }
 
-message RunModuleResponse { map<string, common.Value> output = 1; }
+message RunModuleResponse { map<string, common.LabeledData> output = 1; }
 
 service Runtime {
   rpc InstantiateModule(InstantiateModuleRequest)

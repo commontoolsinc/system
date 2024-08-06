@@ -112,8 +112,12 @@ async fn exec_module(
             instance_id,
             input: [(
                 "input".into(),
-                common::Value {
-                    variant: Some(common::value::Variant::String(input_io)),
+                common::LabeledData {
+                    value: Some(common::Value {
+                        variant: Some(common::value::Variant::String(input_io)),
+                    }),
+                    confidentiality: "Private".into(),
+                    integrity: "LowIntegrity".into(),
                 },
             )]
             .into(),
@@ -121,7 +125,13 @@ async fn exec_module(
         .await?
         .into_inner();
 
-    Ok(output.get("output").cloned())
+    match output.get("output").cloned() {
+        Some(data) => match data.value {
+            Some(value) => Ok(Some(value)),
+            _ => Ok(None),
+        },
+        _ => Ok(None),
+    }
 }
 
 /// Starts a [common_runtime] server listening on `runtime_port`,
