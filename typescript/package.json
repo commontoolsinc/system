@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/commontoolsinc/labs#readme",
   "devDependencies": {
-    "wireit": "^0.14.5"
+    "wireit": "^0.14.7"
   },
   "wireit": {
     "build": {
