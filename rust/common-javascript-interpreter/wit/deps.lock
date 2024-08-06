@@ -3,7 +3,7 @@ sha256 = "edb3fa962337292260fb5e1257b6a7f770d6f4a2865c88ddb68a7f4fb8169bbd"
 sha512 = "aa6f16d180975d35dde3ebcd1b6a21992ee9e38ba9edf3f5535ff3415c3933792c8be5a9a9233e02ac713c3ac129a6f2f65b734f357c6405ddbbff69ebe3f793"
 
 [function]
-path = "../../../typescript/common/function/wit"
+path = "../../../wit/common/function/wit"
 sha256 = "4d2c15922d458487d376361c47a3dc62089540d2ebc0a1b2fc9e524c323d02b3"
 sha512 = "a7d6f665016bdb9bbb72d3cbf533266cc5390a133056499e5a2a01896b93685f50144c547b2fcede78a01d1b92cce9d2666e5e30dce5a1dd6397a7b5a3f9abcc"
 deps = ["data", "io"]
