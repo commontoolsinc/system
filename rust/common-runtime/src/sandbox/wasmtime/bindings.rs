@@ -5,7 +5,7 @@ pub mod common_function {
 
     bindgen!({
       world: "module",
-      path: "../../typescript/common/function/wit",
+      path: "../../wit/common/function/wit",
       async: true
     });
 }
@@ -15,7 +15,7 @@ pub mod common_function_vm {
 
     bindgen!({
       world: "virtual-module",
-      path: "../../typescript/common/function/wit",
+      path: "../../wit/common/function/wit",
       async: true
     });
 }

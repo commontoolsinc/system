@@ -12,12 +12,7 @@
   ],
   "exports": "./lib/index.js",
   "scripts": {
-    "build": "wireit",
-    "clean": "wireit",
-    "prepare": "wireit",
-    "update:wit": "wireit",
-    "lint:wit": "wireit",
-    "build:wit:inline": "wireit"
+    "build": "tsc && ../../../wit/wit-tools.sh types function ./lib"
   },
   "repository": {
     "type": "git",
@@ -29,90 +24,6 @@
   "homepage": "https://github.com/commontoolsinc/system#readme",
   "dependencies": {},
   "devDependencies": {
-    "@bytecodealliance/jco": "^1.4.0",
-    "typescript": "^5.5.4",
-    "wireit": "^0.14.7"
-  },
-  "wireit": {
-    "prepare": {
-      "dependencies": [
-        "install:wit"
-      ]
-    },
-    "install:wit": {
-      "command": "wit-deps",
-      "files": [
-        "./wit/deps.*"
-      ],
-      "output": [
-        "./wit/deps/**/*"
-      ]
-    },
-    "lint:wit": {
-      "dependencies": [
-        "install:wit"
-      ],
-      "command": "wasm-tools component wit ./wit",
-      "files": [
-        "./wit/**/*"
-      ]
-    },
-    "update:wit": {
-      "command": "wit-deps update",
-      "files": [
-        "./wit/deps.toml"
-      ],
-      "output": [
-        "./wit/deps.lock",
-        "./wit/deps/**/*"
-      ]
-    },
-    "build:jco": {
-      "dependencies": [
-        "install:wit",
-        "lint:wit"
-      ],
-      "command": "jco types -o ./lib --world-name module --name index ./wit",
-      "files": [
-        "./wit/**/*"
-      ],
-      "output": [
-        "./lib/**/*"
-      ]
-    },
-    "build:wit:index": {
-      "dependencies": [
-        "build:jco"
-      ],
-      "command": "cat ./wit/*.wit | ../function/scripts/generate-wit-module.sh > ./lib/index.js",
-      "files": [
-        "../function/scripts/generate-wit-module.sh",
-        "./wit/*.wit"
-      ]
-    },
-    "build:wit:types": {
-      "dependencies": [
-        "build:jco"
-      ],
-      "command": "echo 'export const wit: string;' >> ./lib/index.d.ts",
-      "files": [
-        "./lib/index.d.ts"
-      ]
-    },
-    "build:wit": {
-      "dependencies": [
-        "build:wit:index",
-        "build:wit:types"
-      ]
-    },
-    "build": {
-      "dependencies": [
-        "build:jco",
-        "build:wit"
-      ]
-    },
-    "clean": {
-      "command": "rm -rf ./src ./lib ./.wireit ./wit/deps"
-    }
+    "typescript": "^5.5.4"
   }
 }

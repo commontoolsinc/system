@@ -25,8 +25,6 @@ fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str) {
     let artifact_dir = format!("{}/wasm32-wasip1/release", out_dir.display());
     let artifact_path = format!("{}/{}", artifact_dir, artifact_file_name);
 
-    wit_deps(project_root_dir.join("rust").join(crate_name));
-
     let cached_artifact_file = project_root_dir
         .join(".wasm_cache")
         .join(&artifact_file_name);
@@ -57,16 +55,4 @@ fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str) {
 
     let const_name = format!("{}_WASM_PATH", artifact_name.to_ascii_uppercase());
     println!("cargo::rustc-env={}={}", const_name, artifact_path);
-}
-
-/// Calls `wit-deps` given path of `dir`.
-fn wit_deps<P: AsRef<Path>>(dir: P) {
-    if !Command::new("wit-deps")
-        .current_dir(dir)
-        .status()
-        .unwrap()
-        .success()
-    {
-        panic!("Failed to run wit-deps");
-    }
 }

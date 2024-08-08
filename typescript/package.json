@@ -10,8 +10,7 @@
     "./common/*"
   ],
   "scripts": {
-    "build": "wireit",
-    "clean": "wireit"
+    "clean": "./scripts/clean.sh"
   },
   "repository": {
     "type": "git",
@@ -20,25 +19,5 @@
   "bugs": {
     "url": "https://github.com/commontoolsinc/labs/issues"
   },
-  "homepage": "https://github.com/commontoolsinc/labs#readme",
-  "devDependencies": {
-    "wireit": "^0.14.7"
-  },
-  "wireit": {
-    "build": {
-      "dependencies": [
-        "./common/data:build",
-        "./common/io:build",
-        "./common/function:build"
-      ]
-    },
-    "clean": {
-      "dependencies": [
-        "./common/data:clean",
-        "./common/io:clean",
-        "./common/function:clean"
-      ]
-    }
-  },
-  "dependencies": {}
+  "homepage": "https://github.com/commontoolsinc/labs#readme"
 }
