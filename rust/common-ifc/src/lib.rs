@@ -13,12 +13,13 @@
 mod context;
 mod data;
 mod error;
+pub mod graph;
 mod labels;
 mod policy;
 
 pub use common_macros::Lattice;
 pub use context::{Context, ModuleEnvironment};
 pub use data::Data;
-pub use error::{IfcError, Result};
+pub use error::{CommonIfcError, Result};
 pub use labels::{Confidentiality, Integrity, Label, Lattice};
 pub use policy::Policy;

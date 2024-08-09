@@ -1,4 +1,4 @@
-use crate::{Data, IfcError};
+use crate::{CommonIfcError, Data};
 use common_macros::Lattice;
 use std::{
     fmt::{Debug, Display},
@@ -95,13 +95,13 @@ impl Display for Integrity {
 }
 
 impl FromStr for Integrity {
-    type Err = IfcError;
+    type Err = CommonIfcError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Integrity::*;
         match s {
             "HighIntegrity" => Ok(HighIntegrity),
             "LowIntegrity" => Ok(LowIntegrity),
-            _ => Err(IfcError::Conversion),
+            _ => Err(CommonIfcError::Conversion),
         }
     }
 }
@@ -132,13 +132,13 @@ impl Display for Confidentiality {
 }
 
 impl FromStr for Confidentiality {
-    type Err = IfcError;
+    type Err = CommonIfcError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Confidentiality::*;
         match s {
             "Private" => Ok(Private),
             "Public" => Ok(Public),
-            _ => Err(IfcError::Conversion),
+            _ => Err(CommonIfcError::Conversion),
         }
     }
 }
