@@ -28,6 +28,7 @@ jobs:
       push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
       build_args: |
         BASE_IMAGE=debian:latest
+        RUNTIME_BASE_IMAGE=debian:latest
     secrets:
       gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
       gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
