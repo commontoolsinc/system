@@ -1,0 +1,28 @@
+name: GCP Docker Build
+
+on:
+  workflow_dispatch:
+    inputs:
+      push:
+        description: "Push the image to the registry"
+        required: false
+        default: true
+        type: boolean
+  push:
+
+env:
+  push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
+
+jobs:
+  base:
+    name: Base image build${{ inputs.push && ' and push' || '' }}
+    uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
+    with:
+      image_name: base
+      dockerfile: ./rust/Dockerfile
+      context: .
+      push: ${{ github.env.push }}
+    secrets:
+      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}

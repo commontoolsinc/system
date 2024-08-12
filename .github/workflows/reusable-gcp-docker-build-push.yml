@@ -1,0 +1,109 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      dockerfile:
+        required: true
+        type: string
+      context:
+        required: true
+        type: string
+      build_args:
+        description: "Docker build arguments"
+        required: false
+        type: string
+      push:
+        description: "Push the image to the registry"
+        required: false
+        default: true
+        type: boolean
+      gcp_region:
+        description: "Google Cloud region"
+        type: string
+        required: false
+        default: "us-central1"
+
+    secrets:
+      gcp_project_id:
+        description: "Google Cloud Project ID"
+        required: true
+      gcp_service_account:
+        description: "Google Cloud Service Account"
+        required: true
+      gcp_workload_identity_provider:
+        description: "Google Cloud Workload Identity Provider"
+        required: true
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    env:
+      IMAGE_PATH: "${{ inputs.gcp_region }}-docker.pkg.dev/${{ secrets.gcp_project_id }}/${{ inputs.image_name }}"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Google Container Registry
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          token_format: access_token
+          service_account: ${{ secrets.gcp_service_account }}
+          workload_identity_provider: ${{ secrets.gcp_workload_identity_provider }}
+          project_id: ${{ secrets.gcp_project_id }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker ${{ inputs.gcp_region }}-docker.pkg.dev
+
+      # - name: Login to Artifact Registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ${{ inputs.gcp_region }}-docker.pkg.dev
+      #     username: oauth2accesstoken
+      #     password: ${{ steps.auth.outputs.access_token }}
+
+      - name: Docker build${{ inputs.push && ' and push' || '' }}
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: ${{ inputs.push }}
+          tags: |
+            ${{ env.IMAGE_PATH }}
+            ${{ env.IMAGE_PATH }}:latest
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ env.IMAGE_PATH }}
+            type=registry,ref=${{ env.IMAGE_PATH }}:latest
+          cache-to: type=gha,mode=max
+          build-args: ${{ inputs.build_args }}
+
+      - name: Generate artifact attestation
+        if: inputs.push
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ env.IMAGE_PATH }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: ${{ inputs.push }}
