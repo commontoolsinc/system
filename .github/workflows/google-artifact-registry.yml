@@ -43,3 +43,27 @@ jobs:
           tags: |
             ${{ env.IMAGE_PATH }}
             ${{ env.IMAGE_PATH }}:latest
+
+  use-action:
+    name: Use Docker Google Artifact Registry Action
+    runs-on: ubuntu-latest
+    env:
+      IMAGE_PATH: "${{ vars.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/docker/foo"
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Pull Hello-World image
+        run: docker pull hello-world
+
+      - name: Tag Hello-World image
+        run: docker tag hello-world ${{ env.IMAGE_PATH }}
+
+      - name: GCP Auth and Docker Push
+        uses: ./.github/actions/docker-google-artifact-registry
+        with:
+          gar_region: "us-central1"
+          image_tags: |
+            ${{ env.IMAGE_PATH }}
+          gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+          gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
