@@ -25,7 +25,7 @@ jobs:
       image_name: base
       dockerfile: ./Dockerfile
       context: .
-      push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
+      # push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
       build_args: |
         BASE_IMAGE=debian:latest
         RUNTIME_BASE_IMAGE=debian:latest
