@@ -94,16 +94,21 @@ docker_runtime: .docker_runtime.done
 ########################################
 
 # Target to install npm dependencies and build
-build_typescript: .build_typescript.done
-.build_typescript.done: $(wildcard typescript/**/*.ts) $(wildcard typescript/**/package-lock.json) $(wildcard typescript/**/package.json)
-	cd typescript && npm ci && npm run build
+build_typescript: .build_typescript.done .build_wit.done
+.build_typescript.done: $(wildcard typescript/**/*.ts) $(wildcard typescript/**/package-lock.json) $(wildcard typescript/**/package.json) build_wit
+	cd typescript && npm ci && npm run build --workspaces
 	touch .build_typescript.done
 
 # Target to perform rust build
 build_rust: .build_rust.done
-.build_rust.done: $(wildcard **/Cargo.toml) $(wildcard **/Cargo.lock) $(wildcard **/deps.lock) $(wildcard rust/**/*.rs) $(wildcard rust/common-test-fixtures/fixtures/**/*.js) build_typescript
+.build_rust.done: $(wildcard **/Cargo.toml) $(wildcard **/Cargo.lock) $(wildcard **/deps.lock) $(wildcard rust/**/*.rs) $(wildcard rust/common-test-fixtures/fixtures/**/*.js) build_wit
 	cargo build --release
 	touch .build_rust.done
+
+build_wit: .build_wit.done
+.build_wit.done: ./wit/common/io/wit/deps ./wit/common/function/wit/deps ./rust/common-javascript-interpreter/wit/deps
+	./wit/wit-tools.sh deps
+	touch .build_wit.done
 
 # Target to list rust build outputs
 list_outputs: .build_rust.done
@@ -112,4 +117,4 @@ list_outputs: .build_rust.done
 ########################################
 
 # Phony targets
-.PHONY: all local docker docker_base docker_monolith docker_builder docker_runtime build_typescript build_rust list_outputs
+.PHONY: all local docker docker_base docker_monolith docker_builder docker_runtime build_typescript build_rust list_outputs build_wit
