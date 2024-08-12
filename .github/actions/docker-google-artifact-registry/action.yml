@@ -16,6 +16,10 @@ inputs:
   gcp_workload_identity_provider:
     description: "Google Cloud Workload Identity Provider"
     required: true
+  push:
+    description: "Push the image to Google Artifact Registry"
+    required: false
+    default: true
 
 runs:
   using: "composite"
@@ -43,9 +47,9 @@ runs:
         username: oauth2accesstoken
         password: ${{ steps.auth.outputs.access_token }}
 
-    - name: Push to Google Artifact Registry
-      uses: docker/build-push-action@v2
+    - name: Docker build${{ inputs.push && ' and push' || '' }}
+      uses: docker/build-push-action@v6
       with:
-        push: true
+        push: ${{ inputs.push}}
         tags: |
           ${{ inputs.image_tags }}
