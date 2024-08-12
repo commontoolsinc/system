@@ -3,17 +3,43 @@ on:
   push:
 jobs:
   auth-gcp:
+    name: Google Cloud Authentication Test
     permissions:
       contents: read
       id-token: write
     runs-on: ubuntu-latest
+    env:
+      IMAGE_PATH: "${{ vars.GAR_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/docker/test"
     steps:
-      - id: auth
+      - name: Authenticate to Google Cloud
+        id: auth
         uses: google-github-actions/auth@v2
         with:
+          token_format: access_token
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           project_id: ${{ secrets.GCP_PROJECT_ID }}
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
       - name: Use gcloud CLI
         run: gcloud info
+      # - name: Docker login
+      #   run: gcloud auth configure-docker ${{ env.GAR_REGION }}-docker.pkg.dev --quiet
+      - name: Login to Artifact Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.GAR_REGION }}-docker.pkg.dev
+          username: oauth2accesstoken
+          password: ${{ steps.auth.outputs.access_token }}
+      - name: Pull Hello-World image
+        run: docker pull hello-world
+      - name: Tag Hello-World image
+        run: docker tag hello-world ${{ env.IMAGE_PATH }}
+      - id: docker-push-tagged
+        name: Tag Docker image and push to Google Artifact Registry
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: |
+            ${{ env.IMAGE_PATH }}
+            ${{ env.IMAGE_PATH }}:latest
