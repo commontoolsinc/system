@@ -23,7 +23,7 @@ jobs:
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: base
-      dockerfile: ./rust/Dockerfile
+      dockerfile: ./Dockerfile
       context: .
       push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
       build_args: |
