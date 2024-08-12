@@ -15,6 +15,10 @@ env:
 
 jobs:
   base:
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
     name: Base image build${{ inputs.push && ' and push' || '' }}
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
