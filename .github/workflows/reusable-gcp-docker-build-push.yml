@@ -103,10 +103,10 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: ${{ inputs.build_args }}
 
-      - name: Generate artifact attestation
-        if: inputs.push
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.IMAGE_PATH }}
-          subject-digest: ${{ steps.build.outputs.digest }}
-          push-to-registry: ${{ inputs.push }}
+      # - name: Generate artifact attestation
+      #   if: inputs.push
+      #   uses: actions/attest-build-provenance@v1
+      #   with:
+      #     subject-name: ${{ env.IMAGE_PATH }}
+      #     subject-digest: ${{ steps.build.outputs.digest }}
+      #     push-to-registry: ${{ inputs.push }}
