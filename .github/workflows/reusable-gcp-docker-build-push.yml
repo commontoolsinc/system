@@ -37,6 +37,9 @@ on:
       gcp_workload_identity_provider:
         description: "Google Cloud Workload Identity Provider"
         required: true
+      gcp_registry_repository:
+        description: "Google Cloud Artifact Registry repository"
+        required: true
 
 jobs:
   build-and-push:
@@ -46,7 +49,7 @@ jobs:
       packages: write
       id-token: write
     env:
-      IMAGE_PATH: "${{ inputs.gcp_region }}-docker.pkg.dev/${{ secrets.gcp_project_id }}/${{ inputs.image_name }}"
+      IMAGE_PATH: "${{ inputs.gcp_region }}-docker.pkg.dev/${{ secrets.gcp_project_id }}/${{ secrets.gcp_registry_repository }}/${{ inputs.image_name }}"
     steps:
       - name: Checkout
         uses: actions/checkout@v4

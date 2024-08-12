@@ -30,6 +30,7 @@ jobs:
         BASE_IMAGE=debian:latest
         RUNTIME_BASE_IMAGE=debian:latest
     secrets:
+      gcp_registry_repository: docker
       gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
       gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
