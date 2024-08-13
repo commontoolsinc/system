@@ -106,7 +106,7 @@ build_rust: .build_rust.done
 	touch .build_rust.done
 
 build_wit: .build_wit.done
-.build_wit.done: ./wit/common/io/wit/deps ./wit/common/function/wit/deps ./rust/common-javascript-interpreter/wit/deps
+.build_wit.done:
 	./wit/wit-tools.sh deps
 	touch .build_wit.done
 
