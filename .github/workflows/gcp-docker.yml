@@ -13,13 +13,14 @@ on:
 env:
   push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
 
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+
 jobs:
   base:
-    permissions:
-      contents: read
-      packages: write
-      id-token: write
-    name: Base image build${{ inputs.push && ' and push' || '' }}
+    name: Base image
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: base
@@ -29,6 +30,26 @@ jobs:
       build_args: |
         BASE_IMAGE=debian:latest
         RUNTIME_BASE_IMAGE=debian:latest
+    secrets:
+      gcp_registry_repository: docker
+      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+  runtime:
+    name: Runtime image
+    needs:
+      - base
+    uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
+    with:
+      image_name: runtime
+      dockerfile: ./rust/Dockerfile
+      context: .
+      build_args: |
+        BASE_IMAGE=${{ needs.base.outputs.image_path }}:latest
+        RUNTIME_BASE_IMAGE=debian:latest
+        BINARY_PATH=target/release/runtime
+        FILES=target/release/runtime
+        EXPOSED_PORT=8082
     secrets:
       gcp_registry_repository: docker
       gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
