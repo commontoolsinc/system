@@ -5,7 +5,7 @@ export BASE_IMAGE_NAME = common-tools-base
 export COMMON_MONOLITH_IMAGE_NAME = common-tools-monolith
 export COMMON_BUILDER_IMAGE_NAME = common-builder
 export COMMON_RUNTIME_IMAGE_NAME = common-runtime
-export RUNTIME_BASE_IMAGE = "debian:latest"
+export EXECUTION_IMAGE = "debian:latest"
 
 export TOOLCHAIN = stable
 export NODE_VERSION = lts/*
@@ -44,7 +44,7 @@ docker_base: .docker_base.done
 	--tag $(BASE_IMAGE_NAME) . \
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
-	--build-arg BASE_IMAGE=$(RUNTIME_BASE_IMAGE)
+	--build-arg BASE_IMAGE=$(EXECUTION_IMAGE)
 
 	touch .docker_base.done
 
@@ -56,7 +56,7 @@ docker_monolith: .docker_monolith.done
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
 	--build-arg BASE_IMAGE=$(BASE_IMAGE_NAME) \
-	--build-arg RUNTIME_BASE_IMAGE=$(RUNTIME_BASE_IMAGE) \
+	--build-arg EXECUTION_IMAGE=$(EXECUTION_IMAGE) \
 	--build-arg FILES="target/release/*"
 
 	touch .docker_monolith.done
@@ -69,7 +69,7 @@ docker_builder: .docker_builder.done
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
 	--build-arg BASE_IMAGE=$(BASE_IMAGE_NAME) \
-	--build-arg RUNTIME_BASE_IMAGE=$(RUNTIME_BASE_IMAGE) \
+	--build-arg EXECUTION_IMAGE=$(EXECUTION_IMAGE) \
 	--build-arg FILES="target/release/builder" \
 	--build-arg BINARY_PATH="target/release/builder" \
 	--build-arg EXPOSED_PORT=8080
@@ -84,7 +84,7 @@ docker_runtime: .docker_runtime.done
 	--progress=plain \
 	--cache-from=$(BASE_IMAGE_NAME) \
 	--build-arg BASE_IMAGE=$(BASE_IMAGE_NAME) \
-	--build-arg RUNTIME_BASE_IMAGE=$(RUNTIME_BASE_IMAGE) \
+	--build-arg EXECUTION_IMAGE=$(EXECUTION_IMAGE) \
 	--build-arg FILES="target/release/runtime" \
 	--build-arg BINARY_PATH="target/release/runtime" \
 	--build-arg EXPOSED_PORT=8081

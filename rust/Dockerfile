@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=common-tools-base
-ARG RUNTIME_BASE_IMAGE
+ARG EXECUTION_IMAGE
 ARG BINARY_PATH="/bin/bash"
 ARG EXPOSED_PORT=
 
@@ -13,7 +13,7 @@ RUN make build_rust
 
 RUN make list_outputs
 
-FROM ${RUNTIME_BASE_IMAGE} as runtime
+FROM ${EXECUTION_IMAGE} as runtime
 
 ARG FILES="target/*"
 

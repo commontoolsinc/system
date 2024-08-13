@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  RUNTIME_BASE_IMAGE: debian:latest
+  EXECUTION_IMAGE: debian:latest
   BASE_IMAGE_NAME: base
   BUILDER_IMAGE_NAME: builder
 
@@ -106,7 +106,7 @@ jobs:
             ${{ needs.setup.outputs.base_image_path }}:${{ needs.setup.outputs.short_hash }},
             ${{ needs.setup.outputs.base_image_path }}:latest
           build-args: |
-            BASE_IMAGE=${{ env.RUNTIME_BASE_IMAGE }}
+            BASE_IMAGE=${{ env.EXECUTION_IMAGE }}
 
       - name: Generate artifact attestation
         if: ${{ github.ref == 'refs/heads/main' }}
@@ -169,7 +169,7 @@ jobs:
             ${{ needs.setup.outputs.builder_image_path }}:latest
           build-args: |
             BASE_IMAGE=${{ needs.setup.outputs.base_image_path }}
-            RUNTIME_BASE_IMAGE=${{ env.RUNTIME_BASE_IMAGE }}
+            EXECUTION_IMAGE=${{ env.EXECUTION_IMAGE }}
             FILES=${{ env.FILES }}
             BINARY_PATH=${{ env.FILES }}
             EXPOSED_PORT=8082
