@@ -1,5 +1,5 @@
 ARG BASE_IMAGE=common-tools-base
-ARG EXECUTION_IMAGE
+ARG EXECUTION_IMAGE=debian:latest
 ARG BINARY_PATH="/bin/bash"
 ARG EXPOSED_PORT=
 
