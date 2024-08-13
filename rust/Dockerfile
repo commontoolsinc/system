@@ -3,7 +3,7 @@ ARG EXECUTION_IMAGE=debian:latest
 ARG BINARY_PATH="/bin/bash"
 ARG EXPOSED_PORT=
 
-FROM ${BASE_IMAGE} as common-tools-monolith
+FROM ${BASE_IMAGE} AS base
 
 COPY . .
 
@@ -13,11 +13,11 @@ RUN make build_rust
 
 RUN make list_outputs
 
-FROM ${EXECUTION_IMAGE} as runtime
+FROM ${EXECUTION_IMAGE} AS execution-image
 
 ARG FILES="target/*"
 
-COPY --from=common-tools-monolith ${FILES} .
+COPY --from=base ${FILES} .
 
 EXPOSE ${EXPOSED_PORT}
 ENTRYPOINT [$BINARY_PATH]
