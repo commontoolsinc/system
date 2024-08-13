@@ -43,6 +43,7 @@ on:
 
 jobs:
   build-and-push:
+    name: Docker Build for ${{ inputs.image_name }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
