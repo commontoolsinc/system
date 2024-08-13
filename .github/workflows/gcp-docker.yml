@@ -74,3 +74,38 @@ jobs:
       gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
       gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+  deobfuscate_image_path:
+    name: Deobfuscate image path
+    needs:
+      - base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deobfuscate image path
+        run: |
+          IMAGE_PATH=$(echo -n "${{ needs.base.outputs.obfuscated_image_path }}" | base64 --decode)
+          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_OUTPUT
+        id: deobfuscate_image_path
+    outputs:
+      image_path: ${{ steps.deobfuscate_image_path.outputs.IMAGE_PATH }}
+
+  builder:
+    name: Builder image
+    needs:
+      - deobfuscate_image_path
+    uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
+    with:
+      image_name: builder
+      dockerfile: ./rust/Dockerfile
+      context: .
+      build_args: |
+        BASE_IMAGE=${{ needs.deobfuscate_image_path.outputs.image_path }}
+        RUNTIME_BASE_IMAGE=debian:latest
+        BINARY_PATH=target/release/builder
+        FILES=target/release/builder
+        EXPOSED_PORT=8082
+    secrets:
+      gcp_registry_repository: docker
+      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}

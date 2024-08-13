@@ -48,6 +48,9 @@ on:
       image_path_artifact_name:
         value: ${{ jobs.build.outputs.image_path_artifact_name }}
         description: "Name of the artifact containing the image path"
+      obfuscated_image_path:
+        value: ${{ jobs.build.outputs.obfuscated_image_path }}
+        description: "Base64 obfuscated image path"
 
 jobs:
   build:
@@ -113,6 +116,11 @@ jobs:
             type=registry,ref=${{ env.IMAGE_PATH }}:latest
           cache-to: type=gha,mode=max
           build-args: ${{ inputs.build_args }}
+      - name: Base64 obfuscate image path
+        run: |
+          OBFUSCATED_IMAGE_PATH=$(echo -n "${{ env.IMAGE_PATH }}" | base64)
+          echo "OBFUSCATED_IMAGE_PATH=$OBFUSCATED_IMAGE_PATH" >> $GITHUB_OUTPUT
+        id: obfuscate_image_path
       - name: Create image path artifact
         run: |
           echo "${{ env.IMAGE_PATH }}" > ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
@@ -132,3 +140,4 @@ jobs:
     outputs:
       image_path_artifact_path: ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
       image_path_artifact_name: ${{ env.IMAGE_PATH_ARTIFACT_NAME }}
+      obfuscated_image_path: ${{ steps.obfuscate_image_path.outputs.OBFUSCATED_IMAGE_PATH }}
