@@ -26,19 +26,21 @@ on:
         type: string
         required: false
         default: "us-central1"
-
-    secrets:
+      gcp_project_id:
+        description: "Google Cloud Project ID"
+        required: true
+        type: string
       image_path:
         description: "Docker image path"
         required: true
+        type: string
+
+    secrets:
       GCP_SERVICE_ACCOUNT:
         description: "Google Cloud Service Account"
         required: true
       GCP_WORKLOAD_IDENTITY_PROVIDER:
         description: "Google Cloud Workload Identity Provider"
-        required: true
-      GCP_PROJECT_ID:
-        description: "Google Cloud Project ID"
         required: true
 
     outputs:
@@ -79,7 +81,7 @@ jobs:
           token_format: access_token
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          project_id: ${{ inputs.gcp_project_id }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -102,12 +104,12 @@ jobs:
           file: ${{ inputs.dockerfile }}
           push: ${{ inputs.push }}
           tags: |
-            ${{ secrets.IMAGE_PATH }}
-            ${{ secrets.IMAGE_PATH }}:latest
+            ${{ inputs.image_path }}
+            ${{ inputs.image_path }}:latest
           cache-from: |
             type=gha
-            type=registry,ref=${{ secrets.IMAGE_PATH }}
-            type=registry,ref=${{ secrets.IMAGE_PATH }}:latest
+            type=registry,ref=${{ inputs.image_path }}
+            type=registry,ref=${{ inputs.image_path }}:latest
           cache-to: type=gha,mode=max
           build-args: ${{ inputs.build_args }}
 

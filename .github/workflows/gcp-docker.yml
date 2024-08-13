@@ -10,22 +10,6 @@ on:
         type: boolean
   push:
 
-env:
-  push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
-  GCP_REGION: us-central1
-  REPOSITORY: "${{ github.env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REGISTRY_REPOSITORY }}"
-
-  EXECUTION_IMAGE: debian:latest
-
-  BASE_IMAGE_NAME: base
-  BASE_IMAGE_PATH: "${{ github.env.REPOSITORY }}/${{ github.env.BASE_IMAGE_NAME }}"
-
-  RUNTIME_IMAGE_NAME: runtime
-  RUNTIME_IMAGE_PATH: "${{ github.env.REPOSITORY }}/${{ github.env.RUNTIME_IMAGE_NAME }}"
-
-  BUILDER_IMAGE_NAME: builder
-  BUILDER_IMAGE_PATH: "${{ github.env.REPOSITORY }}/${{ github.env.BUILDER_IMAGE_NAME }}"
-
 permissions:
   contents: read
   packages: write
@@ -36,15 +20,15 @@ jobs:
     name: Base image
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      image_name: ${{ github.env.BASE_IMAGE_NAME }}
+      image_name: base
       dockerfile: ./Dockerfile
       context: .
       # push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
       build_args: |
-        BASE_IMAGE=${{ github.env.EXECUTION_IMAGE }}
+        BASE_IMAGE=debian:latest
+      gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+      image_path: "${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base"
     secrets:
-      image_path: ${{ github.env.BASE_IMAGE_PATH }}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
@@ -54,18 +38,18 @@ jobs:
       - base
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      image_name: ${{ github.env.RUNTIME_IMAGE_NAME }}
+      image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ github.env.BASE_IMAGE_PATH }}
-        EXECUTION_IMAGE=${{ github.env.EXECUTION_IMAGE }}
+        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
+        EXECUTION_IMAGE=debian:latest
         BINARY_PATH=target/release/runtime
         FILES=target/release/runtime
         EXPOSED_PORT=8082
+      gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+      image_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/runtime
     secrets:
-      image_path: ${{ github.env.RUNTIME_IMAGE_PATH }}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
@@ -75,17 +59,17 @@ jobs:
       - base
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      image_name: ${{ github.env.BUILDER_IMAGE_NAME }}
+      image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ github.env.BASE_IMAGE_PATH }}
-        EXECUTION_IMAGE=${{ github.env.EXECUTION_IMAGE }}
+        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
+        EXECUTION_IMAGE=debian:latest
         BINARY_PATH=target/release/builder
         FILES=target/release/builder
         EXPOSED_PORT=8082
+      image_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/builder
+      gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
     secrets:
-      image_path: ${{ github.env.BUILDER_IMAGE_PATH }}
-      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
