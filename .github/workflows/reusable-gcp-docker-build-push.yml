@@ -42,7 +42,7 @@ on:
         required: true
 
 jobs:
-  build-and-push:
+  build:
     name: Docker Build for ${{ inputs.image_name }}
     runs-on: ubuntu-latest
     permissions:
