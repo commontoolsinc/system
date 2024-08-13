@@ -32,17 +32,34 @@ jobs:
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
+  monolith:
+    name: Monolith image
+    needs:
+      - base
+    uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
+    with:
+      image_name: monolith
+      dockerfile: ./rust/Dockerfile
+      context: .
+      build_args: |
+        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
+      gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
+      image_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/monolith
+    secrets:
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
   runtime:
     name: Runtime image
     needs:
-      - base
+      - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
+        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/monolith
         EXECUTION_IMAGE=debian:latest
         BINARY_PATH=target/release/runtime
         FILES=target/release/runtime
@@ -56,14 +73,14 @@ jobs:
   builder:
     name: Builder image
     needs:
-      - base
+      - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
+        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/monolith
         EXECUTION_IMAGE=debian:latest
         BINARY_PATH=target/release/builder
         FILES=target/release/builder
