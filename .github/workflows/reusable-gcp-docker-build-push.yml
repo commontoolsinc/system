@@ -50,6 +50,9 @@ on:
       docker_metadata:
         description: "Docker image metadata"
         value: ${{ jobs.build.outputs.docker_metadata }}
+      docker_image:
+        description: "Docker image ID"
+        value: ${{ jobs.build.outputs.docker_image }}
 
 jobs:
   build:
@@ -116,3 +119,4 @@ jobs:
     outputs:
       docker_digest: ${{ steps.build.outputs.digest }}
       docker_metadata: ${{ steps.build.outputs.metadata }}
+      docker_image: ${{ steps.build.outputs.imageid }}
