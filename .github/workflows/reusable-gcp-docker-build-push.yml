@@ -28,29 +28,26 @@ on:
         default: "us-central1"
 
     secrets:
-      gcp_project_id:
-        description: "Google Cloud Project ID"
+      image_path:
+        description: "Docker image path"
         required: true
-      gcp_service_account:
+      GCP_SERVICE_ACCOUNT:
         description: "Google Cloud Service Account"
         required: true
-      gcp_workload_identity_provider:
+      GCP_WORKLOAD_IDENTITY_PROVIDER:
         description: "Google Cloud Workload Identity Provider"
         required: true
-      gcp_registry_repository:
-        description: "Google Cloud Artifact Registry repository"
+      GCP_PROJECT_ID:
+        description: "Google Cloud Project ID"
         required: true
 
     outputs:
-      image_path_artifact_path:
-        value: ${{ jobs.build.outputs.image_path_artifact_path }}
-        description: "Path for the artifact containing the image path"
-      image_path_artifact_name:
-        value: ${{ jobs.build.outputs.image_path_artifact_name }}
-        description: "Name of the artifact containing the image path"
-      obfuscated_image_path:
-        value: ${{ jobs.build.outputs.obfuscated_image_path }}
-        description: "Base64 obfuscated image path"
+      docker_digest:
+        description: "Docker image digest"
+        value: ${{ jobs.build.outputs.docker_digest }}
+      docker_metadata:
+        description: "Docker image metadata"
+        value: ${{ jobs.build.outputs.docker_metadata }}
 
 jobs:
   build:
@@ -60,10 +57,7 @@ jobs:
       contents: read
       packages: write
       id-token: write
-    env:
-      IMAGE_PATH: "${{ inputs.gcp_region }}-docker.pkg.dev/${{ secrets.gcp_project_id }}/${{ secrets.gcp_registry_repository }}/${{ inputs.image_name }}"
-      IMAGE_PATH_ARTIFACT_PATH: "image_path.txt"
-      IMAGE_PATH_ARTIFACT_NAME: "image_path_artifact"
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -83,9 +77,9 @@ jobs:
         id: auth
         with:
           token_format: access_token
-          service_account: ${{ secrets.gcp_service_account }}
-          workload_identity_provider: ${{ secrets.gcp_workload_identity_provider }}
-          project_id: ${{ secrets.gcp_project_id }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
@@ -108,36 +102,15 @@ jobs:
           file: ${{ inputs.dockerfile }}
           push: ${{ inputs.push }}
           tags: |
-            ${{ env.IMAGE_PATH }}
-            ${{ env.IMAGE_PATH }}:latest
+            ${{ secrets.IMAGE_PATH }}
+            ${{ secrets.IMAGE_PATH }}:latest
           cache-from: |
             type=gha
-            type=registry,ref=${{ env.IMAGE_PATH }}
-            type=registry,ref=${{ env.IMAGE_PATH }}:latest
+            type=registry,ref=${{ secrets.IMAGE_PATH }}
+            type=registry,ref=${{ secrets.IMAGE_PATH }}:latest
           cache-to: type=gha,mode=max
           build-args: ${{ inputs.build_args }}
-      - name: Base64 obfuscate image path
-        run: |
-          OBFUSCATED_IMAGE_PATH=$(echo -n "${{ env.IMAGE_PATH }}" | base64 -w 0)
-          echo "OBFUSCATED_IMAGE_PATH=$OBFUSCATED_IMAGE_PATH" >> $GITHUB_OUTPUT
-        id: obfuscate_image_path
-      - name: Create image path artifact
-        run: |
-          echo "${{ env.IMAGE_PATH }}" > ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
-      - name: Upload image path artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ env.IMAGE_PATH_ARTIFACT_NAME }}
-          path: ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
-          # - name: Generate artifact attestation
-          #   if: inputs.push
-          #   uses: actions/attest-build-provenance@v1
-          #   with:
-          #     subject-name: ${{ env.IMAGE_PATH }}
-          #     subject-digest: ${{ steps.build.outputs.digest }}
-          #     push-to-registry: ${{ inputs.push }}
 
     outputs:
-      image_path_artifact_path: ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
-      image_path_artifact_name: ${{ env.IMAGE_PATH_ARTIFACT_NAME }}
-      obfuscated_image_path: ${{ steps.obfuscate_image_path.outputs.OBFUSCATED_IMAGE_PATH }}
+      docker_digest: ${{ steps.build.outputs.digest }}
+      docker_metadata: ${{ steps.build.outputs.metadata }}

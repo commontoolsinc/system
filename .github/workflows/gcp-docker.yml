@@ -12,6 +12,19 @@ on:
 
 env:
   push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
+  GCP_REGION: us-central1
+  REPOSITORY: "${{ github.env.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_REGISTRY_REPOSITORY }}"
+
+  EXECUTION_IMAGE: debian:latest
+
+  BASE_IMAGE_NAME: base
+  BASE_IMAGE_PATH: "${{ github.env.REPOSITORY }}/${{ github.env.BASE_IMAGE_NAME }}"
+
+  RUNTIME_IMAGE_NAME: runtime
+  RUNTIME_IMAGE_PATH: "${{ github.env.REPOSITORY }}/${{ github.env.RUNTIME_IMAGE_NAME }}"
+
+  BUILDER_IMAGE_NAME: builder
+  BUILDER_IMAGE_PATH: "${{ github.env.REPOSITORY }}/${{ github.env.BUILDER_IMAGE_NAME }}"
 
 permissions:
   contents: read
@@ -23,89 +36,56 @@ jobs:
     name: Base image
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      image_name: base
+      image_name: ${{ github.env.BASE_IMAGE_NAME }}
       dockerfile: ./Dockerfile
       context: .
       # push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
       build_args: |
-        BASE_IMAGE=debian:latest
-        RUNTIME_BASE_IMAGE=debian:latest
+        BASE_IMAGE=${{ github.env.EXECUTION_IMAGE }}
     secrets:
-      gcp_registry_repository: docker
-      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-      gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-
-  get_base_artifact:
-    name: Download base image name artifact
-    needs:
-      - base
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.base.outputs.image_path_artifact_name }}
-      - name: Read artifact into env
-        run: |
-          IMAGE_PATH=$(cat ${{ needs.base.outputs.image_path_artifact_path }})
-          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_OUTPUT
-        id: image_path
-    outputs:
-      image_path: ${{ steps.image_path.outputs.IMAGE_PATH }}
+      image_path: ${{ github.env.BASE_IMAGE_PATH }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
   runtime:
     name: Runtime image
     needs:
-      - get_base_artifact
+      - base
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      image_name: runtime
+      image_name: ${{ github.env.RUNTIME_IMAGE_NAME }}
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ needs.get_base_artifact.outputs.image_path }}
-        RUNTIME_BASE_IMAGE=debian:latest
+        BASE_IMAGE=${{ github.env.BASE_IMAGE_PATH }}
+        EXECUTION_IMAGE=${{ github.env.EXECUTION_IMAGE }}
         BINARY_PATH=target/release/runtime
         FILES=target/release/runtime
         EXPOSED_PORT=8082
     secrets:
-      gcp_registry_repository: docker
-      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-      gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
-
-  deobfuscate_image_path:
-    name: Deobfuscate image path
-    needs:
-      - base
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deobfuscate image path
-        run: |
-          IMAGE_PATH=$(echo -n "${{ needs.base.outputs.obfuscated_image_path }}" | base64 --decode)
-          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_OUTPUT
-        id: deobfuscate_image_path
-    outputs:
-      image_path: ${{ steps.deobfuscate_image_path.outputs.IMAGE_PATH }}
+      image_path: ${{ github.env.RUNTIME_IMAGE_PATH }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
   builder:
     name: Builder image
     needs:
-      - deobfuscate_image_path
+      - base
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      image_name: builder
+      image_name: ${{ github.env.BUILDER_IMAGE_NAME }}
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ needs.deobfuscate_image_path.outputs.image_path }}
-        RUNTIME_BASE_IMAGE=debian:latest
+        BASE_IMAGE=${{ github.env.BASE_IMAGE_PATH }}
+        EXECUTION_IMAGE=${{ github.env.EXECUTION_IMAGE }}
         BINARY_PATH=target/release/builder
         FILES=target/release/builder
         EXPOSED_PORT=8082
     secrets:
-      gcp_registry_repository: docker
-      gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
-      gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
-      gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      image_path: ${{ github.env.BUILDER_IMAGE_PATH }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+      GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
