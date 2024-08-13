@@ -10,6 +10,7 @@ type PolicyMapInner<T> = BTreeMap<T, Context>;
 /// labels to the minimum allowed [Context].
 ///
 /// Map is validated upon construction.
+#[derive(Clone)]
 struct PolicyMap<T: Lattice + 'static>(PolicyMapInner<T>);
 
 impl<T> std::ops::Deref for PolicyMap<T>
@@ -48,6 +49,7 @@ where
 ///
 /// Internally, contains maps of [Confidentiality]
 /// and [Integrity] levels to [Context] requirements.
+#[derive(Clone)]
 pub struct Policy {
     /// Map of confidentiality principals to the minimum
     /// required [Context] components.
@@ -97,10 +99,7 @@ impl Policy {
         use ModuleEnvironment::*;
 
         let confidentiality_map = [(Public, (Server,).into()), (Private, (Server,).into())];
-        let integrity_map = [
-            (LowIntegrity, (Server,).into()),
-            (HighIntegrity, (Server,).into()),
-        ];
+        let integrity_map = [(Low, (Server,).into()), (High, (Server,).into())];
 
         Self::new(confidentiality_map, integrity_map)
     }
@@ -134,7 +133,7 @@ mod tests {
     #[test]
     #[common_tracing]
     fn it_validates_module_env() -> Result<()> {
-        let input = BTreeMap::from([("in".into(), Data::from(("data", Private, HighIntegrity)))]);
+        let input = BTreeMap::from([("in".into(), Data::from(("data", Private, High)))]);
 
         let policy = Policy::with_defaults()?;
         assert!(policy.validate(&input, &(Server,).into()).is_ok());
@@ -143,10 +142,7 @@ mod tests {
         // Private data only on BrowserClient
         let policy = Policy::new(
             BTreeMap::from([(Public, (Server,).into()), (Private, (WebBrowser,).into())]),
-            BTreeMap::from([
-                (LowIntegrity, (Server,).into()),
-                (HighIntegrity, (Server,).into()),
-            ]),
+            BTreeMap::from([(Low, (Server,).into()), (High, (Server,).into())]),
         )?;
         assert_eq!(
             policy.validate(&input, &(Server,).into()),

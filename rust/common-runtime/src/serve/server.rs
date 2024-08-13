@@ -1,4 +1,6 @@
-use crate::{run::run_module, serve::instantiate::instantiate_module, CommonRuntimeError, Runtime};
+use crate::{
+    run::run_module, serve::instantiate::instantiate_module, ArtifactResolver, CommonRuntimeError,
+};
 use async_trait::async_trait;
 use common_protos::{
     runtime::{
@@ -12,19 +14,26 @@ use std::sync::Arc;
 use tokio::{net::TcpListener, sync::Mutex};
 use tonic::{transport::Server as TonicServer, Status};
 
+use crate::NativeRuntime;
+
+use super::LiveModules;
+
 /// A server-side entrypoint for sandboxed module instantiation
 pub struct Server {
-    builder_address: Option<Uri>,
-    runtime: Arc<Mutex<Runtime>>,
+    runtime: Arc<Mutex<NativeRuntime>>,
+    live_modules: Arc<Mutex<LiveModules>>,
 }
 
 impl Server {
     /// Instantiate a new [Server]; the optional `builder_address` will be used
     /// to attempt to JIT prepare not-yet-compiled Common Modules when needed.
     pub fn new(builder_address: Option<Uri>) -> Result<Self, CommonRuntimeError> {
+        let artifact_resolver = ArtifactResolver::new(builder_address.clone())?;
+        let runtime = NativeRuntime::new(artifact_resolver)?;
+
         Ok(Server {
-            builder_address,
-            runtime: Arc::new(Mutex::new(Runtime::new()?)),
+            runtime: Arc::new(Mutex::new(runtime)),
+            live_modules: Arc::new(Mutex::new(LiveModules::default())),
         })
     }
 }
@@ -39,7 +48,7 @@ impl RuntimeServerHandlers for Server {
             instantiate_module(
                 request.into_inner(),
                 self.runtime.clone(),
-                self.builder_address.clone(),
+                self.live_modules.clone(),
             )
             .await?,
         ))
@@ -50,7 +59,7 @@ impl RuntimeServerHandlers for Server {
         request: tonic::Request<RunModuleRequest>,
     ) -> Result<tonic::Response<RunModuleResponse>, tonic::Status> {
         Ok(tonic::Response::new(
-            run_module(request.into_inner(), self.runtime.clone()).await?,
+            run_module(request.into_inner(), self.live_modules.clone()).await?,
         ))
     }
 }

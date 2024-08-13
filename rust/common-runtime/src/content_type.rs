@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use common_protos::common;
 
 /// Supported content types that may be embodied as a [crate::CommonModule]
@@ -7,6 +9,19 @@ pub enum ContentType {
     JavaScript,
     /// Python code
     Python,
+}
+
+impl Display for ContentType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                ContentType::JavaScript => "text/javascript",
+                ContentType::Python => "text/x-python",
+            }
+        )
+    }
 }
 
 impl From<common::ContentType> for ContentType {

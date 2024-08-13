@@ -29,6 +29,7 @@ pub struct PersistedHashStorage {
 impl PersistedHashStorage {
     /// Create a new [PersistedHashStorage] backed by a temporary directory.
     pub fn temporary() -> Result<Self, BuilderError> {
+        info!("Initializing temporary storage");
         let temp_file = Arc::new(NamedTempFile::new()?);
         let db = Arc::new(Database::create(temp_file.path())?);
 
@@ -42,6 +43,7 @@ impl PersistedHashStorage {
 #[async_trait]
 impl HashStorage for PersistedHashStorage {
     async fn read(&self, key: &Hash) -> Result<Option<Bytes>, BuilderError> {
+        info!(?key, "Read");
         let tx = self.db.begin_read()?;
         let table = tx.open_table(MODULE_TABLE)?;
 
@@ -51,6 +53,7 @@ impl HashStorage for PersistedHashStorage {
     }
 
     async fn write(&self, value: Bytes) -> Result<Hash, BuilderError> {
+        info!("Write");
         let hash = blake3::hash(&value);
 
         let tx = self.db.begin_write()?;

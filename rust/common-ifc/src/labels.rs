@@ -75,9 +75,9 @@ impl From<&Label> for (Confidentiality, Integrity) {
 pub enum Integrity {
     /// The lowest integrity label.
     #[default]
-    LowIntegrity,
+    Low,
     /// The highest integrity label.
-    HighIntegrity,
+    High,
 }
 
 impl Display for Integrity {
@@ -87,8 +87,8 @@ impl Display for Integrity {
             f,
             "{}",
             match self {
-                HighIntegrity => "HighIntegrity",
-                LowIntegrity => "LowIntegrity",
+                High => "HighIntegrity",
+                Low => "LowIntegrity",
             }
         )
     }
@@ -99,8 +99,8 @@ impl FromStr for Integrity {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Integrity::*;
         match s {
-            "HighIntegrity" => Ok(HighIntegrity),
-            "LowIntegrity" => Ok(LowIntegrity),
+            "HighIntegrity" => Ok(High),
+            "LowIntegrity" => Ok(Low),
             _ => Err(CommonIfcError::Conversion),
         }
     }
@@ -177,10 +177,10 @@ mod tests {
 
     #[test]
     fn it_constrains_from_input() {
-        let private_high = ("vh".into(), Data::from(("data", Private, HighIntegrity)));
-        let private_low = ("vl".into(), Data::from(("data", Private, LowIntegrity)));
-        let public_high = ("bh".into(), Data::from(("data", Public, HighIntegrity)));
-        let public_low = ("bl".into(), Data::from(("data", Public, LowIntegrity)));
+        let private_high = ("vh".into(), Data::from(("data", Private, High)));
+        let private_low = ("vl".into(), Data::from(("data", Private, Low)));
+        let public_high = ("bh".into(), Data::from(("data", Public, High)));
+        let public_low = ("bl".into(), Data::from(("data", Public, Low)));
 
         fn input(seq: [&(String, Data<&'static str>); 2]) -> BTreeMap<String, Data<&'static str>> {
             BTreeMap::from(seq.map(|i| i.to_owned()))
@@ -188,23 +188,23 @@ mod tests {
 
         assert_eq!(
             Label::constrain(&input([&private_high, &public_low])),
-            (Private, LowIntegrity).into(),
+            (Private, Low).into(),
         );
         assert_eq!(
             Label::constrain(&input([&private_low, &public_high])),
-            (Private, LowIntegrity).into(),
+            (Private, Low).into(),
         );
         assert_eq!(
             Label::constrain(&input([&public_low, &public_high])),
-            (Public, LowIntegrity).into(),
+            (Public, Low).into(),
         );
         assert_eq!(
             Label::constrain(&input([&private_low, &private_high])),
-            (Private, LowIntegrity).into(),
+            (Private, Low).into(),
         );
         assert_eq!(
             Label::constrain(&input([&private_high, &private_high])),
-            (Private, HighIntegrity).into(),
+            (Private, High).into(),
         );
     }
 }

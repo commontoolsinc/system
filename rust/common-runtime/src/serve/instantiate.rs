@@ -1,10 +1,15 @@
-use crate::{CommonRuntimeError, CompiledModule, ModuleDefinition, RawModule, Runtime, RuntimeIo};
+use crate::{
+    target::{function::NativeFunctionContext, function_vm::NativeFunctionVmContext},
+    Affinity, BasicIo, CommonRuntimeError, FunctionDefinition, FunctionVmDefinition, IoShape,
+    IoValues, LiveModules, ModuleBody, ModuleDefinition, ModuleDriver, ModuleFactory, ModuleId,
+    ModuleManager, NativeRuntime, SourceCode,
+};
+use common_ifc::{Context as IfcContext, ModuleEnvironment};
 use common_protos::runtime::{
     instantiate_module_request::ModuleReference, InstantiateModuleRequest,
     InstantiateModuleResponse,
 };
 use common_wit::Target;
-use http::Uri;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -12,70 +17,93 @@ use tokio::sync::Mutex;
 /// in the provided [BTreeMap] against its instance ID.
 pub async fn instantiate_module(
     request: InstantiateModuleRequest,
-    runtime: Arc<Mutex<Runtime>>,
-    builder_address: Option<Uri>,
+    runtime: Arc<Mutex<NativeRuntime>>,
+    live_modules: Arc<Mutex<LiveModules>>,
 ) -> Result<InstantiateModuleResponse, CommonRuntimeError> {
     let module_reference = request.module_reference.ok_or_else(|| {
         CommonRuntimeError::InvalidInstantiationParameters("No module referenced in request".into())
     })?;
 
-    Ok(match module_reference {
+    let target = match match &module_reference {
+        ModuleReference::ModuleSignature(module_signature) => module_signature.target(),
+        ModuleReference::ModuleSource(module_source) => module_source.target(),
+    } {
+        common_protos::common::Target::CommonFunction => Target::CommonFunction,
+        common_protos::common::Target::CommonFunctionVm => Target::CommonFunctionVm,
+    };
+
+    let body = match module_reference {
         ModuleReference::ModuleSignature(module_signature) => {
-            let module = CompiledModule {
-                target: match module_signature.target() {
-                    common_protos::common::Target::CommonFunction => Target::CommonFunction,
-                    common_protos::common::Target::CommonFunctionVm => {
-                        return Err(CommonRuntimeError::InvalidInstantiationParameters(
-                            "Must provide sources to instantiate a common:function/virtual-module"
-                                .into(),
-                        ));
-                    }
-                },
-                module_id: module_signature.id.clone().into(),
-                builder_address,
-            };
-
-            let initial_io = RuntimeIo::from_initial_state(
-                request.default_input.try_into()?,
-                request.output_shape.try_into()?,
-            );
-
-            let mut runtime = runtime.lock().await;
-            let instance_id = runtime.compile(module, initial_io).await?;
-
-            InstantiateModuleResponse {
-                module_signature: Some(module_signature),
-                instance_id: instance_id.to_string(),
-            }
+            warn!("SIGNATURE");
+            ModuleBody::Signature(ModuleId::Base64(module_signature.id.clone()))
         }
-        ModuleReference::ModuleSource(module_source_proto) => {
-            let target_proto = module_source_proto.target;
-            let module_source: crate::ModuleSource = module_source_proto.into();
-            let target = module_source.target;
+        ModuleReference::ModuleSource(module_source) => ModuleBody::SourceCode(
+            module_source
+                .source_code
+                .into_iter()
+                .map(|(key, value)| (key, SourceCode::from(value)))
+                .collect(),
+        ),
+    };
 
-            let module = RawModule::new(module_source, builder_address);
-            let module_id = module.id().await?;
+    let default_input: IoValues = request.default_input.try_into()?;
+    let input_shape: IoShape = IoShape::from(&default_input);
+    let output_shape: IoShape = request.output_shape.try_into()?;
 
-            let module_signature = common_protos::common::ModuleSignature {
-                target: target_proto,
-                id: module_id.to_string(),
-            };
+    let module_definition = ModuleDefinition {
+        target,
+        affinity: Affinity::LocalOnly,
+        inputs: input_shape,
+        outputs: output_shape.clone(),
+        body,
+    };
 
-            let initial_io = RuntimeIo::from_initial_state(
-                request.default_input.try_into()?,
-                request.output_shape.try_into()?,
-            );
-
-            let mut runtime = runtime.lock().await;
-
-            let instance_id = match target {
-                Target::CommonFunction => runtime.compile(module, initial_io).await?,
-                Target::CommonFunctionVm => runtime.interpret(module, initial_io).await?,
-            };
-            InstantiateModuleResponse {
-                module_signature: Some(module_signature),
-                instance_id: instance_id.to_string(),
-            }
+    let module_instance_id = match target {
+        Target::CommonFunction => {
+            let function_module_definition = FunctionDefinition::try_from(module_definition)?;
+            let function_module_factory = runtime
+                .lock()
+                .await
+                .prepare(function_module_definition)
+                .await?;
+            let function_module_instance = function_module_factory
+                .instantiate(NativeFunctionContext::new(
+                    BasicIo::from_initial_state(default_input, output_shape),
+                    IfcContext {
+                        environment: ModuleEnvironment::Server,
+                    },
+                ))
+                .await?;
+            live_modules
+                .lock()
+                .await
+                .add(function_module_instance.into())
+                .await
         }
+        Target::CommonFunctionVm => {
+            let function_module_definition = FunctionVmDefinition::try_from(module_definition)?;
+            let function_module_factory = runtime
+                .lock()
+                .await
+                .prepare(function_module_definition)
+                .await?;
+            let function_module_instance = function_module_factory
+                .instantiate(NativeFunctionVmContext::new(
+                    BasicIo::from_initial_state(default_input, output_shape),
+                    IfcContext {
+                        environment: ModuleEnvironment::Server,
+                    },
+                ))
+                .await?;
+            live_modules
+                .lock()
+                .await
+                .add(function_module_instance.into())
+                .await
+        }
+    };
+
+    Ok(InstantiateModuleResponse {
+        instance_id: module_instance_id.to_string(),
     })
 }
