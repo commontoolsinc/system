@@ -40,10 +40,14 @@ on:
       gcp_registry_repository:
         description: "Google Cloud Artifact Registry repository"
         required: true
+
     outputs:
-      image_path:
-        value: ${{ jobs.build.outputs.image_path }}
-        description: "Docker image path"
+      image_path_artifact_path:
+        value: ${{ jobs.build.outputs.image_path_artifact_path }}
+        description: "Path for the artifact containing the image path"
+      image_path_artifact_name:
+        value: ${{ jobs.build.outputs.image_path_artifact_name }}
+        description: "Name of the artifact containing the image path"
 
 jobs:
   build:
@@ -55,6 +59,8 @@ jobs:
       id-token: write
     env:
       IMAGE_PATH: "${{ inputs.gcp_region }}-docker.pkg.dev/${{ secrets.gcp_project_id }}/${{ secrets.gcp_registry_repository }}/${{ inputs.image_name }}"
+      IMAGE_PATH_ARTIFACT_PATH: "image_path.txt"
+      IMAGE_PATH_ARTIFACT_NAME: "image_path_artifact"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -107,14 +113,22 @@ jobs:
             type=registry,ref=${{ env.IMAGE_PATH }}:latest
           cache-to: type=gha,mode=max
           build-args: ${{ inputs.build_args }}
+      - name: Create image path artifact
+        run: |
+          echo "${{ env.IMAGE_PATH }}" > ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
+      - name: Upload image path artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.IMAGE_PATH_ARTIFACT_NAME }}
+          path: ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
+          # - name: Generate artifact attestation
+          #   if: inputs.push
+          #   uses: actions/attest-build-provenance@v1
+          #   with:
+          #     subject-name: ${{ env.IMAGE_PATH }}
+          #     subject-digest: ${{ steps.build.outputs.digest }}
+          #     push-to-registry: ${{ inputs.push }}
 
-      # - name: Generate artifact attestation
-      #   if: inputs.push
-      #   uses: actions/attest-build-provenance@v1
-      #   with:
-      #     subject-name: ${{ env.IMAGE_PATH }}
-      #     subject-digest: ${{ steps.build.outputs.digest }}
-      #     push-to-registry: ${{ inputs.push }}
     outputs:
-      image_path: ${{ env.IMAGE_PATH }}
-      docker_digest: ${{ steps.build.outputs.digest }}
+      image_path_artifact_path: ${{ env.IMAGE_PATH_ARTIFACT_PATH }}
+      image_path_artifact_name: ${{ env.IMAGE_PATH_ARTIFACT_NAME }}

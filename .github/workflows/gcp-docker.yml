@@ -35,17 +35,36 @@ jobs:
       gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
       gcp_service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       gcp_workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+  get_base_artifact:
+    name: Download base image name artifact
+    needs:
+      - base
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.base.outputs.image_path_artifact_name }}
+      - name: Read artifact into env
+        run: |
+          IMAGE_PATH=$(cat ${{ needs.base.outputs.image_path_artifact_path }})
+          echo "IMAGE_PATH=$IMAGE_PATH" >> $GITHUB_OUTPUT
+        id: image_path
+    outputs:
+      image_path: ${{ steps.image_path.outputs.IMAGE_PATH }}
+
   runtime:
     name: Runtime image
     needs:
-      - base
+      - get_base_artifact
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ needs.base.outputs.image_path }}:latest
+        BASE_IMAGE=${{ needs.get_base_artifact.outputs.image_path }}
         RUNTIME_BASE_IMAGE=debian:latest
         BINARY_PATH=target/release/runtime
         FILES=target/release/runtime
