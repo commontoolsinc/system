@@ -118,7 +118,7 @@ jobs:
           build-args: ${{ inputs.build_args }}
       - name: Base64 obfuscate image path
         run: |
-          OBFUSCATED_IMAGE_PATH=$(echo -n "${{ env.IMAGE_PATH }}" | base64)
+          OBFUSCATED_IMAGE_PATH=$(echo -n "${{ env.IMAGE_PATH }}" | base64 -w 0)
           echo "OBFUSCATED_IMAGE_PATH=$OBFUSCATED_IMAGE_PATH" >> $GITHUB_OUTPUT
         id: obfuscate_image_path
       - name: Create image path artifact
