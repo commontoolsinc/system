@@ -19,7 +19,7 @@ on:
       push:
         description: "Push the image to the registry"
         required: false
-        default: true
+        default: false
         type: boolean
       gcp_region:
         description: "Google Cloud region"
