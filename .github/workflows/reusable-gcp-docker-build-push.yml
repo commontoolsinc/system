@@ -91,14 +91,6 @@ jobs:
 
       - name: Configure Docker for GCR
         run: gcloud auth configure-docker ${{ inputs.gcp_region }}-docker.pkg.dev
-
-      # - name: Login to Artifact Registry
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: ${{ inputs.gcp_region }}-docker.pkg.dev
-      #     username: oauth2accesstoken
-      #     password: ${{ steps.auth.outputs.access_token }}
-
       - name: Docker build${{ inputs.push && ' and push' || '' }}
         id: build
         uses: docker/build-push-action@v6
