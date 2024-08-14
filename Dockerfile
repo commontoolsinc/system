@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=debian:latest
+ARG BASE_IMAGE=debian:bookworm-slim
 FROM ${BASE_IMAGE} AS rust-node-base
 
 # Define arguments for the versions of Rust and Node.js, defaulting to 'latest'

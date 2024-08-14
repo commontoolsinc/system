@@ -29,7 +29,7 @@ jobs:
       context: .
       # push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
       build_args: |
-        BASE_IMAGE=debian:latest
+        BASE_IMAGE=debian:bookworm-slim
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
       repository_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}
     secrets:
@@ -64,7 +64,7 @@ jobs:
       context: .
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
-        EXECUTION_IMAGE=debian:latest
+        EXECUTION_IMAGE=debian:bookworm-slim
         BINARY_PATH=target/release/runtime
         FILES=target/release/runtime
         EXPOSED_PORT=8082
@@ -85,7 +85,7 @@ jobs:
       context: .
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
-        EXECUTION_IMAGE=debian:latest
+        EXECUTION_IMAGE=debian:bookworm-slim
         BINARY_PATH=target/release/builder
         FILES=target/release/builder
         EXPOSED_PORT=8082

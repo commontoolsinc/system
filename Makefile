@@ -5,7 +5,7 @@ export BASE_IMAGE_NAME = common-tools-base
 export COMMON_MONOLITH_IMAGE_NAME = common-tools-monolith
 export COMMON_BUILDER_IMAGE_NAME = common-builder
 export COMMON_RUNTIME_IMAGE_NAME = common-runtime
-export EXECUTION_IMAGE = "debian:latest"
+export EXECUTION_IMAGE = "debian:bookworm-slim"
 
 export TOOLCHAIN = stable
 export NODE_VERSION = lts/*

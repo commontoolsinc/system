@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  EXECUTION_IMAGE: debian:latest
+  EXECUTION_IMAGE: debian:bookworm-slim
   BASE_IMAGE_NAME: base
   BUILDER_IMAGE_NAME: builder
 
