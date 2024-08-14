@@ -12,3 +12,6 @@ common-tracing = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 
+[features]
+default = []
+render = []

@@ -1,5 +1,5 @@
 use crate::ModuleInstanceId;
-use common_ifc::IfcError;
+use common_ifc::CommonIfcError;
 use std::fmt::Debug;
 use thiserror::Error;
 
@@ -53,7 +53,7 @@ pub enum CommonRuntimeError {
 
     /// There was a policy failure.
     #[error("Policy rejected invocation: {0}")]
-    PolicyRejection(IfcError),
+    PolicyRejection(CommonIfcError),
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -63,8 +63,8 @@ impl From<tonic::transport::Error> for CommonRuntimeError {
     }
 }
 
-impl From<IfcError> for CommonRuntimeError {
-    fn from(value: IfcError) -> Self {
+impl From<CommonIfcError> for CommonRuntimeError {
+    fn from(value: CommonIfcError) -> Self {
         CommonRuntimeError::PolicyRejection(value)
     }
 }

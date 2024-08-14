@@ -1,4 +1,4 @@
-use crate::{Confidentiality, IfcError, Integrity, Label};
+use crate::{CommonIfcError, Confidentiality, Integrity, Label};
 use common_protos::common as proto;
 use std::str::FromStr;
 
@@ -30,14 +30,14 @@ impl<T> TryFrom<proto::LabeledData> for Data<T>
 where
     T: TryFrom<proto::Value>,
 {
-    type Error = IfcError;
+    type Error = CommonIfcError;
     fn try_from(data: proto::LabeledData) -> Result<Self, Self::Error> {
         Ok(Data {
             value: data
                 .value
-                .ok_or(IfcError::Conversion)?
+                .ok_or(CommonIfcError::Conversion)?
                 .try_into()
-                .map_err(|_| IfcError::Conversion)?,
+                .map_err(|_| CommonIfcError::Conversion)?,
             label: (
                 Confidentiality::from_str(&data.confidentiality)?,
                 Integrity::from_str(&data.integrity)?,

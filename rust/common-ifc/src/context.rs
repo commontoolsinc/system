@@ -1,4 +1,4 @@
-use crate::{IfcError, Result};
+use crate::{CommonIfcError, Result};
 
 #[cfg(doc)]
 use crate::Policy;
@@ -29,7 +29,7 @@ impl Context {
     /// the threshold for all of this context's requirements.
     pub fn validate(&self, ctx: &Context, input_name: &str) -> Result<()> {
         if self.env > ctx.env {
-            return Err(IfcError::InvalidEnvironment(input_name.into()));
+            return Err(CommonIfcError::InvalidEnvironment(input_name.into()));
         }
         Ok(())
     }

@@ -1,5 +1,6 @@
 use crate::{
-    Confidentiality, Context, Data, IfcError, Integrity, Label, Lattice, ModuleEnvironment, Result,
+    CommonIfcError, Confidentiality, Context, Data, Integrity, Label, Lattice, ModuleEnvironment,
+    Result,
 };
 use std::collections::BTreeMap;
 
@@ -25,14 +26,14 @@ impl<T> TryFrom<PolicyMapInner<T>> for PolicyMap<T>
 where
     T: Lattice + 'static,
 {
-    type Error = IfcError;
+    type Error = CommonIfcError;
 
     /// Constructs a new policy map, validating that
     /// all labels have defined requirements.
     fn try_from(map: PolicyMapInner<T>) -> Result<Self> {
         for label in T::iter() {
             if !map.contains_key(label) {
-                return Err(IfcError::InvalidPolicy(format!(
+                return Err(CommonIfcError::InvalidPolicy(format!(
                     "No requirements defined for {label}"
                 )));
             }
@@ -112,11 +113,11 @@ impl Policy {
             self.integrity_map.get(&label.integrity),
         ) {
             (Some(conf_reqs), Some(int_reqs)) => Ok((conf_reqs, int_reqs)),
-            (None, _) => Err(IfcError::InvalidPolicy(format!(
+            (None, _) => Err(CommonIfcError::InvalidPolicy(format!(
                 "Policy missing confidentiality label '{}'",
                 label.confidentiality
             ))),
-            (_, None) => Err(IfcError::InvalidPolicy(format!(
+            (_, None) => Err(CommonIfcError::InvalidPolicy(format!(
                 "Policy missing integrity label '{}'",
                 label.integrity
             ))),
@@ -149,7 +150,7 @@ mod tests {
         )?;
         assert_eq!(
             policy.validate(&input, &(Server,).into()),
-            Err(IfcError::InvalidEnvironment("in".into()))
+            Err(CommonIfcError::InvalidEnvironment("in".into()))
         );
         assert!(policy.validate(&input, &(WebBrowser,).into()).is_ok());
 
