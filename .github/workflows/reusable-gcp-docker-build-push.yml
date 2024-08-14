@@ -30,8 +30,8 @@ on:
         description: "Google Cloud Project ID"
         required: true
         type: string
-      image_path:
-        description: "Docker image path"
+      repository_path:
+        description: "Google Cloud Repository Path"
         required: true
         type: string
 
@@ -107,12 +107,12 @@ jobs:
           file: ${{ inputs.dockerfile }}
           push: ${{ inputs.push }}
           tags: |
-            ${{ inputs.image_path }}
-            ${{ inputs.image_path }}:latest
+            ${{ inputs.repository_path }}/${{ inputs.image_name }}
+            ${{ inputs.repository_path }}/${{ inputs.image_name }}:latest
           cache-from: |
             type=gha
-            type=registry,ref=${{ inputs.image_path }}
-            type=registry,ref=${{ inputs.image_path }}:latest
+            type=registry,ref=${{ inputs.repository_path }}/${{ inputs.image_name }}
+            type=registry,ref=${{ inputs.repository_path }}/${{ inputs.image_name }}:latest
           cache-to: type=gha,mode=max
           build-args: ${{ inputs.build_args }}
 

@@ -27,7 +27,7 @@ jobs:
       build_args: |
         BASE_IMAGE=debian:latest
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-      image_path: "${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base"
+      repository_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}
     secrets:
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -44,7 +44,7 @@ jobs:
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-      image_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/monolith
+      repository_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}
     secrets:
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -52,20 +52,20 @@ jobs:
   runtime:
     name: Runtime image
     needs:
-      - monolith
+      - base
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/monolith
+        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:latest
         BINARY_PATH=target/release/runtime
         FILES=target/release/runtime
         EXPOSED_PORT=8082
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
-      image_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/runtime
+      repository_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}
     secrets:
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -73,19 +73,19 @@ jobs:
   builder:
     name: Builder image
     needs:
-      - monolith
+      - base
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
       build_args: |
-        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/monolith
+        BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:latest
         BINARY_PATH=target/release/builder
         FILES=target/release/builder
         EXPOSED_PORT=8082
-      image_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/builder
+      repository_path: ${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
     secrets:
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
