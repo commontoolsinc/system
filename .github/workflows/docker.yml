@@ -8,11 +8,13 @@ env:
   REGISTRY: ghcr.io
   RUNTIME_BASE_IMAGE: debian:latest
   BASE_IMAGE_NAME: base
+  BUILDER_IMAGE_NAME: builder
 
 jobs:
   setup:
     name: Setup
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,12 +43,25 @@ jobs:
         run: |
           echo "IMAGE_PATH=${{ env.REGISTRY }}/${{ steps.scoped_base_image_name.outputs.IMAGE_NAME }}" >>${GITHUB_OUTPUT}
 
+      - name: Builder image name
+        id: builder_image_name
+        run: |
+          echo "IMAGE_NAME=${{ steps.lowercase_repo_owner.outputs.REPO_OWNER }}/${{ env.BUILDER_IMAGE_NAME }}" >>${GITHUB_OUTPUT}
+
+      - name: Builder image path
+        id: builder_image_path
+        run: |
+          echo "IMAGE_PATH=${{ env.REGISTRY }}/${{ steps.builder_image_name.outputs.IMAGE_NAME }}" >>${GITHUB_OUTPUT}
+
     outputs:
       repo_owner: ${{ steps.lowercase_repo_owner.outputs.REPO_OWNER }}
       short_hash: ${{ steps.short_hash.outputs.SHORT_HASH }}
 
       base_image_name: ${{ steps.scoped_base_image_name.outputs.IMAGE_NAME }}
       base_image_path: ${{ steps.base_image_path.outputs.IMAGE_PATH }}
+
+      builder_image_name: ${{ steps.builder_image_name.outputs.IMAGE_NAME }}
+      builder_image_path: ${{ steps.builder_image_path.outputs.IMAGE_PATH }}
 
   base-image:
     name: Build base image
@@ -82,16 +97,14 @@ jobs:
           file: ./Dockerfile
           cache-from: |
             type=gha,ref=${{ needs.setup.outputs.base_image_name }}
-            type=gha,ref=${{ github.ref }}/${{ needs.setup.outputs.base_image_name }}
             type=registry,ref=${{ needs.setup.outputs.base_image_path }}
-          cache-to: |
-            type=gha,mode=max,ref=${{ needs.setup.outputs.base_image_name }}
-            type=gha,mode=max,ref=${{ github.ref }}/${{ needs.setup.outputs.base_image_name }}
+          cache-to: type=gha,mode=max,ref=${{ needs.setup.outputs.base_image_name }}
           push: ${{ github.ref == 'refs/heads/main' }}
           provenance: true
           tags: >
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:${{ github.sha }},
-            ${{ env.REGISTRY }}/${{ github.repository_owner }}/base:latest
+            ${{ needs.setup.outputs.base_image_path }}:${{ github.sha }},
+            ${{ needs.setup.outputs.base_image_path }}:${{ needs.setup.outputs.short_hash }},
+            ${{ needs.setup.outputs.base_image_path }}:latest
           build-args: |
             BASE_IMAGE=${{ env.RUNTIME_BASE_IMAGE }}
 
@@ -100,5 +113,73 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-name: ${{ needs.setup.outputs.base_image_path }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-registry: ${{ github.ref == 'refs/heads/main' }}
+
+  builder-image:
+    name: Build builder image
+    needs:
+      - setup
+      - base-image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache .*.done files
+        uses: actions/cache@v2
+        with:
+          path: ./**/.*.done
+          key: ${{ runner.os }}-cache-.make.done
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Registry Auth
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Image${{ github.ref == 'refs/heads/main' && ' and push' || '' }}
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./rust/Dockerfile
+          cache-from: |
+            type=gha,ref=${{ needs.setup.outputs.base_image_name }}
+            type=registry,ref=${{ needs.setup.outputs.base_image_path }}
+            type=gha,ref=${{ needs.setup.outputs.builder_image_name }}
+            type=registry,ref=${{ needs.setup.outputs.builder_image_path }}
+          cache-to: type=gha,mode=max,ref=${{ needs.setup.outputs.builder_image_name }}
+          push: ${{ github.ref == 'refs/heads/main' }}
+          provenance: true
+          tags: >
+            ${{ needs.setup.outputs.builder_image_path }}:${{ github.sha }},
+            ${{ needs.setup.outputs.builder_image_path }}:${{ needs.setup.outputs.short_hash }},
+            ${{ needs.setup.outputs.builder_image_path }}:latest
+          build-args: |
+            BASE_IMAGE=${{ needs.setup.outputs.base_image_path }}
+            RUNTIME_BASE_IMAGE=${{ env.RUNTIME_BASE_IMAGE }}
+            FILES=${{ env.FILES }}
+            BINARY_PATH=${{ env.FILES }}
+            EXPOSED_PORT=8082
+        env:
+          FILES: "target/release/builder"
+
+      - name: Generate artifact attestation
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-name: ${{ needs.setup.outputs.builder_image_path }}
           subject-digest: ${{ steps.push.outputs.digest }}
           push-to-registry: ${{ github.ref == 'refs/heads/main' }}
