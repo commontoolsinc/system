@@ -8,10 +8,9 @@ FROM ${BASE_IMAGE} AS base
 COPY . .
 
 # Build the project
-RUN make build_typescript
-RUN make build_rust
+RUN make --debug=j local
 
-RUN make list_outputs
+RUN make --debug=j list_outputs
 
 FROM ${EXECUTION_IMAGE} AS execution-image
 
