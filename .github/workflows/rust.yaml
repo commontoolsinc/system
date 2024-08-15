@@ -34,7 +34,7 @@ jobs:
           rustup +${{matrix.toolchain}} component add clippy
           rustup +${{matrix.toolchain}} component add rustfmt
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
       - name: Install cargo-binstall
@@ -158,7 +158,7 @@ jobs:
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install ${{matrix.toolchain}}
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
       - name: Install cargo-binstall
@@ -206,7 +206,7 @@ jobs:
         run: |
           cargo binstall wit-deps-cli wasm-tools --no-confirm --force
       - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: lts/*
       - name: 'Install NPM dependencies'
