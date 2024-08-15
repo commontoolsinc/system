@@ -55,6 +55,7 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
   runtime:
+      if: ${{ github.ref == 'refs/heads/main' }}
     name: Runtime image
     needs:
       - base
@@ -63,7 +64,7 @@ jobs:
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
+      push: true
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:bookworm-slim
@@ -77,6 +78,7 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
   builder:
+      if: ${{ github.ref == 'refs/heads/main' }}
     name: Builder image
     needs:
       - base
@@ -85,7 +87,7 @@ jobs:
       image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ github.event.inputs.push || github.ref == 'refs/heads/main' }}
+      push: true
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:bookworm-slim
