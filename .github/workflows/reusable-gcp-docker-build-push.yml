@@ -56,7 +56,7 @@ on:
 
 jobs:
   build:
-    name: Docker Build for ${{ inputs.image_name }}
+    name: Build${{ inputs.push && ' and push' || '' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read

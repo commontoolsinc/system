@@ -1,4 +1,4 @@
-name: GCP Docker Build
+name: GCP Docker
 
 on:
   workflow_dispatch:
@@ -16,6 +16,7 @@ permissions:
 
 jobs:
   determine_build_push:
+    name: Determine images to push and/or build
     runs-on: ubuntu-latest
     outputs:
       should_run: ${{ steps.check.outputs.should_run }}
@@ -54,7 +55,7 @@ jobs:
           fi
 
   base:
-    name: Base image
+    name: Base
     needs:
       - determine_build_push
     if: needs.determine_build_push.outputs.should_run == 'true'
@@ -73,7 +74,7 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
   monolith:
-    name: Monolith image
+    name: Monolith
     needs:
       - base
       - determine_build_push
@@ -94,7 +95,7 @@ jobs:
 
   runtime:
     if: needs.determine_build_push.outputs.should_run == 'true' && needs.determine_build_push.outputs.build_all == 'true'
-    name: Runtime image
+    name: Runtime
     needs:
       - base
       - determine_build_push
@@ -118,7 +119,7 @@ jobs:
 
   builder:
     if: needs.determine_build_push.outputs.should_run == 'true' && needs.determine_build_push.outputs.build_all == 'true'
-    name: Builder image
+    name: Builder
     needs:
       - base
       - determine_build_push
