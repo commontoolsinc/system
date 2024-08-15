@@ -113,10 +113,10 @@ async fn it_propagates_labels() -> Result<()> {
         &mut instance,
         &Policy::with_defaults()?,
         {
-            "foo" => ("foo", Confidentiality::Private, Integrity::High)
+            "foo" => ("foo", Confidentiality::High, Integrity::High)
         },
         {
-           "bar" => ("foo:bar", Confidentiality::Private, Integrity::High)
+           "bar" => ("foo:bar", Confidentiality::High, Integrity::High)
         }
     );
 
@@ -125,10 +125,10 @@ async fn it_propagates_labels() -> Result<()> {
         &mut instance,
         &Policy::with_defaults()?,
         {
-            "foo" => ("foo", Confidentiality::Public, Integrity::Low)
+            "foo" => ("foo", Confidentiality::Low, Integrity::Low)
         },
         {
-           "bar" => ("foo:bar", Confidentiality::Public, Integrity::Low)
+           "bar" => ("foo:bar", Confidentiality::Low, Integrity::Low)
         }
     );
 
@@ -156,9 +156,9 @@ async fn it_rejects_based_on_env() -> Result<()> {
     // Private data only on BrowserClient
     let policy = Policy::new(
         [
-            (Confidentiality::Public, (ModuleEnvironment::Server,).into()),
+            (Confidentiality::Low, (ModuleEnvironment::Server,).into()),
             (
-                Confidentiality::Private,
+                Confidentiality::High,
                 (ModuleEnvironment::WebBrowser,).into(),
             ),
         ],
@@ -170,11 +170,7 @@ async fn it_rejects_based_on_env() -> Result<()> {
 
     let input = IoData::from(BTreeMap::from([(
         "foo".into(),
-        Data::from((
-            Value::from("foo"),
-            Confidentiality::Private,
-            Integrity::High,
-        )),
+        Data::from((Value::from("foo"), Confidentiality::High, Integrity::High)),
     )]));
 
     let input_io = BasicIo::new(input, IoShape::from(instance.context().io().input()));

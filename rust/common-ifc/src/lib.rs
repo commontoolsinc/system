@@ -10,16 +10,23 @@
 //!
 //! <https://en.wikipedia.org/wiki/Information_flow_(information_theory)#Information_flow_control>
 
+#[macro_use]
+extern crate tracing;
+
 mod context;
 mod data;
 mod error;
 pub mod graph;
+pub mod ifc;
 mod labels;
 mod policy;
 
 pub use common_macros::Lattice;
-pub use context::{Context, ModuleEnvironment};
+pub use context::*;
 pub use data::Data;
-pub use error::{CommonIfcError, Result};
-pub use labels::{Confidentiality, Integrity, Label, Lattice};
-pub use policy::Policy;
+pub use error::{CommonIfcError, ErrorSource, Result};
+pub use ifc::{
+    HasLabelType, IfcContext, IfcGraph, IfcLabel, IfcNode, IfcPolicy, LabelType, Lattice,
+};
+pub use labels::*;
+pub use policy::*;

@@ -122,7 +122,7 @@ fn run_benchmark(criterion: &mut Criterion) {
             "foo".into(),
             (
                 Value::from("updated foo"),
-                Confidentiality::Public,
+                Confidentiality::Low,
                 Integrity::Low,
             )
                 .into(),

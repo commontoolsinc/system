@@ -1,6 +1,6 @@
 use crate::{
-    CommonIfcError, Confidentiality, Context, Data, Integrity, Label, Lattice, ModuleEnvironment,
-    Result,
+    ifc::IfcPolicy, CommonIfcError, Confidentiality, Context, HasLabelType, IfcLabel, Integrity,
+    Label, Lattice, ModuleEnvironment, Result,
 };
 use std::collections::BTreeMap;
 
@@ -11,11 +11,11 @@ type PolicyMapInner<T> = BTreeMap<T, Context>;
 ///
 /// Map is validated upon construction.
 #[derive(Clone)]
-struct PolicyMap<T: Lattice + 'static>(PolicyMapInner<T>);
+struct PolicyMap<T: Lattice + HasLabelType + 'static>(PolicyMapInner<T>);
 
 impl<T> std::ops::Deref for PolicyMap<T>
 where
-    T: Lattice + 'static,
+    T: Lattice + HasLabelType + 'static,
 {
     type Target = PolicyMapInner<T>;
     fn deref(&self) -> &Self::Target {
@@ -25,7 +25,7 @@ where
 
 impl<T> TryFrom<PolicyMapInner<T>> for PolicyMap<T>
 where
-    T: Lattice + 'static,
+    T: Lattice + HasLabelType + 'static,
 {
     type Error = CommonIfcError;
 
@@ -34,9 +34,10 @@ where
     fn try_from(map: PolicyMapInner<T>) -> Result<Self> {
         for label in T::iter() {
             if !map.contains_key(label) {
-                return Err(CommonIfcError::InvalidPolicy(format!(
-                    "No requirements defined for {label}"
-                )));
+                return Err(CommonIfcError::PolicyMissingDefinition {
+                    label_type: T::label_type(),
+                    level: label.to_string(),
+                });
             }
         }
         Ok(Self(map))
@@ -76,15 +77,16 @@ impl Policy {
     }
 
     /// Validate input against this policy, given a [Context].
-    pub fn validate<'a, T, I>(&'a self, input: I, ctx: &Context) -> Result<()>
+    /// Placeholder until we have full graph validations integrated
+    /// with runtime.
+    /// TBD if this will be run at runtime for every data hop in
+    /// an execution graph.
+    pub fn validate_single<'a, I>(&'a self, input: I, ctx: &Context) -> Result<()>
     where
-        T: 'static,
-        I: IntoIterator<Item = (&'a String, &'a Data<T>)>,
+        I: IntoIterator<Item = (&'a String, &'a Label)>,
     {
-        for (name, data) in input {
-            let (conf_reqs, int_reqs) = self.get_requirements(&data.label)?;
-            conf_reqs.validate(ctx, name)?;
-            int_reqs.validate(ctx, name)?;
+        for (_, label) in input {
+            self.check_context(label, ctx)?;
         }
         Ok(())
     }
@@ -94,32 +96,36 @@ impl Policy {
     /// Explicitly not using [Default] trait so that
     /// defaults go through the same validation.
     pub fn with_defaults() -> Result<Self> {
-        use Confidentiality::*;
-        use Integrity::*;
-        use ModuleEnvironment::*;
-
-        let confidentiality_map = [(Public, (Server,).into()), (Private, (Server,).into())];
-        let integrity_map = [(Low, (Server,).into()), (High, (Server,).into())];
+        let confidentiality_map = [
+            (Confidentiality::Low, (ModuleEnvironment::Server,).into()),
+            (Confidentiality::High, (ModuleEnvironment::Server,).into()),
+        ];
+        let integrity_map = [
+            (Integrity::Low, (ModuleEnvironment::Server,).into()),
+            (Integrity::High, (ModuleEnvironment::Server,).into()),
+        ];
 
         Self::new(confidentiality_map, integrity_map)
     }
+}
 
-    /// Returns the [Context] requirements defined in this policy
-    /// for the given [Label].
-    fn get_requirements(&self, label: &Label) -> Result<(&Context, &Context)> {
+impl IfcPolicy for Policy {
+    type Context = Context;
+    type Label = Label;
+    fn get_requirements(&self, label: &Self::Label) -> Result<(&Self::Context, &Self::Context)> {
         match (
             self.confidentiality_map.get(&label.confidentiality),
             self.integrity_map.get(&label.integrity),
         ) {
-            (Some(conf_reqs), Some(int_reqs)) => Ok((conf_reqs, int_reqs)),
-            (None, _) => Err(CommonIfcError::InvalidPolicy(format!(
-                "Policy missing confidentiality label '{}'",
-                label.confidentiality
-            ))),
-            (_, None) => Err(CommonIfcError::InvalidPolicy(format!(
-                "Policy missing integrity label '{}'",
-                label.integrity
-            ))),
+            (Some(conf), Some(int)) => Ok((conf, int)),
+            (None, _) => Err(CommonIfcError::PolicyMissingDefinition {
+                label_type: <Self::Label as IfcLabel>::Confidentiality::label_type(),
+                level: label.confidentiality().to_string(),
+            }),
+            (_, None) => Err(CommonIfcError::PolicyMissingDefinition {
+                label_type: <Self::Label as IfcLabel>::Integrity::label_type(),
+                level: label.integrity().to_string(),
+            }),
         }
     }
 }
@@ -127,28 +133,36 @@ impl Policy {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Confidentiality::*, Integrity::*, ModuleEnvironment::*};
+    use crate::ModuleEnvironment::*;
     use common_tracing::common_tracing;
 
     #[test]
     #[common_tracing]
     fn it_validates_module_env() -> Result<()> {
-        let input = BTreeMap::from([("in".into(), Data::from(("data", Private, High)))]);
+        let input =
+            BTreeMap::from([("in".into(), (Confidentiality::High, Integrity::High).into())]);
 
         let policy = Policy::with_defaults()?;
-        assert!(policy.validate(&input, &(Server,).into()).is_ok());
-        assert!(policy.validate(&input, &(WebBrowser,).into()).is_ok());
+        assert!(policy.validate_single(&input, &(Server,).into()).is_ok());
+        assert!(policy
+            .validate_single(&input, &(WebBrowser,).into())
+            .is_ok());
 
         // Private data only on BrowserClient
         let policy = Policy::new(
-            BTreeMap::from([(Public, (Server,).into()), (Private, (WebBrowser,).into())]),
-            BTreeMap::from([(Low, (Server,).into()), (High, (Server,).into())]),
+            BTreeMap::from([
+                (Confidentiality::Low, (Server,).into()),
+                (Confidentiality::High, (WebBrowser,).into()),
+            ]),
+            BTreeMap::from([
+                (Integrity::Low, (Server,).into()),
+                (Integrity::High, (Server,).into()),
+            ]),
         )?;
-        assert_eq!(
-            policy.validate(&input, &(Server,).into()),
-            Err(CommonIfcError::InvalidEnvironment("in".into()))
-        );
-        assert!(policy.validate(&input, &(WebBrowser,).into()).is_ok());
+        assert!(policy.validate_single(&input, &(Server,).into()).is_err());
+        assert!(policy
+            .validate_single(&input, &(WebBrowser,).into())
+            .is_ok());
 
         Ok(())
     }

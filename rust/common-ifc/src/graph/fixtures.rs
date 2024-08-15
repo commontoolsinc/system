@@ -18,21 +18,18 @@ impl From<(String, Vec<String>, Vec<String>)> for TestNode {
     }
 }
 
-impl PortGraphNode<String, String> for TestNode {
+impl PortGraphNode<String> for TestNode {
     fn id(&self) -> &String {
         &self.name
     }
-    fn inputs<'a>(&'a self) -> impl Iterator<Item = &'a String>
-    where
-        String: 'a,
-    {
-        self.inputs.iter()
+    fn inputs<'a>(&'a self) -> impl Iterator<Item = &'a str> {
+        self.inputs.iter().map(|s| s.as_str())
     }
-    fn outputs<'a>(&'a self) -> impl Iterator<Item = &'a String>
-    where
-        String: 'a,
-    {
-        self.outputs.iter()
+    fn outputs<'a>(&'a self) -> impl Iterator<Item = &'a str> {
+        self.outputs.iter().map(|s| s.as_str())
+    }
+    fn is_root(&self) -> bool {
+        false
     }
 }
 
@@ -48,8 +45,10 @@ pub struct TestGraph {
 impl PortGraph for TestGraph {
     type Node = TestNode;
     type Edge = TestEdge;
-    type PortName = String;
     type NodeId = String;
+    fn root(&self) -> Option<&Self::Node> {
+        None
+    }
     fn nodes(&self) -> impl Iterator<Item = &Self::Node> {
         self.nodes.iter()
     }

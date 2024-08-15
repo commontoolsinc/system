@@ -54,7 +54,7 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
                     value: Some(common::Value {
                         variant: Some(common::value::Variant::String("updated foo".into())),
                     }),
-                    confidentiality: "Public".into(),
+                    confidentiality: "LowConfidentiality".into(),
                     integrity: "LowIntegrity".into(),
                 },
             )]
@@ -69,7 +69,7 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
             value: Some(common::Value {
                 variant: Some(common::value::Variant::String("updated foo:bar".into()))
             }),
-            confidentiality: "Public".into(),
+            confidentiality: "LowConfidentiality".into(),
             integrity: "LowIntegrity".into(),
         })
     );
@@ -143,7 +143,7 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
                     value: Some(common::Value {
                         variant: Some(common::value::Variant::String("updated foo".into())),
                     }),
-                    confidentiality: "Public".into(),
+                    confidentiality: "LowConfidentiality".into(),
                     integrity: "LowIntegrity".into(),
                 },
             )]
@@ -158,7 +158,7 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
             value: Some(common::Value {
                 variant: Some(common::value::Variant::String("updated foo:bar".into()))
             }),
-            confidentiality: "Public".into(),
+            confidentiality: "LowConfidentiality".into(),
             integrity: "LowIntegrity".into(),
         })
     );

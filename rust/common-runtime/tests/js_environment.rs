@@ -145,7 +145,7 @@ async fn exec_module(
                     value: Some(common::Value {
                         variant: Some(common::value::Variant::String("updated foo".into())),
                     }),
-                    confidentiality: "Public".into(),
+                    confidentiality: "HighConfidentiality".into(),
                     integrity: "LowIntegrity".into(),
                 },
             )]

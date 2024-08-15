@@ -28,7 +28,7 @@ where
     type Error = CommonRuntimeError;
 
     fn try_from((policy, context, io): (Policy, &IfcContext, Io)) -> Result<Self, Self::Error> {
-        policy.validate(io.input().iter(), context)?;
+        policy.validate_single(io.input().iter().map(|(s, data)| (s, &data.label)), context)?;
         Ok(Self { policy, inner: io })
     }
 }
@@ -78,9 +78,9 @@ mod tests {
     fn it_rejects_io_that_does_not_align_with_the_policy() -> Result<()> {
         let policy = Policy::new(
             BTreeMap::from([
-                (Confidentiality::Public, (ModuleEnvironment::Server,).into()),
+                (Confidentiality::Low, (ModuleEnvironment::Server,).into()),
                 (
-                    Confidentiality::Private,
+                    Confidentiality::High,
                     (ModuleEnvironment::WebBrowser,).into(),
                 ),
             ]),
@@ -93,7 +93,7 @@ mod tests {
             "foo".to_owned(),
             Data::from((
                 Value::String("bar".to_owned()),
-                Confidentiality::Private,
+                Confidentiality::High,
                 Integrity::High,
             )),
         )]));

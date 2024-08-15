@@ -57,6 +57,7 @@ rust-embed = { version = "8.4" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 sieve-cache = { version = "0.2" }
+strum = { version = "0.26" }
 syn = { version = "2" }
 tempfile = { version = "3" }
 thiserror = { version = "1" }

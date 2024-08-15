@@ -1,4 +1,4 @@
-use crate::{graph::validation::validate_port_graph, Result};
+use crate::graph::{integrity::check_integrity, Result};
 use std::{
     fmt::{Debug, Display},
     hash::Hash,
@@ -9,11 +9,18 @@ pub trait PortGraphId: Hash + Eq + PartialEq + Display + Debug {}
 impl<T> PortGraphId for T where T: Hash + Eq + PartialEq + Display + Debug {}
 
 /// Type of port, either input or output.
+#[derive(Debug, PartialEq)]
 pub enum PortType {
     /// Input-type ports.
     Input,
     /// Output-type ports.
     Output,
+}
+
+impl std::fmt::Display for PortType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
 }
 
 impl PortType {
@@ -27,37 +34,37 @@ impl PortType {
 }
 
 /// A node in a [PortGraph].
-pub trait PortGraphNode<NodeId: PortGraphId, PortName: PortGraphId>: Debug {
+pub trait PortGraphNode<NodeId: PortGraphId>: Debug {
     /// A unique to the graph identifier for this node.
     fn id(&self) -> &NodeId;
     /// All input ports for this node.
-    fn inputs<'a>(&'a self) -> impl Iterator<Item = &'a PortName>
-    where
-        PortName: 'a;
+    fn inputs(&self) -> impl Iterator<Item = &str>;
     /// All output ports for this node.
-    fn outputs<'a>(&'a self) -> impl Iterator<Item = &'a PortName>
-    where
-        PortName: 'a;
+    fn outputs(&self) -> impl Iterator<Item = &str>;
+    /// Whether this node is a root node. Root nodes are both the entry
+    /// points for an execution graph, as well as the only valid path
+    /// for a cycle.
+    fn is_root(&self) -> bool;
 }
 
 /// An edge in a [PortGraph].
-pub trait PortGraphEdge<NodeId: PortGraphId, PortName: PortGraphId>: Debug {
+pub trait PortGraphEdge<NodeId: PortGraphId>: Debug {
     /// The source connection output port.
-    fn source(&self) -> (&NodeId, &PortName);
+    fn source(&self) -> (&NodeId, &str);
     /// The target connection input port.
-    fn target(&self) -> (&NodeId, &PortName);
+    fn target(&self) -> (&NodeId, &str);
 }
 
-impl<NodeId, PortName> PortGraphEdge<NodeId, PortName> for ((NodeId, PortName), (NodeId, PortName))
+impl<NodeId, S> PortGraphEdge<NodeId> for ((NodeId, S), (NodeId, S))
 where
     NodeId: PortGraphId,
-    PortName: PortGraphId,
+    S: AsRef<str> + Debug,
 {
-    fn source(&self) -> (&NodeId, &PortName) {
-        (&self.0 .0, &self.0 .1)
+    fn source(&self) -> (&NodeId, &str) {
+        (&self.0 .0, self.0 .1.as_ref())
     }
-    fn target(&self) -> (&NodeId, &PortName) {
-        (&self.1 .0, &self.1 .1)
+    fn target(&self) -> (&NodeId, &str) {
+        (&self.1 .0, self.1 .1.as_ref())
     }
 }
 
@@ -69,16 +76,16 @@ where
 /// See [PortGraph::validate_port_graph] for expected constraints.
 pub trait PortGraph: Debug {
     /// Graph's node type.
-    type Node: PortGraphNode<Self::NodeId, Self::PortName>;
+    type Node: PortGraphNode<Self::NodeId>;
 
     /// Graph's edge type.
-    type Edge: PortGraphEdge<Self::NodeId, Self::PortName>;
+    type Edge: PortGraphEdge<Self::NodeId>;
 
     /// The type of node's unique identifier.
     type NodeId: PortGraphId;
 
-    /// The type of port names.
-    type PortName: PortGraphId;
+    /// Returns the root of the port graph, if any.
+    fn root(&self) -> Option<&Self::Node>;
 
     /// Return all nodes in the graph.
     fn nodes(&self) -> impl Iterator<Item = &Self::Node>;
@@ -102,8 +109,13 @@ pub trait PortGraph: Debug {
     /// * No input ports with multiple edges (no fan-in).
     /// * Edges must be unique across the graph. Implicitly
     ///   enforced by not allowing fan-in.
-    fn validate_port_graph(&self) -> Result<()> {
-        validate_port_graph(self)
+    fn check_integrity(&self) -> Result<()> {
+        check_integrity(self)
+    }
+
+    /// Returns the root node, if any.
+    fn get_root(&self) -> Option<&Self::Node> {
+        self.nodes().find(|&node| node.is_root())
     }
 
     /// Get all connections for this node's ports. If

@@ -52,7 +52,7 @@ async fn it_interprets_and_runs_a_common_script() -> Result<()> {
                     value: Some(common::Value {
                         variant: Some(common::value::Variant::String("updated foo".into())),
                     }),
-                    confidentiality: "Public".into(),
+                    confidentiality: "LowConfidentiality".into(),
                     integrity: "LowIntegrity".into(),
                 },
             )]
@@ -67,7 +67,7 @@ async fn it_interprets_and_runs_a_common_script() -> Result<()> {
             value: Some(common::Value {
                 variant: Some(common::value::Variant::String("updated foo:bar".into()))
             }),
-            confidentiality: "Public".into(),
+            confidentiality: "LowConfidentiality".into(),
             integrity: "LowIntegrity".into(),
         })
     );

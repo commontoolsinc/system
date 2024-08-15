@@ -6,9 +6,11 @@ edition = "2021"
 publish = false
 
 [dependencies]
+anyhow = { workspace = true }
 common-macros = { workspace = true }
 common-protos = { workspace = true }
 common-tracing = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 

@@ -1,11 +1,12 @@
-use crate::{CommonIfcError, Result};
+use crate::IfcContext;
+use anyhow::anyhow;
 
 #[cfg(doc)]
 use crate::Policy;
 
 /// Environment a module is being evaluated in,
 /// ordered from least to most "private".
-#[derive(Ord, PartialOrd, Eq, PartialEq, Clone, Debug)]
+#[derive(strum::Display, Ord, PartialOrd, Eq, PartialEq, Clone, Debug)]
 pub enum ModuleEnvironment {
     /// Confidential compute environment.
     Server,
@@ -19,20 +20,23 @@ pub enum ModuleEnvironment {
 /// the minimum level needed to execute a module,
 /// validating against the actual [Context] during
 /// execution.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Context {
     /// Minimum allowed module environment.
     pub environment: ModuleEnvironment,
 }
 
-impl Context {
-    /// Ensures the provided [Context] surpasses
-    /// the threshold for all of this context's requirements.
-    pub fn validate(&self, ctx: &Context, input_name: &str) -> Result<()> {
-        if self.environment > ctx.environment {
-            return Err(CommonIfcError::InvalidEnvironment(input_name.into()));
+impl IfcContext for Context {
+    type Error = anyhow::Error;
+    fn validate(&self, context: &Self) -> ::std::result::Result<(), Self::Error> {
+        match self.environment <= context.environment {
+            true => Ok(()),
+            false => Err(anyhow!(
+                "Policy for {} does not allow {}.",
+                self.environment,
+                context.environment
+            )),
         }
-        Ok(())
     }
 }
 
@@ -52,15 +56,13 @@ mod tests {
 
     #[test]
     #[common_tracing]
-    fn it_validates_context() -> Result<()> {
+    fn it_validates_context() {
         let server = Context::from((Server,));
         let browser = Context::from((WebBrowser,));
-        let name = "input";
 
-        server.validate(&server, name)?;
-        server.validate(&browser, name)?;
-        browser.validate(&browser, name)?;
-        assert!(browser.validate(&server, name).is_err());
-        Ok(())
+        assert!(server.validate(&server).is_ok());
+        assert!(server.validate(&browser).is_ok());
+        assert!(browser.validate(&browser).is_ok());
+        assert!(browser.validate(&server).is_err());
     }
 }
