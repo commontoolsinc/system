@@ -21,7 +21,7 @@ jobs:
           - toolchain: stable
           - toolchain: nightly
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -62,7 +62,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     continue-on-error: false
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -98,7 +98,7 @@ jobs:
     needs: ['lints']
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: 'Install OS packages (Ubuntu)'
         run: |
@@ -141,7 +141,7 @@ jobs:
         toolchain: ['stable', 'nightly']
     runs-on: ${{ matrix.platform }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: actions/download-artifact@v3
       - name: 'Install OS packages (Ubuntu)'
@@ -198,7 +198,7 @@ jobs:
     needs: ['lints']
     runs-on: 'ubuntu-latest'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-binstall
         uses: cargo-bins/cargo-binstall@v1.4.4
