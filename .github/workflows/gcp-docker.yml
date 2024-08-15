@@ -43,7 +43,7 @@ jobs:
       image_name: base
       dockerfile: ./Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images }}
+      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
       build_args: |
         BASE_IMAGE=debian:bookworm-slim
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
@@ -62,7 +62,7 @@ jobs:
       image_name: monolith
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images }}
+      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
@@ -82,7 +82,7 @@ jobs:
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images }}
+      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:bookworm-slim
@@ -106,7 +106,7 @@ jobs:
       image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images }}
+      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:bookworm-slim
