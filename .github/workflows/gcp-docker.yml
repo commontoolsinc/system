@@ -3,7 +3,11 @@ name: GCP Docker
 on:
   workflow_dispatch:
   push:
+    branches-ignore:
+      - "dependabot/**"
   pull_request:
+    branches-ignore:
+      - "dependabot/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -15,56 +19,14 @@ permissions:
   id-token: write
 
 jobs:
-  determine_build_push:
-    name: Determine images to push and/or build
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.check.outputs.should_run }}
-      build_all: ${{ steps.set-vars.outputs.build_all }}
-      push_images: ${{ steps.set-vars.outputs.push_images }}
-    steps:
-      - id: check
-        run: |
-          if [[ "${{ github.event_name }}" == "push" ]]; then
-            # Check if this push event is for a PR
-            PR_NUMBER=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" \
-              | jq '.[0].number')
-            if [[ "$PR_NUMBER" != "null" ]]; then
-              echo "Push event is for an open PR. Skipping this run."
-              echo "should_run=false" >> $GITHUB_OUTPUT
-            else
-              echo "should_run=true" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "should_run=true" >> $GITHUB_OUTPUT
-          fi
-
-      - id: set-vars
-        if: steps.check.outputs.should_run == 'true'
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "build_all=true" >> $GITHUB_OUTPUT
-            echo "push_images=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "build_all=true" >> $GITHUB_OUTPUT
-            echo "push_images=false" >> $GITHUB_OUTPUT
-          else
-            echo "build_all=false" >> $GITHUB_OUTPUT
-            echo "push_images=false" >> $GITHUB_OUTPUT
-          fi
-
   base:
     name: Base
-    needs:
-      - determine_build_push
-    if: needs.determine_build_push.outputs.should_run == 'true'
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
       image_name: base
       dockerfile: ./Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
+      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       build_args: |
         BASE_IMAGE=debian:bookworm-slim
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
@@ -75,16 +37,14 @@ jobs:
 
   monolith:
     name: Monolith
+    uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     needs:
       - base
-      - determine_build_push
-    if: needs.determine_build_push.outputs.should_run == 'true'
-    uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
+      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       image_name: monolith
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
@@ -94,17 +54,17 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
   runtime:
-    if: needs.determine_build_push.outputs.should_run == 'true' && needs.determine_build_push.outputs.build_all == 'true'
     name: Runtime
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' }}
     needs:
       - base
-      - determine_build_push
+      - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
+      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:bookworm-slim
@@ -118,17 +78,17 @@ jobs:
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
 
   builder:
-    if: needs.determine_build_push.outputs.should_run == 'true' && needs.determine_build_push.outputs.build_all == 'true'
     name: Builder
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' }}
     needs:
       - base
-      - determine_build_push
+      - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
+      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
       image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
-      push: ${{ needs.determine_build_push.outputs.push_images == 'true' }}
       build_args: |
         BASE_IMAGE=${{ vars.GAR_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GAR_REPOSITORY }}/base
         EXECUTION_IMAGE=debian:bookworm-slim

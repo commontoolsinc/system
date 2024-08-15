@@ -56,7 +56,7 @@ on:
 
 jobs:
   build:
-    name: Build${{ inputs.push && ' and push' || '' }}
+    name: ${{ inputs.push && 'Build and push' || 'Build only' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
