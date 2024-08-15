@@ -22,7 +22,6 @@
 !**/[Mm]akefile*
 
 # re-exclude specific directories
-/target
 .wireit
 lib
 dist

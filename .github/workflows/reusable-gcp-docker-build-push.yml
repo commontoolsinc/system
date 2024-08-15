@@ -1,0 +1,114 @@
+name: Build and Push Docker Image
+
+on:
+  workflow_call:
+    inputs:
+      image_name:
+        required: true
+        type: string
+      dockerfile:
+        required: true
+        type: string
+      context:
+        required: true
+        type: string
+      build_args:
+        description: "Docker build arguments"
+        required: false
+        type: string
+      push:
+        description: "Push the image to the registry"
+        required: false
+        default: false
+        type: boolean
+      gcp_region:
+        description: "Google Cloud region"
+        type: string
+        required: false
+        default: "us-central1"
+      gcp_project_id:
+        description: "Google Cloud Project ID"
+        required: true
+        type: string
+      repository_path:
+        description: "Google Cloud Repository Path"
+        required: true
+        type: string
+
+    secrets:
+      GCP_SERVICE_ACCOUNT:
+        description: "Google Cloud Service Account"
+        required: true
+      GCP_WORKLOAD_IDENTITY_PROVIDER:
+        description: "Google Cloud Workload Identity Provider"
+        required: true
+
+    outputs:
+      docker_digest:
+        description: "Docker image digest"
+        value: ${{ jobs.build.outputs.docker_digest }}
+      docker_metadata:
+        description: "Docker image metadata"
+        value: ${{ jobs.build.outputs.docker_metadata }}
+      docker_image:
+        description: "Docker image ID"
+        value: ${{ jobs.build.outputs.docker_image }}
+
+jobs:
+  build:
+    name: Build${{ inputs.push && ' and push' || '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Google Container Registry
+        uses: google-github-actions/auth@v2
+        id: auth
+        with:
+          token_format: access_token
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ inputs.gcp_project_id }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker ${{ inputs.gcp_region }}-docker.pkg.dev
+      - name: Docker build${{ inputs.push && ' and push' || '' }}
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ inputs.context }}
+          file: ${{ inputs.dockerfile }}
+          push: ${{ inputs.push }}
+          tags: |
+            ${{ inputs.repository_path }}/${{ inputs.image_name }}
+            ${{ inputs.repository_path }}/${{ inputs.image_name }}:latest
+          cache-from: |
+            type=gha
+            type=registry,ref=${{ inputs.repository_path }}/${{ inputs.image_name }}
+            type=registry,ref=${{ inputs.repository_path }}/${{ inputs.image_name }}:latest
+          cache-to: type=gha,mode=max
+          build-args: ${{ inputs.build_args }}
+
+    outputs:
+      docker_digest: ${{ steps.build.outputs.digest }}
+      docker_metadata: ${{ steps.build.outputs.metadata }}
+      docker_image: ${{ steps.build.outputs.imageid }}

@@ -1,23 +1,22 @@
 ARG BASE_IMAGE=common-tools-base
-ARG RUNTIME_BASE_IMAGE
+ARG EXECUTION_IMAGE=debian:bookworm-slim
 ARG BINARY_PATH="/bin/bash"
 ARG EXPOSED_PORT=
 
-FROM ${BASE_IMAGE} as common-tools-monolith
+FROM ${BASE_IMAGE} AS base
 
 COPY . .
 
 # Build the project
-RUN make build_typescript
-RUN make build_rust
+RUN make --debug=j local
 
-RUN make list_outputs
+RUN make --debug=j list_outputs
 
-FROM ${RUNTIME_BASE_IMAGE} as runtime
+FROM ${EXECUTION_IMAGE} AS execution-image
 
 ARG FILES="target/*"
 
-COPY --from=common-tools-monolith ${FILES} .
+COPY --from=base ${FILES} .
 
 EXPOSE ${EXPOSED_PORT}
 ENTRYPOINT [$BINARY_PATH]
