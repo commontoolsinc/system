@@ -36,6 +36,7 @@ common-test-fixtures = { path = "./rust/common-test-fixtures" }
 common-tracing = { path = "./rust/common-tracing" }
 common-wit = { path = "./rust/common-wit" }
 criterion = { version = "0.5" }
+darling = { version = "0.20" }
 deno_emit = { version = "0.43" }
 deno_graph = { version = "0.79" }
 getrandom = { version = "0.2", features = ["js"] }
