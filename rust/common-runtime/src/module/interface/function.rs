@@ -4,7 +4,8 @@ use crate::{CommonRuntimeError, InputOutput, IoData, Module, Validated};
 
 /// A trait that defines the host-side interface over an implementor of
 /// `common:function` Module.
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait FunctionInterface: Module {
     /// The type of [InputOutput] that is expected by the underlying Module
     /// implementation

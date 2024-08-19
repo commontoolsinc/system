@@ -33,7 +33,7 @@ fn main() {
         .build_transport(target != "wasm32-unknown-unknown")
         .file_descriptor_set_path(out_dir.join("protos_descriptor.bin"))
         // Will always rebuild unless `emit_rerun_if_changed` is false.
-        .emit_rerun_if_changed(false)
+        .emit_rerun_if_changed(true)
         .compile(&sources, &[proto_path.clone()])
         .unwrap();
 

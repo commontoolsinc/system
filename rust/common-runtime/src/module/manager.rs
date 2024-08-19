@@ -4,7 +4,8 @@ use async_trait::async_trait;
 /// [ModuleManager] is implemented for each distinctive [crate::Module] type
 /// that is tracked by the implementor. The implementor may then be used to keep
 /// instances of [crate::Module]s alive.
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ModuleManager<T> {
     /// Track a [crate::Module] by retaining a reference to it
     async fn add(&self, module_instance: T) -> ModuleInstanceId;

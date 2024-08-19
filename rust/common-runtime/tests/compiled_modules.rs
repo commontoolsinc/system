@@ -1,20 +1,24 @@
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(all(feature = "helpers", not(target_arch = "wasm32")))]
 
-mod shared;
+// mod shared;
 
 use anyhow::Result;
 use common_builder::serve as serve_builder;
 use common_protos::{builder, common, runtime};
-use common_runtime::serve as serve_runtime;
+use common_runtime::{
+    helpers::{start_runtime, VirtualEnvironment},
+    serve as serve_runtime,
+};
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
-use shared::start_runtime;
 use tokio::net::TcpListener;
 
 #[tokio::test]
 #[common_tracing]
 async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
-    let (mut runtime_client, _, _) = start_runtime().await?;
+    let VirtualEnvironment {
+        mut runtime_client, ..
+    } = start_runtime().await?;
 
     let runtime::InstantiateModuleResponse { instance_id, .. } = runtime_client
         .instantiate_module(runtime::InstantiateModuleRequest {

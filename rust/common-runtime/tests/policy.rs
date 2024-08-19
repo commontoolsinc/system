@@ -6,8 +6,8 @@ use common_ifc::{
     Confidentiality, Context as IfcContext, Data, Integrity, ModuleEnvironment, Policy,
 };
 use common_runtime::{
-    target::function::{NativeFunctionContext, NativeFunctionFactory},
-    Affinity, ArtifactResolver, BasicIo, ContentType, FunctionDefinition, FunctionInterface,
+    target::function_vm::{NativeFunctionVmContext, NativeFunctionVmFactory},
+    Affinity, ArtifactResolver, BasicIo, ContentType, FunctionInterface, FunctionVmDefinition,
     HasModuleContext, InputOutput, IoData, IoShape, ModuleBody, ModuleContext, ModuleDefinition,
     ModuleDriver, ModuleFactory, NativeRuntime, SourceCode, Validated, Value, ValueKind,
 };
@@ -27,13 +27,15 @@ async fn init_build_server() -> Result<(Uri, JoinHandle<Result<(), BuilderError>
     Ok((builder_url.parse()?, builder_task))
 }
 
-async fn get_basic_js_module(runtime: &NativeRuntime) -> Result<(NativeFunctionFactory, IoShape)> {
+async fn get_basic_js_module(
+    runtime: &NativeRuntime,
+) -> Result<(NativeFunctionVmFactory, IoShape)> {
     let input_shape = IoShape::from(BTreeMap::from([("foo".into(), ValueKind::String)]));
     let output_shape = IoShape::from(BTreeMap::from([("bar".into(), ValueKind::String)]));
 
     let factory = runtime
-        .prepare(FunctionDefinition::try_from(ModuleDefinition {
-            target: Target::CommonFunction,
+        .prepare(FunctionVmDefinition::try_from(ModuleDefinition {
+            target: Target::CommonFunctionVm,
             affinity: Affinity::LocalOnly,
             inputs: input_shape,
             outputs: output_shape,
@@ -100,7 +102,7 @@ async fn it_propagates_labels() -> Result<()> {
     let (factory, output_shape) = get_basic_js_module(&runtime).await?;
 
     let mut instance = factory
-        .instantiate(NativeFunctionContext::new(
+        .instantiate(NativeFunctionVmContext::new(
             BasicIo::new(IoData::default(), output_shape),
             IfcContext {
                 environment: ModuleEnvironment::Server,
@@ -145,7 +147,7 @@ async fn it_rejects_based_on_env() -> Result<()> {
     let (factory, output_shape) = get_basic_js_module(&runtime).await?;
 
     let instance = factory
-        .instantiate(NativeFunctionContext::new(
+        .instantiate(NativeFunctionVmContext::new(
             BasicIo::new(IoData::default(), output_shape),
             IfcContext {
                 environment: ModuleEnvironment::Server,

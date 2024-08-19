@@ -1,16 +1,17 @@
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(all(feature = "helpers", not(target_arch = "wasm32")))]
 
-mod shared;
 use anyhow::Result;
 use common_protos::{
     common,
     runtime::{self, runtime_client::RuntimeClient},
 };
-use common_runtime::Value;
+use common_runtime::{
+    helpers::{start_runtime, VirtualEnvironment},
+    Value,
+};
 use common_test_fixtures::sources::common::{GET_GLOBAL_THIS_PROPS, GET_IMPORT_META_PROPS};
 use common_tracing::common_tracing;
 use serde_json::json;
-use shared::start_runtime;
 
 #[tokio::test]
 #[common_tracing]
@@ -18,7 +19,9 @@ async fn it_has_an_empty_import_meta() -> Result<()> {
     // NOTE: The expected values are downstream from Deno's bundler, which
     // shadows `import.meta` keys for compatibility reasons
     let expected = "[\"main\",\"undefined\",\"url\",\"bundler:root\"]";
-    let (mut runtime_client, _, _) = start_runtime().await?;
+    let VirtualEnvironment {
+        mut runtime_client, ..
+    } = start_runtime().await?;
     let output = exec_module(&mut runtime_client, GET_IMPORT_META_PROPS).await?;
     assert_eq!(output, Some(Value::String(expected.to_string())));
 
@@ -94,7 +97,10 @@ async fn it_has_expected_globals() -> Result<()> {
         "undefined"
     ]);
 
-    let (mut runtime_client, _, _) = start_runtime().await?;
+    let VirtualEnvironment {
+        mut runtime_client, ..
+    } = start_runtime().await?;
+
     let output = exec_module(&mut runtime_client, GET_GLOBAL_THIS_PROPS).await?;
     assert_eq!(output, Some(Value::String(expected.to_string())));
 

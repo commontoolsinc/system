@@ -1,3 +1,5 @@
+//! Cross-target async bound compatability helpers.
+//!
 //! The traits herein are intended for use as a compatiblity mechanism for async
 //! code that may target both `wasm32-unknown-unknown` as well as native targets
 //! where the implementor may be shared across threads.

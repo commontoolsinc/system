@@ -4,11 +4,14 @@ use crate::CommonRuntimeError;
 
 use super::ModuleFactory;
 
+/// Runtime Module Drivers
+///
 /// A [ModuleDriver] is implemented by a Runtime for each distinctive form of
 /// [crate::ModuleDefinition] that it is able to instantiate. The driver
 /// produces a prepared [ModuleFactory] for a given [crate::ModuleDefinition],
 /// which can in turn be used to instantiate a [crate::Module].
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ModuleDriver<D> {
     /// The type of the [ModuleFactory] that is produced by this [ModuleDriver]
     type ModuleFactory: ModuleFactory;

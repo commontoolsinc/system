@@ -9,6 +9,13 @@
   "workspaces": [
     "./common/*"
   ],
+  "dependencies": {
+    "@bytecodealliance/jco": "=1.4.4",
+    "@bytecodealliance/componentize-js": "=0.10.5"
+  },
+  "bin": {
+    "jco": "node_modules/@bytecodealliance/jco/src/jco.js"
+  },
   "scripts": {
     "clean": "./scripts/clean.sh"
   },

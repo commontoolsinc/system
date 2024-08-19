@@ -20,6 +20,8 @@ pub use artifact::*;
 
 pub mod target;
 
+/// The Common Native Runtime
+///
 /// A Runtime implementation for "native" contexts, where "native" is a loose
 /// reference to the native architecture of the local machine, and is used to
 /// distinguish the Runtime from one that may run in a virtual machine or web

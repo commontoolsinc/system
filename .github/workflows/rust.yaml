@@ -183,6 +183,7 @@ jobs:
           ${{ matrix.toolchain}}" > test-results/target
 
           cargo +${{ matrix.toolchain }} nextest run \
+            --features helpers \
             --release \
             --workspace \
             --profile ci --color always 2>&1 | tee test-results/log
