@@ -6,8 +6,8 @@ fn it_derives_from_inner() {
     struct Foo(pub String);
 
     let s = String::from("foo");
-    let foo = Foo::from(s.clone());
-    assert_eq!(foo.0, s);
+    let f = Foo::from(s.clone());
+    assert_eq!(f.0, s);
 }
 
 #[test]
@@ -16,8 +16,8 @@ fn it_derives_into_inner() {
     struct Foo(pub String);
 
     let s = String::from("foo");
-    let foo = Foo(s.clone());
-    let out: String = foo.into();
+    let f = Foo(s.clone());
+    let out: String = f.into();
     assert_eq!(out, s);
 }
 
@@ -28,13 +28,13 @@ fn it_derives_deref() {
     struct Foo(pub String);
 
     let s = String::from("foo");
-    let foo = Foo(s.clone());
-    assert_eq!(&s, foo.deref());
+    let f = Foo(s.clone());
+    assert_eq!(&s, f.deref());
 
-    let mut foo = foo.clone();
-    let mut_foo = foo.deref_mut();
+    let mut f = f.clone();
+    let mut_foo = f.deref_mut();
     mut_foo.push_str("bar");
-    assert_eq!(foo.deref(), &String::from("foobar"));
+    assert_eq!(f.deref(), &String::from("foobar"));
 }
 
 #[test]
@@ -43,8 +43,8 @@ fn it_derives_constructor() {
     struct Foo(pub String);
 
     let s = String::from("foo");
-    let foo = Foo::new(s.clone());
-    assert_eq!(foo.0, s);
+    let f = Foo::new(s.clone());
+    assert_eq!(f.0, s);
 }
 
 #[test]
@@ -53,15 +53,15 @@ fn it_derives_inner() {
     struct Foo(pub String);
 
     let s = String::from("foo");
-    let mut foo = Foo(s.clone());
-    assert_eq!(foo.inner(), &s);
+    let mut f = Foo(s.clone());
+    assert_eq!(f.inner(), &s);
 
     {
-        let inner = foo.inner_mut();
+        let inner = f.inner_mut();
         inner.push_str("bar");
     }
 
-    assert_eq!(foo.into_inner(), String::from("foobar"));
+    assert_eq!(f.into_inner(), String::from("foobar"));
 }
 
 #[test]
@@ -88,8 +88,8 @@ fn it_only_includes_traits_helper() {
     }
 
     let s = String::from("foo");
-    let foo = Foo::from(s.clone());
-    assert_eq!(foo.0, s);
+    let f = Foo::from(s.clone());
+    assert_eq!(f.0, s);
 }
 
 #[test]
@@ -106,8 +106,8 @@ fn it_skips_includes_traits_helper() {
     }
 
     let s = String::from("foo");
-    let foo = Foo::from(s.clone());
-    assert_eq!(String::from(foo), s);
+    let f = Foo::from(s.clone());
+    assert_eq!(String::from(f), s);
 }
 
 #[test]
@@ -124,6 +124,6 @@ fn it_prioritizes_only_over_skip() {
     }
 
     let s = String::from("foo");
-    let foo = Foo::new(s.clone());
-    assert_eq!(foo.0, s);
+    let f = Foo::new(s.clone());
+    assert_eq!(f.0, s);
 }

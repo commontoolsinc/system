@@ -75,8 +75,8 @@ impl TestGraph {
         for node in nodes.into_iter() {
             out_nodes.push(TestNode {
                 name: node.0.into(),
-                inputs: node.1.into_iter().map(|s| String::from(s)).collect(),
-                outputs: node.2.into_iter().map(|s| String::from(s)).collect(),
+                inputs: node.1.into_iter().map(String::from).collect(),
+                outputs: node.2.into_iter().map(String::from).collect(),
             });
         }
         for edge in edges.into_iter() {

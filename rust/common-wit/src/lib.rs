@@ -18,7 +18,7 @@ pub const COMMON_IO_WIT: &[u8] = include_bytes!("../../../wit/common/io/wit/io.w
 pub const COMMON_DATA_WIT: &[u8] = include_bytes!("../../../wit/common/data/wit/data.wit");
 
 /// A target that some candidate source code may express the implementation of
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, Eq, PartialEq)]
 pub enum Target {
     /// The most basic target: a Common Module
     #[serde(rename = "common:function/module")]
