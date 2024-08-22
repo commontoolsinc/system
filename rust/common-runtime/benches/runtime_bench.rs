@@ -60,7 +60,6 @@ fn run_benchmark(criterion: &mut Criterion) {
     let (_runtime, function, function_vm, output_shape) = async_runtime
         .block_on(async {
             let (builder_address, _builder_task) = init_build_server().await.unwrap();
-            // let mut runtime = Runtime::new().unwrap();
             let artifact_resolver = ArtifactResolver::new(Some(builder_address))?;
             let runtime = NativeRuntime::new(artifact_resolver)?;
 

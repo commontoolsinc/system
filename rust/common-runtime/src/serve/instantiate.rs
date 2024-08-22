@@ -34,7 +34,6 @@ pub async fn instantiate_module(
 
     let body = match module_reference {
         ModuleReference::ModuleSignature(module_signature) => {
-            warn!("SIGNATURE");
             ModuleBody::Signature(ModuleId::Base64(module_signature.id.clone()))
         }
         ModuleReference::ModuleSource(module_source) => ModuleBody::SourceCode(

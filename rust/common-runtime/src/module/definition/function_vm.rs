@@ -13,7 +13,8 @@ use super::ModuleDefinition;
 pub struct FunctionVmDefinition(ModuleDefinition);
 
 impl FunctionVmDefinition {
-    /// Get teh [ContentType] associated with the
+    /// Get the [ContentType] associated with the with the source code of this
+    /// [ModuleDefinition]
     pub fn content_type(&self) -> Result<ContentType, CommonRuntimeError> {
         if let ModuleBody::SourceCode(source_code_collection) = &self.0.body {
             if let Some((_, source_code)) = source_code_collection.iter().next() {
