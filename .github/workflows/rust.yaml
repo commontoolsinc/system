@@ -38,7 +38,7 @@ jobs:
         with:
           node-version: lts/*
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.2
+        uses: cargo-bins/cargo-binstall@v1.10.3
       - name: Install binaries from cargo
         run: |
           cargo +${{ matrix.toolchain }} binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
@@ -74,7 +74,7 @@ jobs:
           rustup toolchain install stable
           rustup target add wasm32-unknown-unknown
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.2
+        uses: cargo-bins/cargo-binstall@v1.10.3
       - name: Install binaries from cargo
         run: |
           cargo binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
@@ -109,7 +109,7 @@ jobs:
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install stable 
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.2
+        uses: cargo-bins/cargo-binstall@v1.10.3
       - name: Install binaries from cargo
         run: |
           cargo binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
@@ -162,7 +162,7 @@ jobs:
         with:
           node-version: lts/*
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.2
+        uses: cargo-bins/cargo-binstall@v1.10.3
       - name: Install binaries from cargo
         run: |
           cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
@@ -201,7 +201,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.2
+        uses: cargo-bins/cargo-binstall@v1.10.3
       - name: Install binaries from cargo
         run: |
           cargo binstall wit-deps-cli wasm-tools --no-confirm --force
