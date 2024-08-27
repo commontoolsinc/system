@@ -75,8 +75,8 @@ impl From<CommitError> for BuilderError {
 
 impl From<DatabaseError> for BuilderError {
     fn from(value: DatabaseError) -> Self {
-        error!("{}", value);
-        BuilderError::Internal(format!("{}", value))
+        error!("Database error: {}", value);
+        BuilderError::Internal(format!("Database error: {}", value))
     }
 }
 

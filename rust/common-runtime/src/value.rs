@@ -40,6 +40,17 @@ pub enum ValueKind {
     Buffer,
 }
 
+impl From<&Value> for ValueKind {
+    fn from(value: &Value) -> Self {
+        match value {
+            Value::String(_) => ValueKind::String,
+            Value::Boolean(_) => ValueKind::Boolean,
+            Value::Number(_) => ValueKind::Number,
+            Value::Buffer(_) => ValueKind::Buffer,
+        }
+    }
+}
+
 impl TryFrom<proto::Value> for Value {
     type Error = CommonRuntimeError;
 

@@ -4,15 +4,21 @@ use anyhow::Result;
 use common_builder::{serve as serve_builder, BuilderError};
 use common_ifc::{Confidentiality, Integrity, Policy};
 use common_runtime::{
-    ContentType, IoData, IoShape, IoValues, ModuleSource, RawModule, Runtime, RuntimeIo,
-    SourceCode, Value, ValueKind,
+    target::{
+        function::{NativeFunction, NativeFunctionContext},
+        function_vm::{NativeFunctionVm, NativeFunctionVmContext},
+    },
+    Affinity, ArtifactResolver, BasicIo, CommonRuntimeError, ContentType, FunctionDefinition,
+    FunctionInterface, FunctionVmDefinition, HasModuleContext, IoData, IoShape, IoValues,
+    ModuleBody, ModuleContext, ModuleDefinition, ModuleDriver, ModuleFactory, NativeRuntime,
+    SourceCode, Validated, Value, ValueKind,
 };
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_wit::Target;
 use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion};
 use http::Uri;
-use std::collections::BTreeMap;
-use tokio::{net::TcpListener, task::JoinHandle};
+use std::{collections::BTreeMap, sync::Arc};
+use tokio::{net::TcpListener, sync::Mutex, task::JoinHandle};
 
 /// Start a build server, returning its address and a task handler.
 async fn init_build_server() -> Result<(Uri, JoinHandle<Result<(), BuilderError>>)> {
@@ -23,68 +29,93 @@ async fn init_build_server() -> Result<(Uri, JoinHandle<Result<(), BuilderError>
     Ok((builder_url.parse()?, builder_task))
 }
 
-/// Wrapper for module prefabs for benchmarks, containing
-/// module source, default input, and output shape.
-struct BenchModule {
-    module_source: ModuleSource,
-    output_shape: IoShape,
-    default_input: IoValues,
-}
+fn make_basic_js_definition(target: Target) -> ModuleDefinition {
+    let inputs = IoShape::from(BTreeMap::from([("foo".into(), ValueKind::String)]));
+    let outputs = IoShape::from(BTreeMap::from([("bar".into(), ValueKind::String)]));
 
-impl BenchModule {
-    /// Turns this [BenchModule] into a [RawModule] and [RuntimeIo], the
-    /// needed components to compile this module.
-    pub fn into_components(self, builder_address: Option<Uri>) -> (RawModule, RuntimeIo) {
-        let module = RawModule::new(self.module_source, builder_address);
-        let initial_io = RuntimeIo::from_initial_state(self.default_input, self.output_shape);
-        (module, initial_io)
-    }
-
-    /// Module definition for [BASIC_MODULE_JS].
-    pub fn new_basic_js_module(target: Target) -> Self {
-        Self {
-            module_source: ModuleSource {
-                target,
-                source_code: [(
-                    "module".to_owned(),
-                    SourceCode {
-                        content_type: ContentType::JavaScript.into(),
-                        body: BASIC_MODULE_JS.into(),
-                    },
-                )]
-                .into(),
-            },
-            output_shape: IoShape::from(BTreeMap::from([("bar".into(), ValueKind::String)])),
-            default_input: IoValues::from(BTreeMap::from([(
-                "foo".into(),
-                Value::String("initial foo".into()),
-            )])),
-        }
+    ModuleDefinition {
+        target,
+        affinity: Affinity::LocalOnly,
+        inputs,
+        outputs,
+        body: ModuleBody::SourceCode(
+            [(
+                "module".to_owned(),
+                SourceCode {
+                    content_type: ContentType::JavaScript,
+                    body: BASIC_MODULE_JS.into(),
+                },
+            )]
+            .into(),
+        ),
     }
 }
 
-fn run_benchmark(c: &mut Criterion) {
+fn run_benchmark(criterion: &mut Criterion) {
     let async_runtime = tokio::runtime::Builder::new_multi_thread()
         .enable_all()
         .build()
         .unwrap();
 
-    let (runtime, module_id, script_id, _) = async_runtime.block_on(async {
-        let (builder_address, builder_task) = init_build_server().await.unwrap();
-        let mut runtime = Runtime::new().unwrap();
-        let module_id = {
-            let (module, initial_io) = BenchModule::new_basic_js_module(Target::CommonFunction)
-                .into_components(Some(builder_address.clone()));
-            runtime.compile(module, initial_io).await.unwrap()
-        };
-        let script_id = {
-            let (module, initial_io) = BenchModule::new_basic_js_module(Target::CommonFunctionVm)
-                .into_components(Some(builder_address.clone()));
-            runtime.interpret(module, initial_io).await.unwrap()
-        };
+    let (_runtime, function, function_vm, output_shape) = async_runtime
+        .block_on(async {
+            let (builder_address, _builder_task) = init_build_server().await.unwrap();
+            let artifact_resolver = ArtifactResolver::new(Some(builder_address))?;
+            let runtime = NativeRuntime::new(artifact_resolver)?;
 
-        (runtime, module_id, script_id, builder_task)
-    });
+            let default_input = IoValues::from(BTreeMap::from([(
+                "foo".into(),
+                Value::String("initial foo".into()),
+            )]));
+            let output_shape = IoShape::from(BTreeMap::from([("bar".into(), ValueKind::String)]));
+
+            let io = BasicIo::from_initial_state(default_input, output_shape.clone());
+
+            let function_factory = runtime
+                .prepare(FunctionDefinition::try_from(make_basic_js_definition(
+                    Target::CommonFunction,
+                ))?)
+                .await?;
+            let function = function_factory
+                .instantiate(NativeFunctionContext::new(
+                    io.clone(),
+                    common_ifc::Context {
+                        environment: common_ifc::ModuleEnvironment::Server,
+                    },
+                ))
+                .await?;
+
+            let function_vm_factory = runtime
+                .prepare(FunctionVmDefinition::try_from(make_basic_js_definition(
+                    Target::CommonFunctionVm,
+                ))?)
+                .await?;
+            let function_vm = function_vm_factory
+                .instantiate(NativeFunctionVmContext::new(
+                    io,
+                    common_ifc::Context {
+                        environment: common_ifc::ModuleEnvironment::Server,
+                    },
+                ))
+                .await?;
+
+            Ok((
+                runtime,
+                Arc::new(Mutex::new(function)),
+                Arc::new(Mutex::new(function_vm)),
+                output_shape,
+            ))
+                as Result<
+                    (
+                        NativeRuntime,
+                        Arc<Mutex<NativeFunction>>,
+                        Arc<Mutex<NativeFunctionVm>>,
+                        IoShape,
+                    ),
+                    CommonRuntimeError,
+                >
+        })
+        .unwrap();
 
     let bench_input = {
         let input = IoData::from(BTreeMap::from([(
@@ -92,32 +123,41 @@ fn run_benchmark(c: &mut Criterion) {
             (
                 Value::from("updated foo"),
                 Confidentiality::Public,
-                Integrity::LowIntegrity,
+                Integrity::Low,
             )
                 .into(),
         )]));
-        let output_shape = runtime.output_shape(&module_id).unwrap().to_owned();
-        RuntimeIo::new(input, output_shape)
+
+        BasicIo::new(input, output_shape)
     };
     let policy = Policy::with_defaults().unwrap();
 
-    let mut group = c.benchmark_group("run_benchmark");
+    let mut group = criterion.benchmark_group("run_benchmark");
 
     group.bench_with_input(
-        BenchmarkId::new("Runtime::run_module", ""),
+        BenchmarkId::new("function", ""),
         &bench_input.clone(),
-        |b, runtime_io| {
-            b.to_async(&async_runtime)
-                .iter(|| runtime.run(&module_id, runtime_io.to_owned(), &policy))
+        |bencher, io| {
+            bencher.to_async(&async_runtime).iter(|| async {
+                let mut function = function.lock().await;
+                let validated_input =
+                    Validated::try_from((&policy, function.context().ifc(), io.clone())).unwrap();
+                function.run(validated_input).await
+            })
         },
     );
 
     group.bench_with_input(
-        BenchmarkId::new("Runtime::run_script", ""),
+        BenchmarkId::new("function_vm", ""),
         &bench_input.clone(),
-        |b, runtime_io| {
-            b.to_async(&async_runtime)
-                .iter(|| runtime.run(&script_id, runtime_io.to_owned(), &policy))
+        |bencher, io| {
+            bencher.to_async(&async_runtime).iter(|| async {
+                let mut function_vm = function_vm.lock().await;
+                let validated_input =
+                    Validated::try_from((&policy, function_vm.context().ifc(), io.clone()))
+                        .unwrap();
+                function_vm.run(validated_input).await
+            })
         },
     );
 }

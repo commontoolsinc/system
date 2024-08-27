@@ -15,7 +15,9 @@ use shared::start_runtime;
 #[tokio::test]
 #[common_tracing]
 async fn it_has_an_empty_import_meta() -> Result<()> {
-    let expected = "[]";
+    // NOTE: The expected values are downstream from Deno's bundler, which
+    // shadows `import.meta` keys for compatibility reasons
+    let expected = "[\"main\",\"undefined\",\"url\",\"bundler:root\"]";
     let (mut runtime_client, _, _) = start_runtime().await?;
     let output = exec_module(&mut runtime_client, GET_IMPORT_META_PROPS).await?;
     assert_eq!(output, Some(Value::String(expected.to_string())));

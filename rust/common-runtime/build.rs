@@ -16,10 +16,11 @@ fn main() {
         project_root_dir,
         out_dir.as_path(),
         "common-javascript-interpreter",
+        "JAVASCRIPT_COMMON_FUNCTION_INTERPRETER",
     );
 }
 
-fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str) {
+fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str, env_name: &str) {
     let artifact_name = crate_name.replace('-', "_");
     let artifact_file_name = format!("{}.wasm", artifact_name);
     let artifact_dir = format!("{}/wasm32-wasip1/release", out_dir.display());
@@ -53,6 +54,6 @@ fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str) {
         assert!(status.success());
     }
 
-    let const_name = format!("{}_WASM_PATH", artifact_name.to_ascii_uppercase());
+    let const_name = format!("{}_WASM_PATH", env_name.to_ascii_uppercase());
     println!("cargo::rustc-env={}={}", const_name, artifact_path);
 }

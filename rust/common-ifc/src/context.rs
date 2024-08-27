@@ -19,16 +19,17 @@ pub enum ModuleEnvironment {
 /// the minimum level needed to execute a module,
 /// validating against the actual [Context] during
 /// execution.
+#[derive(Clone)]
 pub struct Context {
     /// Minimum allowed module environment.
-    pub env: ModuleEnvironment,
+    pub environment: ModuleEnvironment,
 }
 
 impl Context {
     /// Ensures the provided [Context] surpasses
     /// the threshold for all of this context's requirements.
     pub fn validate(&self, ctx: &Context, input_name: &str) -> Result<()> {
-        if self.env > ctx.env {
+        if self.environment > ctx.environment {
             return Err(CommonIfcError::InvalidEnvironment(input_name.into()));
         }
         Ok(())
@@ -37,7 +38,9 @@ impl Context {
 
 impl From<(ModuleEnvironment,)> for Context {
     fn from(value: (ModuleEnvironment,)) -> Self {
-        Context { env: value.0 }
+        Context {
+            environment: value.0,
+        }
     }
 }
 

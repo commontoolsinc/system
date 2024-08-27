@@ -1,9 +1,14 @@
 import { write } from "common:io/state@0.0.1";
 
 export const run = () => {
-  let meta = JSON.stringify(Object.getOwnPropertyNames(import.meta).sort());
+  const importMetaSignature = [];
+
+  for (key of Object.getOwnPropertyNames(import.meta).sort()) {
+    importMetaSignature.push(key, String(import.meta[key]));
+  }
+
   write("output", {
     tag: "string",
-    val: meta,
+    val: JSON.stringify(importMetaSignature),
   });
 };

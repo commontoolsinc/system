@@ -6,14 +6,17 @@
 version: 2
 updates:
   - package-ecosystem: "cargo"
+    rebase-strategy: auto
     directory: "/"
     schedule:
       interval: "weekly"
   - package-ecosystem: "npm"
+    rebase-strategy: auto
     directory: "/typescript"
     schedule:
       interval: "weekly"
   - package-ecosystem: "github-actions"
+    rebase-strategy: auto
     directory: "/.github/workflows"
     schedule:
       interval: "weekly"
