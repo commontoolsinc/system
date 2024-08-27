@@ -33,8 +33,10 @@
           inherit system overlays;
         };
 
-        # Helper function to select a Rust toolchain by name e.g., "stable", "nightly".
-        # The resulting derivation includes Cargo Wasm32 targets.
+        /**
+         * Helper function to select a Rust toolchain by name e.g., "stable", "nightly".
+         * The resulting derivation includes Cargo Wasm32 targets.
+         */
         rustToolchain = toolchain:
           let
             rustToolchain = pkgs.rust-bin.${toolchain}.latest.default.override {
@@ -49,8 +51,10 @@
           else
             throw "Unsupported Rust toolchain: ${toolchain}";
 
-        # Helper function to template a dev shell for different
-        # Rust toolchains
+        /**
+         * Helper function to template a dev shell for different
+         * Rust toolchains
+         */
         makeDevShell = toolchain:
           let
             rust-toolchain = rustToolchain toolchain;
@@ -62,6 +66,7 @@
               pkg-config
               protobuf
               cargo-component
+              cargo-nextest
               wasm-bindgen-cli
               wit-deps-cli
               rust-toolchain
@@ -77,16 +82,23 @@
             '';
           };
 
-        # Re-export jco from our fake root package; we do this because
-        # @bytecodealliance/jco is a non-trivial package to build from
-        # scratch (it entails Rust compilation, Wasm artifact generation
-        # and JavaScript transpiling / bundling), and there is no practical
-        # path with Nix to do the equivalent of `npm install -g`.
+        /**
+         * Re-export jco from our fake root package; we do this because
+         * @bytecodealliance/jco is a non-trivial package to build from
+         * scratch (it entails Rust compilation, Wasm artifact generation
+         * and JavaScript transpiling / bundling), and there is no practical
+         * path with Nix to do the equivalent of `npm install -g`.
+         *
+         * NOTE: When updating the NPM dependencies, you need to refresh the
+         * `npmDepsHash`. The way to do this is to set the value to
+         * `pkgs.lib.fakeHash`, then run a build or devshell, then copy the
+         * "expected" value from the failed run and replace `fakeHash` with it.
+         */
         jco = pkgs.buildNpmPackage {
           name = "jco";
           src = ./typescript;
           dontNpmBuild = true;
-          npmDepsHash = "sha256-SvS92dl/ydYhMBKJPbjNZag2KHXhMPBFID/euNiv33w=";
+          npmDepsHash = "sha256-0DgVWHNOYUZFIIf7dOvoQkJNZzxYDAF94sXonUl0lU0=";
         };
 
         wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {

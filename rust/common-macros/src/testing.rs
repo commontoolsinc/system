@@ -25,7 +25,7 @@ pub fn common_browser_integration_test(item: TokenStream) -> TokenStream {
     sig.ident = inner_test_name;
 
     let tokio_test: Attribute = parse_quote! {
-        #[tokio::test(flavor = "multi_thread")]
+        #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     };
     let wasm_bindgen_test: Attribute = parse_quote! {
         #[wasm_bindgen_test::wasm_bindgen_test]
@@ -39,7 +39,6 @@ pub fn common_browser_integration_test(item: TokenStream) -> TokenStream {
     let cfg_feature_helpers: Attribute = parse_quote! {
         #[cfg(feature = "helpers")]
     };
-
     let common_tracing: Attribute = parse_quote! {
         #[common_macros::common_tracing]
     };

@@ -6,7 +6,7 @@ use proc_macro::TokenStream;
 
 mod lattice;
 mod new_type;
-mod test;
+mod testing;
 mod tracing;
 
 extern crate proc_macro;
@@ -87,6 +87,22 @@ pub fn derive_new_type(input: TokenStream) -> TokenStream {
 /// browser-bound test and pass service information (such as port numbers) at
 /// compile time as environment variables.
 ///
+/// The scaffolded test _only_ runs when tests are run for a native
+/// (non-`wasm32-unknown-unknown`) target. It is not possible to run the test
+/// directly under a `wasm32-unknown-unknown` target (at least, not without it
+/// failing).
+///
+/// The macro relies on conditional compilation in order to prevent the
+/// scaffolded test from running when non-integration tests are running.
+/// In order to make the test run when expected, you must include the following
+/// in a dependent crate's `build.rs`:
+///
+/// ```rs
+/// if std::option_env!("COMMON_BROWSER_INTEGRATION_TEST").is_some() {
+///   println!("cargo:rustc-cfg=common_browser_integration_test")
+/// }
+/// ```
+///
 /// Available environment variables at compile time include:
 ///
 /// - `COMMON_RUNTIME_PORT`: gRPC port for a `common-runtime` server
@@ -96,5 +112,5 @@ pub fn derive_new_type(input: TokenStream) -> TokenStream {
 ///     https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
 #[proc_macro_attribute]
 pub fn common_browser_integration_test(_args: TokenStream, item: TokenStream) -> TokenStream {
-    test::common_browser_integration_test(item)
+    testing::common_browser_integration_test(item)
 }

@@ -1,7 +1,5 @@
 #![cfg(all(feature = "helpers", not(target_arch = "wasm32")))]
 
-// mod shared;
-
 use anyhow::Result;
 use common_builder::serve as serve_builder;
 use common_protos::{builder, common, runtime};
@@ -13,7 +11,7 @@ use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
 use tokio::net::TcpListener;
 
-#[tokio::test]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[common_tracing]
 async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
     let VirtualEnvironment {

@@ -6,7 +6,7 @@ use common_runtime::helpers::{start_runtime, VirtualEnvironment};
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
 
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[common_tracing]
 async fn it_interprets_and_runs_a_common_script() -> Result<()> {
     let VirtualEnvironment {

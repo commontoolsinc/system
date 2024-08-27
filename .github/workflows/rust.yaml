@@ -157,7 +157,7 @@ jobs:
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install ${{matrix.toolchain}}
-          rustup target add wasm32-unknown-unknown
+          rustup +${{matrix.toolchain}} target add wasm32-unknown-unknown
       - name: 'Setup Node/NPM'
         uses: actions/setup-node@v4
         with:
@@ -166,10 +166,10 @@ jobs:
         uses: cargo-bins/cargo-binstall@v1.10.3
       - name: Install binaries from cargo
         run: |
-          cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
+          cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wasm-bindgen-cli wit-deps-cli wasm-tools --no-confirm --force
       - name: 'Install NPM dependencies'
         run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
+          npm install -g @bytecodealliance/jco@1.4.4 @bytecodealliance/componentize-js@0.9.0
       - name: 'Initialize wits'
         run: |
           ./wit/wit-tools.sh deps
@@ -183,13 +183,14 @@ jobs:
           ${{ matrix.features }}
           ${{ matrix.toolchain}}" > test-results/target
 
-          cargo +${{ matrix.toolchain }} nextest run \
+          CHROMEDRIVER=`which chromedriver` cargo +${{ matrix.toolchain }} nextest run \
             --features helpers \
             --release \
             --workspace \
             --profile ci --color always 2>&1 | tee test-results/log
         env:
-          RUST_LOG: debug
+          RUST_LOG: info,common_runtime=trace,common_builder=trace,common_ifc=trace
+          WASM_BINDGEN_TEST_TIMEOUT: 180
       - uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ hashFiles('./test-results') }}

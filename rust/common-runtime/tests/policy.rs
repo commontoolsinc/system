@@ -91,7 +91,7 @@ macro_rules! assert_io {
     };
 }
 
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[common_tracing]
 async fn it_propagates_labels() -> Result<()> {
     let (builder_address, _) = init_build_server().await?;
@@ -137,7 +137,7 @@ async fn it_propagates_labels() -> Result<()> {
     Ok(())
 }
 
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[common_tracing]
 async fn it_rejects_based_on_env() -> Result<()> {
     let (builder_address, _) = init_build_server().await?;
@@ -179,7 +179,7 @@ async fn it_rejects_based_on_env() -> Result<()> {
         )),
     )]));
 
-    let input_io = BasicIo::new(input, IoShape::from(instance.context().io().input()));
+    let input_io: BasicIo = BasicIo::new(input, IoShape::from(instance.context().io().input()));
 
     assert!(Validated::try_from((policy, instance.context().ifc(), input_io)).is_err());
 
