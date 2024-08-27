@@ -26,9 +26,6 @@ pub mod target;
 /// reference to the native architecture of the local machine, and is used to
 /// distinguish the Runtime from one that may run in a virtual machine or web
 /// browser.
-///
-/// The [NativeRuntime] implements Module types using Wasmtime as its internal
-/// Wasm runtime.
 pub struct NativeRuntime {
     artifact_resolver: ArtifactResolver,
     wasmtime_engine: WasmtimeEngine,
