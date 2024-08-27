@@ -157,6 +157,7 @@ jobs:
         run: |
           curl -sSf https://sh.rustup.rs | sh -s -- -y
           rustup toolchain install ${{matrix.toolchain}}
+          rustup target add wasm32-unknown-unknown
       - name: 'Setup Node/NPM'
         uses: actions/setup-node@v4
         with:
