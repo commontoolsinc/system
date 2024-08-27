@@ -8,6 +8,9 @@
 #[macro_use]
 extern crate tracing;
 
+mod data;
+pub use data::*;
+
 mod error;
 pub use error::*;
 

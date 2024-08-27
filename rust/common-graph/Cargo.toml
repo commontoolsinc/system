@@ -1,0 +1,24 @@
+[package]
+name = "common-graph"
+description = "Port graph functionality for Common runtime."
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+common-macros = { workspace = true }
+strum = { workspace = true, features = ["derive"] }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+common-tracing = { workspace = true }
+common-graph = { workspace = true, features = ["helpers", "render"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
+[features]
+default = []
+render = []
+helpers = []
