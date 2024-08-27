@@ -2,6 +2,9 @@
 
 Notes on building and testing `system`.
 
+This document might get out of date - check github workflow files (`.github/workflows/rust.yaml` et al)
+for the most up-to-date build that are run as part of the CI process.
+
 ## Dependencies
 
 This project uses both Rust and Node.js. Both toolchains and dependencies will need to be installed.
@@ -16,7 +19,7 @@ First, install [cargo] and [binstall] to set up the toolchain.
 Then, install some Rust tools:
 
 ```bash
-cargo binstall wit-deps-cli wasm-tools
+cargo binstall wit-deps-cli wasm-tools cargo-component cargo-nextest
 ```
 
 ### Node.js
@@ -26,6 +29,14 @@ Then, install some node.js tools:
 
 ```bash
 npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
+```
+
+### WebAssembly Interface Types (WIT) dependencies
+
+Finally, install the WIT dependencies:
+
+```bash
+./wit/wit-tools.sh deps
 ```
 
 ## Tests
