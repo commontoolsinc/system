@@ -20,6 +20,7 @@ permissions:
 
 jobs:
   base:
+    if: github.actor != 'dependabot[bot]'
     name: Base
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
