@@ -1,6 +1,6 @@
-//! The traits herein are intended for use as a compatiblity mechanism for async
-//! code that may target both `wasm32-unknown-unknown` as well as native targets
-//! where the implementor may be shared across threads.
+//! Compatibility traits for async code targeting multiple platforms.
+//!
+//! The traits herein are intended for use as a compatibility mechanism for async code that may target both `wasm32-unknown-unknown` as well as native targets where the implementer may be shared across threads.
 
 #[allow(missing_docs)]
 #[cfg(not(target_arch = "wasm32"))]
