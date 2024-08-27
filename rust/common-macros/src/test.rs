@@ -33,8 +33,8 @@ pub fn common_browser_integration_test(item: TokenStream) -> TokenStream {
     let cfg_only_native: Attribute = parse_quote! {
         #[cfg(not(target_arch = "wasm32"))]
     };
-    let cfg_only_web: Attribute = parse_quote! {
-        #[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
+    let cfg_only_browser_integration_test: Attribute = parse_quote! {
+        #[cfg(all(common_browser_integration_test, target_arch = "wasm32", target_os = "unknown"))]
     };
     let cfg_feature_helpers: Attribute = parse_quote! {
         #[cfg(feature = "helpers")]
@@ -53,8 +53,6 @@ pub fn common_browser_integration_test(item: TokenStream) -> TokenStream {
             use common_runtime::helpers::{VirtualEnvironment, start_runtime};
             use std::module_path;
 
-            // let inner_test_name = format!("{}::{}", module_path!(), #inner_test_name_string);
-
             let VirtualEnvironment {
                 runtime_port,
                 builder_port,
@@ -66,6 +64,7 @@ pub fn common_browser_integration_test(item: TokenStream) -> TokenStream {
             let status = std::process::Command::new("cargo")
                 .env("COMMON_BUILDER_PORT", format!("{builder_port}"))
                 .env("COMMON_RUNTIME_PORT", format!("{runtime_port}"))
+                .env("COMMON_BROWSER_INTEGRATION_TEST", "true")
                 .args([
                     "test",
                     "--target",
@@ -83,7 +82,7 @@ pub fn common_browser_integration_test(item: TokenStream) -> TokenStream {
         }
 
 
-        #cfg_only_web
+        #cfg_only_browser_integration_test
         #(#attrs)*
         #wasm_bindgen_test
         #vis #sig #block

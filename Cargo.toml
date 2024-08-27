@@ -78,6 +78,9 @@ tracing-web = { version = "0.1" }
 url = { version = "2" }
 # Minimum required wasm-bindgen / wasm-bindgen-test versions
 # SEE: https://github.com/rustwasm/wasm-bindgen/issues/4083
+# NOTE: Version of wasm-bindgen must be kept in sync with the
+# version of wasm-bindgen-cli that is installed globally e.g.,
+# by flake.nix.
 wasm-bindgen = { version = "0.2.93" }
 wasm-bindgen-test = { version = "0.3.43" }
 wasmtime = { version = "22" }

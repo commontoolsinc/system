@@ -17,6 +17,11 @@ fn main() {
 
     if let ("wasm32", "unknown") = (target_arch.as_str(), target_os.as_str()) {
         println!("cargo::rerun-if-env-changed=COMMON_RUNTIME_PORT");
+        println!("cargo::rerun-if-env-changed=COMMON_BUILDER_PORT");
+
+        if std::option_env!("COMMON_BROWSER_INTEGRATION_TEST").is_some() {
+            println!("cargo:rustc-cfg=common_browser_integration_test")
+        }
     };
 
     build_component(

@@ -31,7 +31,6 @@
         overlays = [ (import rust-overlay) ];
         pkgs = import nixpkgs {
           inherit system overlays;
-
         };
 
         # Helper function to select a Rust toolchain by name e.g., "stable", "nightly".
@@ -57,14 +56,17 @@
             rust-toolchain = rustToolchain toolchain;
           in
           with pkgs; mkShell {
+
             buildInputs = [
               openssl
               pkg-config
               protobuf
               cargo-component
+              wasm-bindgen-cli
               wit-deps-cli
               rust-toolchain
               nodejs
+              chromium
               chromedriver
               jco
 
@@ -99,6 +101,22 @@
 
           cargoHash = "sha256-+7eHg3bQIt2ZhQCP0p0hGnn+yz9NX+1n45Yr5cZmoUA=";
         };
+
+        wasm-bindgen-cli = pkgs.rustPlatform.buildRustPackage
+          rec {
+            pname = "wasm-bindgen-cli";
+            # NOTE: Version must be kept in sync with Cargo.toml
+            # version of `wasm-bindgen` dependency!
+            version = "0.2.93";
+            buildInputs = [ pkgs.rust-bin.stable.latest.default ];
+
+            src = pkgs.fetchCrate {
+              inherit pname version;
+              sha256 = "sha256-DDdu5mM3gneraM85pAepBXWn3TMofarVR4NbjMdz3r0=";
+            };
+
+            cargoHash = "sha256-birrg+XABBHHKJxfTKAMSlmTVYLmnmqMDfRnmG6g/YQ=";
+          };
       in
       {
         devShells = {
