@@ -5,9 +5,10 @@ use crate::{Affinity, CommonRuntimeError, ContentType, ModuleBody};
 
 use super::ModuleDefinition;
 
-/// A newtype over a [ModuleDefinition]; it can only be constructed for
-/// definitions whose target is [Target::CommonFunctionVm], whose affinity
-/// allows for local instantiation and whose body is [ModuleBody::SourceCode].
+/// A newtype over a [ModuleDefinition].
+///
+/// It can only be constructed for definitions whose target is [Target::CommonFunctionVm],
+/// whose affinity allows for local instantiation, and whose body is [ModuleBody::SourceCode].
 #[derive(NewType)]
 #[new_type(skip(From))]
 pub struct FunctionVmDefinition(ModuleDefinition);
