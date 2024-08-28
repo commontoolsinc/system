@@ -3,6 +3,7 @@ members = [
   "rust/common-builder",
   "rust/common-javascript-interpreter",
   "rust/common-ifc",
+  "rust/common-integration-tests",
   "rust/common-macros",
   "rust/common-protos",
   "rust/common-runtime",
@@ -28,6 +29,7 @@ bytes = { version = "1" }
 clap = { version = "4.5" }
 common-builder = { path = "./rust/common-builder" }
 common-ifc = { path = "./rust/common-ifc" }
+common-integration-tests = { path = "./rust/common-integration-tests" }
 common-javascript-interpreter = { path = "./rust/common-javasript-interpreter" }
 common-macros = { path = "./rust/common-macros" }
 common-protos = { path = "./rust/common-protos", default-features = false }

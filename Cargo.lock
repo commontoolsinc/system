@@ -782,6 +782,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "common-integration-tests"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "common-builder",
+ "common-ifc",
+ "common-macros",
+ "common-protos",
+ "common-runtime",
+ "common-test-fixtures",
+ "common-tracing",
+ "common-wit",
+ "http",
+ "serde_json",
+ "tokio",
+ "tonic",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
+
+[[package]]
 name = "common-javascript-interpreter"
 version = "0.1.0"
 dependencies = [

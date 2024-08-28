@@ -137,8 +137,22 @@ jobs:
     needs: ['lints', 'build-wasm-components']
     strategy:
       matrix:
-        platform: ['ubuntu-latest', 'macos-13']
-        toolchain: ['stable', 'nightly']
+        include:
+          - platform: 'ubuntu-latest'
+            toolchain: 'stable'
+            flags: '--exclude common-integration-tests'
+          - platform: 'ubuntu-latest'
+            toolchain: 'stable'
+            flags: '--package common-integration-tests'
+          - platform: 'ubuntu-latest'
+            toolchain: 'nightly'
+            flags: '--exclude common-integration-tests'
+          - platform: 'macos-13'
+            toolchain: 'stable'
+            flags: '--exclude common-integration-tests'
+          - platform: 'macos-13'
+            toolchain: 'nightly'
+            flags: '--exclude common-integration-tests'
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -183,7 +197,9 @@ jobs:
           ${{ matrix.features }}
           ${{ matrix.toolchain}}" > test-results/target
 
-          CHROMEDRIVER=`which chromedriver` cargo +${{ matrix.toolchain }} nextest run \
+          CHROMEDRIVER=`which chromedriver` \
+            cargo +${{ matrix.toolchain }} \
+            nextest run ${{ matrix.flags }} \
             --features helpers \
             --release \
             --workspace \

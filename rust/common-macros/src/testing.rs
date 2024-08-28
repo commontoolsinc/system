@@ -36,15 +36,11 @@ pub fn common_browser_integration_test(item: TokenStream) -> TokenStream {
     let cfg_only_browser_integration_test: Attribute = parse_quote! {
         #[cfg(all(common_browser_integration_test, target_arch = "wasm32", target_os = "unknown"))]
     };
-    let cfg_feature_helpers: Attribute = parse_quote! {
-        #[cfg(feature = "helpers")]
-    };
     let common_tracing: Attribute = parse_quote! {
         #[common_macros::common_tracing]
     };
 
     quote!(
-        #cfg_feature_helpers
         #cfg_only_native
         #tokio_test
         #common_tracing
