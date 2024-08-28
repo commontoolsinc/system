@@ -140,19 +140,19 @@ jobs:
         include:
           - platform: 'ubuntu-latest'
             toolchain: 'stable'
-            flags: '--exclude common-integration-tests'
+            flags: '--workspace --exclude common-integration-tests'
           - platform: 'ubuntu-latest'
             toolchain: 'stable'
             flags: '--package common-integration-tests'
           - platform: 'ubuntu-latest'
             toolchain: 'nightly'
-            flags: '--exclude common-integration-tests'
+            flags: '--workspace --exclude common-integration-tests'
           - platform: 'macos-13'
             toolchain: 'stable'
-            flags: '--exclude common-integration-tests'
+            flags: '--workspace --exclude common-integration-tests'
           - platform: 'macos-13'
             toolchain: 'nightly'
-            flags: '--exclude common-integration-tests'
+            flags: '--workspace --exclude common-integration-tests'
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -194,15 +194,13 @@ jobs:
           mkdir -p test-results
 
           echo "${{ matrix.platform }}
-          ${{ matrix.features }}
+          ${{ matrix.flags }}
           ${{ matrix.toolchain}}" > test-results/target
 
           CHROMEDRIVER=`which chromedriver` \
             cargo +${{ matrix.toolchain }} \
             nextest run ${{ matrix.flags }} \
-            --features helpers \
             --release \
-            --workspace \
             --profile ci --color always 2>&1 | tee test-results/log
         env:
           RUST_LOG: info,common_runtime=trace,common_builder=trace,common_ifc=trace
