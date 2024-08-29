@@ -93,6 +93,17 @@ impl From<Value> for proto::Value {
     }
 }
 
+impl From<&ValueKind> for proto::ValueKind {
+    fn from(value: &ValueKind) -> Self {
+        match value {
+            ValueKind::String => proto::ValueKind::String,
+            ValueKind::Boolean => proto::ValueKind::Boolean,
+            ValueKind::Number => proto::ValueKind::Number,
+            ValueKind::Buffer => proto::ValueKind::Buffer,
+        }
+    }
+}
+
 impl From<proto::ValueKind> for ValueKind {
     fn from(value_kind: proto::ValueKind) -> Self {
         match value_kind {

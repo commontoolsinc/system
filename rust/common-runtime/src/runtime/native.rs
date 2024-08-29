@@ -20,12 +20,12 @@ pub use artifact::*;
 
 pub mod target;
 
-/// A Runtime implementation for "native" contexts.
+/// The Common Native Runtime
 ///
-/// This runtime uses Wasmtime as its internal Wasm runtime.
-///
-/// "Native" loosely refers to the native architecture of the local machine, distinguishing this Runtime from ones that may run in a virtual machine or web browser.
-/// The [NativeRuntime] implements Module types using Wasmtime as its internal Wasm runtime.
+/// A Runtime implementation for "native" contexts, where "native" is a loose
+/// reference to the native architecture of the local machine, and is used to
+/// distinguish the Runtime from one that may run in a virtual machine or web
+/// browser.
 pub struct NativeRuntime {
     artifact_resolver: ArtifactResolver,
     wasmtime_engine: WasmtimeEngine,

@@ -9,7 +9,8 @@ use super::{Module, ModuleContext};
 ///
 /// [ModuleFactory]s are typically produced by an implementor of a
 /// [crate::ModuleDriver].
-#[async_trait]
+#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
+#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait ModuleFactory: Clone + ConditionalSync {
     /// The type of the backing [ModuleContext] that is used by this [ModuleFactory]
     type Context: ModuleContext;

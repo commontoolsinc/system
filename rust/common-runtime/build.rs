@@ -12,6 +12,18 @@ fn main() {
     let project_root_dir = manifest_dir.parent().unwrap().parent().unwrap();
     let out_dir = PathBuf::from(std::env::var("OUT_DIR").unwrap());
 
+    let target_arch = std::env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+
+    if let ("wasm32", "unknown") = (target_arch.as_str(), target_os.as_str()) {
+        println!("cargo::rerun-if-env-changed=COMMON_RUNTIME_PORT");
+        println!("cargo::rerun-if-env-changed=COMMON_BUILDER_PORT");
+
+        if std::option_env!("COMMON_BROWSER_INTEGRATION_TEST").is_some() {
+            println!("cargo:rustc-cfg=common_browser_integration_test")
+        }
+    };
+
     build_component(
         project_root_dir,
         out_dir.as_path(),

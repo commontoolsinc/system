@@ -25,7 +25,7 @@ jobs:
             mapfile -t target <$RESULTS_DIR/target
 
             PLATFORM="${target[0]}"
-            FEATURES="${target[1]}"
+            FLAGS="${target[1]}"
             TOOLCHAIN="${target[2]}"
 
             LOG_PATH="$RESULTS_DIR/log"
@@ -39,7 +39,7 @@ jobs:
               continue
             fi
 
-            ENTRY="{\"platform\":\"$PLATFORM\",\"features\":\"$FEATURES\",\"toolchain\":\"$TOOLCHAIN\",\"summary\":$SUMMARY}"
+            ENTRY="{\"platform\":\"$PLATFORM\",\"flags\":\"$FLAGS\",\"toolchain\":\"$TOOLCHAIN\",\"summary\":$SUMMARY}"
 
             if [ -z "$ENTRIES" ]; then
               ENTRIES="$ENTRY"
@@ -74,17 +74,17 @@ jobs:
               body = "No test results to analyze. Maybe none of the test runs passed?";
             } else {
 
-              let table = "\n\n| status | platform | features | toolchain |\n|:---:|---|---|---|\n";
+              let table = "\n\n| status | platform | flags | toolchain |\n|:---:|---|---|---|\n";
 
               const flakeSummaries = [];
 
               for (result of results) {
                 const isFlakey = result.summary.indexOf("FLAKY") > 0;
 
-                table += `| ${ isFlakey ? "🟡" : "🟢" } | \`${ result.platform }\` | \`${ result.features }\` | \`${result.toolchain}\` |\n`;
+                table += `| ${ isFlakey ? "🟡" : "🟢" } | \`${ result.platform }\` | \`${ result.flags }\` | \`${result.toolchain}\` |\n`;
 
                 if (isFlakey) {
-                  flakeSummaries.push(`#### Flake summary for \`${ result.platform }\`, \`${ result.features }\`, \`${ result.toolchain }\`
+                  flakeSummaries.push(`#### Flake summary for \`${ result.platform }\`, \`${ result.flags }\`, \`${ result.toolchain }\`
 
             \`\`\`shell
             ${ result.summary }

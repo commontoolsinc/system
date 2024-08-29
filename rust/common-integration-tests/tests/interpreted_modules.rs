@@ -1,17 +1,17 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-mod shared;
-
 use anyhow::Result;
 use common_protos::{common, runtime};
+use common_runtime::helpers::{start_runtime, VirtualEnvironment};
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
-use shared::start_runtime;
 
-#[tokio::test(flavor = "multi_thread")]
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 #[common_tracing]
 async fn it_interprets_and_runs_a_common_script() -> Result<()> {
-    let (mut runtime_client, _, _) = start_runtime().await?;
+    let VirtualEnvironment {
+        mut runtime_client, ..
+    } = start_runtime().await?;
 
     let runtime::InstantiateModuleResponse { instance_id, .. } = runtime_client
         .instantiate_module(runtime::InstantiateModuleRequest {

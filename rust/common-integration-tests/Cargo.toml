@@ -1,0 +1,33 @@
+[package]
+name = "common-integration-tests"
+description = "Integration tests that span all other Common packages"
+version = "0.1.0"
+edition = "2021"
+
+[dev-dependencies]
+anyhow = { workspace = true }
+common-builder = { workspace = true }
+common-ifc = { workspace = true }
+common-macros = { workspace = true }
+common-protos = { workspace = true, features = ["runtime", "builder"] }
+common-runtime = { workspace = true, features = ["helpers"] }
+common-test-fixtures = { workspace = true }
+common-tracing = { workspace = true }
+common-wit = { workspace = true }
+http = { workspace = true }
+serde_json = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { workspace = true, features = [
+    "rt-multi-thread",
+    "rt",
+    "io-util",
+    "process",
+    "fs",
+    "macros",
+] }
+tonic = { workspace = true, features = ["codegen", "prost", "transport"] }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
+wasm-bindgen = { workspace = true }
+wasm-bindgen-test = { workspace = true }

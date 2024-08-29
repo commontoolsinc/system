@@ -23,19 +23,35 @@ impl TryFrom<HashMap<String, common::LabeledData>> for IoData {
     }
 }
 
+impl From<&IoData> for HashMap<String, common::LabeledData> {
+    fn from(value: &IoData) -> Self {
+        value.clone().into()
+    }
+}
+
 impl From<IoData> for HashMap<String, common::LabeledData> {
     fn from(value: IoData) -> Self {
         value
             .into_inner()
             .into_iter()
             .map(|(key, data)| (key, data.into()))
-            .collect::<HashMap<String, common::LabeledData>>()
+            .collect()
+    }
+}
+
+impl From<&IoData> for HashMap<String, common::Value> {
+    fn from(value: &IoData) -> Self {
+        value
+            .inner()
+            .iter()
+            .map(|(key, data)| (key.to_owned(), data.value.clone().into()))
+            .collect()
     }
 }
 
 /// A wrapper type for the mapping of IO names to value type
 /// for Common Modules.
-#[derive(NewType, Default, Clone, Debug)]
+#[derive(NewType, Default, Clone, Debug, Eq, PartialEq)]
 pub struct IoShape(BTreeMap<String, ValueKind>);
 
 impl TryFrom<HashMap<String, i32>> for IoShape {
@@ -50,6 +66,21 @@ impl TryFrom<HashMap<String, i32>> for IoShape {
         }
 
         Ok(Self(shape))
+    }
+}
+
+impl From<&IoShape> for HashMap<String, i32> {
+    fn from(value: &IoShape) -> Self {
+        value
+            .inner()
+            .iter()
+            .map(|(key, value_kind)| {
+                (
+                    key.to_owned(),
+                    common_protos::common::ValueKind::from(value_kind).into(),
+                )
+            })
+            .collect()
     }
 }
 

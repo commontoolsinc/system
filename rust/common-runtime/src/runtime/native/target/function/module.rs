@@ -50,10 +50,12 @@ impl NativeFunction {
 impl FunctionInterface for NativeFunction {
     type InputOutput = <NativeFunctionContext as ModuleContext>::Io;
 
+    #[instrument(skip(self, io))]
     async fn run(
         &mut self,
         io: Validated<Self::InputOutput>,
     ) -> Result<IoData, CommonRuntimeError> {
+        debug!("Running the module...");
         let mut io = io.into_inner();
 
         std::mem::swap(self.context_mut().io_mut(), &mut io);

@@ -4,6 +4,9 @@ description = "A Common runtime"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+helpers = ["common-builder"]
+
 [dependencies]
 anyhow = { workspace = true }
 async-trait = { workspace = true }
@@ -25,11 +28,14 @@ thiserror = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 
+
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 clap = { workspace = true, features = ["derive"] }
-tokio = { workspace = true, features = ["rt-multi-thread", "io-util", "process", "fs"] }
+common-builder = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "rt", "io-util", "process", "fs", "macros"] }
 tonic = { workspace = true, features = ["codegen", "prost", "transport"] }
-tower-http = { workspace = true, features = ["cors"] }
+tonic-web = { workspace = true }
+tower-http = { workspace = true, features = ["cors", "trace"] }
 wasmtime = { workspace = true }
 wasmtime-wasi = { workspace = true }
 wasmtime-wasi-http = { workspace = true }
@@ -37,7 +43,14 @@ wasmtime-wasi-http = { workspace = true }
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { workspace = true, features = ["js"]}
 tokio = { workspace = true, features = ["rt"] }
-tonic = { workspace = true, features = ["codegen", "prost"] }
+tonic = { workspace = true, default-features = false, features = ["codegen", "prost"] }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+wasm-bindgen = { workspace = true }
+tonic-web-wasm-client = { workspace = true }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
+wasm-bindgen-test = { workspace = true }
 
 [build-dependencies]
 tempfile = { workspace = true }

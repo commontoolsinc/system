@@ -9,6 +9,33 @@ for the most up-to-date build that are run as part of the CI process.
 
 This project uses both Rust and Node.js. Both toolchains and dependencies will need to be installed.
 
+### Nix
+
+Optionally, you may set up Nix (follow these instructions). If you use Nix, you
+can ignore most of the rest of this document.
+
+There is a `flake.nix` that can be used to scaffold the correct
+dev environment in one step:
+
+```sh
+nix develop
+```
+
+If you use a non-`bash` shell, you can specify it this way:
+
+```sh
+nix develop -c zsh
+```
+
+If you want to have a dev environment with a Rust Nightly toolchain:
+
+```sh
+nix develop .#nightly
+```
+
+After you drop into the Nix development environment, you can
+build the project as normal e.g., `cargo build`.
+
 ### System
 
 Install [protobuf-compiler] for your system.

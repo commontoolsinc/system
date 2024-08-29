@@ -9,6 +9,7 @@ publish = false
 proc-macro = true
 
 [dependencies]
+blake3 = { workspace = true }
 darling = { workspace = true }
 quote = { workspace = true }
 syn = { workspace = true, features = ["full"] }

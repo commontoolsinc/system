@@ -9,10 +9,15 @@ use common_protos::{
     },
     MAX_MESSAGE_SIZE,
 };
-use http::Uri;
-use std::sync::Arc;
+use http::{HeaderName, Uri};
+use std::{sync::Arc, time::Duration};
 use tokio::{net::TcpListener, sync::Mutex};
 use tonic::{transport::Server as TonicServer, Status};
+use tonic_web::GrpcWebLayer;
+use tower_http::{
+    cors::{AllowOrigin, CorsLayer},
+    trace::TraceLayer,
+};
 
 use crate::NativeRuntime;
 
@@ -89,6 +94,12 @@ impl From<CommonRuntimeError> for Status {
     }
 }
 
+const DEFAULT_MAX_AGE: Duration = Duration::from_secs(24 * 60 * 60);
+const DEFAULT_EXPOSED_HEADERS: [&str; 3] =
+    ["grpc-status", "grpc-message", "grpc-status-details-bin"];
+const DEFAULT_ALLOW_HEADERS: [&str; 4] =
+    ["x-grpc-web", "content-type", "x-user-agent", "grpc-timeout"];
+
 /// Start the Common Runtime server, listening to incoming connections on the
 /// provided [TcpListener]
 pub async fn serve(
@@ -107,6 +118,29 @@ pub async fn serve(
         .max_decoding_message_size(MAX_MESSAGE_SIZE);
 
     TonicServer::builder()
+        .accept_http1(true)
+        .layer(TraceLayer::new_for_http())
+        .layer(
+            CorsLayer::new()
+                .allow_origin(AllowOrigin::mirror_request())
+                .allow_credentials(true)
+                .max_age(DEFAULT_MAX_AGE)
+                .expose_headers(
+                    DEFAULT_EXPOSED_HEADERS
+                        .iter()
+                        .cloned()
+                        .map(HeaderName::from_static)
+                        .collect::<Vec<HeaderName>>(),
+                )
+                .allow_headers(
+                    DEFAULT_ALLOW_HEADERS
+                        .iter()
+                        .cloned()
+                        .map(HeaderName::from_static)
+                        .collect::<Vec<HeaderName>>(),
+                ),
+        )
+        .layer(GrpcWebLayer::new())
         .add_service(runtime_server)
         .serve_with_incoming(incoming_stream)
         .await

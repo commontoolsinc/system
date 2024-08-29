@@ -8,6 +8,15 @@ pub static MAX_MESSAGE_SIZE: usize = 32 * 1024 * 1024;
 #[allow(missing_docs)]
 pub mod common {
     tonic::include_proto!("common");
+
+    impl From<&common_wit::Target> for Target {
+        fn from(target: &common_wit::Target) -> Self {
+            match target {
+                common_wit::Target::CommonFunction => Target::CommonFunction,
+                common_wit::Target::CommonFunctionVm => Target::CommonFunctionVm,
+            }
+        }
+    }
 }
 
 /// Protobufs for the module builder.

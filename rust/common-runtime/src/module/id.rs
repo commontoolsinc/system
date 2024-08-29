@@ -1,5 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
+use common_macros::NewType;
+
 use crate::CommonRuntimeError;
 
 /// A unique instance ID which may be used to identify an instantiation of an
@@ -7,7 +9,7 @@ use crate::CommonRuntimeError;
 ///
 /// TODO: Would be nice to say that an instance ID was derived from a module ID
 #[repr(transparent)]
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(NewType, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct ModuleInstanceId(pub String);
 
 impl Display for ModuleInstanceId {

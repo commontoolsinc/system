@@ -10,6 +10,9 @@ pub use function::*;
 mod function_vm;
 pub use function_vm::*;
 
+mod remote_function;
+pub use remote_function::*;
+
 /// A (de)serializable structure that constitutes a [crate::Module]. A
 /// [ModuleDefinition] can be instantiated as a live Module by a Runtime that
 /// implements an appropriate [crate::ModuleDriver].
