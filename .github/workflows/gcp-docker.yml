@@ -101,3 +101,16 @@ jobs:
     secrets:
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+  deploy:
+    name: Auto deploy
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) }}
+    needs:
+      - runtime
+      - builder
+    uses: ./.github/workflows/infrastructure-pr.yml
+    with:
+      builder_digest: ${{ needs.builder.outputs.docker_digest }}
+      runtime_digest: ${{ needs.runtime.outputs.docker_digest }}
+    secrets:
+      CI_PR_PAT: ${{ secrets.CI_PR_PAT }}
