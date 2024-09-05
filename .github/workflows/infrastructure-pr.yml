@@ -31,7 +31,7 @@ jobs:
           target_ref: ${{ inputs.target_ref || 'main' }}
         run: |
           gh workflow run infrastructure-pr.yml \
-            -R commontoolsinc/infrastructure
+            -R commontoolsinc/infrastructure \
             -f builder_digest="${{ inputs.builder_digest }}" \
             -f runtime_digest="${{ inputs.runtime_digest }}" \
             -r ${{ env.target_ref }}
