@@ -9,6 +9,10 @@ on:
       runtime_digest:
         required: true
         type: string
+      target_ref:
+        required: false
+        type: string
+        default: main
 
     secrets:
       CI_PR_PAT:
@@ -21,14 +25,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # TODO: review Github CLI
       - name: call workflow_dispatch API
         env:
           GITHUB_TOKEN: ${{ secrets.CI_PR_PAT }}
+          target_ref: ${{ inputs.target_ref || 'main' }}
         run: |
           gh workflow run infrastructure-pr.yml \
             -R commontoolsinc/infrastructure
             -f builder_digest="${{ inputs.builder_digest }}" \
             -f runtime_digest="${{ inputs.runtime_digest }}" \
-            -r tweak-pr-workflow
-        # TODO: remove ref option before merging
+            -r ${{ env.target_ref }}
