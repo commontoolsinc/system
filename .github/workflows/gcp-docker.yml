@@ -27,7 +27,7 @@ jobs:
       image_name: base
       dockerfile: ./Dockerfile
       context: .
-      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      push: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
       build_args: |
         BASE_IMAGE=debian:bookworm-slim
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
@@ -56,13 +56,13 @@ jobs:
 
   runtime:
     name: Runtime
-    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' }}
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs:
       - base
       - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      push: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
@@ -80,13 +80,13 @@ jobs:
 
   builder:
     name: Builder
-    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' }}
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs:
       - base
       - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      push: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
       image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
@@ -104,7 +104,7 @@ jobs:
 
   deploy:
     name: Auto deploy
-    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) }}
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
     needs:
       - runtime
       - builder
