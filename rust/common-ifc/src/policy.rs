@@ -1,6 +1,6 @@
 use crate::{
-    CommonIfcError, Confidentiality, Context, Data, Integrity, Label, Lattice, ModuleEnvironment,
-    Result,
+    error::PolicyViolationSource, CommonIfcError, Confidentiality, Context, Integrity, Label,
+    LabelType, Lattice, ModuleEnvironment, Result,
 };
 use std::collections::BTreeMap;
 
@@ -76,15 +76,28 @@ impl Policy {
     }
 
     /// Validate input against this policy, given a [Context].
-    pub fn validate<'a, T, I>(&'a self, input: I, ctx: &Context) -> Result<()>
+    pub fn validate<'a, I, S>(&'a self, input: I, ctx: &Context) -> Result<()>
     where
-        T: 'static,
-        I: IntoIterator<Item = (&'a String, &'a Data<T>)>,
+        I: IntoIterator<Item = (S, &'a Label)>,
+        S: AsRef<str>,
     {
-        for (name, data) in input {
-            let (conf_reqs, int_reqs) = self.get_requirements(&data.label)?;
-            conf_reqs.validate(ctx, name)?;
-            int_reqs.validate(ctx, name)?;
+        for (name, label) in input {
+            let name = name.as_ref();
+            let (conf_reqs, int_reqs) = self.get_requirements(label)?;
+
+            for (reqs, label_type) in [
+                (conf_reqs, LabelType::Confidentiality),
+                (int_reqs, LabelType::Integrity),
+            ] {
+                reqs.validate(ctx).map_err(|e| {
+                    CommonIfcError::from(PolicyViolationSource {
+                        cause: e,
+                        input: name.into(),
+                        label_type,
+                        node: None,
+                    })
+                })?;
+            }
         }
         Ok(())
     }
@@ -133,7 +146,7 @@ mod tests {
     #[test]
     #[common_tracing]
     fn it_validates_module_env() -> Result<()> {
-        let input = BTreeMap::from([("in".into(), Data::from(("data", Private, High)))]);
+        let input = BTreeMap::from([(String::from("in"), (Private, High).into())]);
 
         let policy = Policy::with_defaults()?;
         assert!(policy.validate(&input, &(Server,).into()).is_ok());
@@ -146,7 +159,12 @@ mod tests {
         )?;
         assert_eq!(
             policy.validate(&input, &(Server,).into()),
-            Err(CommonIfcError::InvalidEnvironment("in".into()))
+            Err(CommonIfcError::from(PolicyViolationSource {
+                cause: CommonIfcError::InvalidEnvironment,
+                input: String::from("in"),
+                label_type: LabelType::Confidentiality,
+                node: None,
+            }))
         );
         assert!(policy.validate(&input, &(WebBrowser,).into()).is_ok());
 

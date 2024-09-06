@@ -1,9 +1,8 @@
-use common_ifc::{Data, Label};
-use std::collections::BTreeMap;
-
-use crate::{sync::ConditionalSync, CommonRuntimeError, Value, ValueKind};
+use crate::{sync::ConditionalSync, CommonRuntimeError, Data, Value, ValueKind};
+use common_ifc::Label;
 use common_macros::NewType;
 use common_protos::common;
+use std::collections::BTreeMap;
 use std::collections::HashMap;
 
 /// A wrapper type around the mapping of IO names
@@ -207,7 +206,7 @@ impl BasicIo {
     /// Instantiate a [RuntimeIo], providing initial input state, and the
     /// expected shape of output state.
     pub fn new(input: IoData, output_shape: IoShape) -> Self {
-        let label_constraints = Label::constrain(input.iter());
+        let label_constraints = Label::constrain(input.iter().map(|(_, v)| &v.label));
         Self {
             input,
             output_shape,

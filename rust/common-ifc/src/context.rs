@@ -15,22 +15,22 @@ pub enum ModuleEnvironment {
 
 /// Represents an execution environment of a module.
 ///
-/// Used in [Policy] as requirements for
+/// Used in [`Policy`] as requirements for
 /// the minimum level needed to execute a module,
-/// validating against the actual [Context] during
+/// validating against the actual [`Context`] during
 /// execution.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Context {
     /// Minimum allowed module environment.
     pub environment: ModuleEnvironment,
 }
 
 impl Context {
-    /// Ensures the provided [Context] surpasses
+    /// Ensures the provided [`Context`] surpasses
     /// the threshold for all of this context's requirements.
-    pub fn validate(&self, ctx: &Context, input_name: &str) -> Result<()> {
+    pub fn validate(&self, ctx: &Context) -> Result<()> {
         if self.environment > ctx.environment {
-            return Err(CommonIfcError::InvalidEnvironment(input_name.into()));
+            return Err(CommonIfcError::InvalidEnvironment);
         }
         Ok(())
     }
@@ -55,12 +55,11 @@ mod tests {
     fn it_validates_context() -> Result<()> {
         let server = Context::from((Server,));
         let browser = Context::from((WebBrowser,));
-        let name = "input";
 
-        server.validate(&server, name)?;
-        server.validate(&browser, name)?;
-        browser.validate(&browser, name)?;
-        assert!(browser.validate(&server, name).is_err());
+        server.validate(&server)?;
+        server.validate(&browser)?;
+        browser.validate(&browser)?;
+        assert!(browser.validate(&server).is_err());
         Ok(())
     }
 }

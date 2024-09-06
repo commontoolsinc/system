@@ -1,3 +1,5 @@
+//! Helpers for the Common Runtime.
+
 use crate::{serve as serve_runtime, CommonRuntimeError};
 use anyhow::Result;
 use common_builder::{serve as serve_builder, BuilderError};
