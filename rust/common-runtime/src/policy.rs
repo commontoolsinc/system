@@ -1,9 +1,10 @@
 use crate::{CommonRuntimeError, InputOutput};
 use common_ifc::{Context as IfcContext, Policy};
 
-/// A type that wraps an inner value that has been validated against some [Policy].
-/// A [Validated] can only be created through a fallible step in which the wrapped
-/// value is validated against the [Policy].
+/// A wrapper around `T` that has been validated against some [`Policy`].
+///
+/// A [`Validated`] can only be created through a fallible step
+/// in which the wrapped value is validated against the [`Policy`].
 pub struct Validated<T> {
     policy: Policy,
     inner: T,
@@ -15,7 +16,7 @@ impl<T> Validated<T> {
         self.inner
     }
 
-    /// The [Policy] that was used to validate the wrapped value
+    /// The [`Policy`] that was used to validate the wrapped value
     pub fn policy(&self) -> &Policy {
         &self.policy
     }

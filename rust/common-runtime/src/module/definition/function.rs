@@ -5,7 +5,7 @@ use crate::{module::affinity::Affinity, CommonRuntimeError};
 
 use super::ModuleDefinition;
 
-/// A newtype over a [ModuleDefinition]; it can only be constructed for
+/// A newtype over a [`ModuleDefinition`]; it can only be constructed for
 /// definitions whose target is [Target::CommonFunction].and whose affinity
 /// allows for local instantiation.
 #[derive(NewType)]

@@ -5,18 +5,18 @@ use std::str::FromStr;
 
 /// The data that gets passed between runtime modules,
 /// containing the underlying `T` and its confidentiality
-/// and integrity [Label].
+/// and integrity [`Label`].
 #[derive(PartialEq, Clone, Debug)]
 pub struct Data<T> {
     /// The inner value.
     pub value: T,
-    /// [Label] representing confidentiality and integrity
+    /// [`Label`] representing confidentiality and integrity
     /// of `value`.
     pub label: Label,
 }
 
 impl<T> Data<T> {
-    /// Creates a [Data] from a value `T` using the
+    /// Creates a [`Data`] from a value `T` using the
     /// strictest labels: the most confidential, and the
     /// least integrity.
     pub fn with_strict_labels(value: T) -> Self {

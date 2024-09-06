@@ -30,7 +30,7 @@ pub struct Server {
 }
 
 impl Server {
-    /// Instantiate a new [Server]; the optional `builder_address` will be used
+    /// Instantiate a new[`Server`]; the optional `builder_address` will be used
     /// to attempt to JIT prepare not-yet-compiled Common Modules when needed.
     pub fn new(builder_address: Option<Uri>) -> Result<Self, CommonRuntimeError> {
         let artifact_resolver = ArtifactResolver::new(builder_address.clone())?;
@@ -101,7 +101,7 @@ const DEFAULT_ALLOW_HEADERS: [&str; 4] =
     ["x-grpc-web", "content-type", "x-user-agent", "grpc-timeout"];
 
 /// Start the Common Runtime server, listening to incoming connections on the
-/// provided [TcpListener]
+/// provided[`TcpListener`]
 pub async fn serve(
     listener: TcpListener,
     builder_address: Option<Uri>,

@@ -7,7 +7,7 @@ use super::ModuleDefinition;
 
 /// Function VM Definition
 ///
-/// A newtype over a [ModuleDefinition]; it can only be constructed for
+/// A newtype over a [`ModuleDefinition`]; it can only be constructed for
 /// definitions whose target is [Target::CommonFunctionVm], whose affinity
 /// allows for local instantiation and whose body is [ModuleBody::SourceCode].
 #[derive(NewType)]
@@ -15,8 +15,8 @@ use super::ModuleDefinition;
 pub struct FunctionVmDefinition(ModuleDefinition);
 
 impl FunctionVmDefinition {
-    /// Get the [ContentType] associated with the with the source code of this
-    /// [ModuleDefinition]
+    /// Get the [`ContentType`] associated with the with the source code of this
+    /// [`ModuleDefinition`]
     pub fn content_type(&self) -> Result<ContentType, CommonRuntimeError> {
         if let ModuleBody::SourceCode(source_code_collection) = &self.0.body {
             if let Some((_, source_code)) = source_code_collection.iter().next() {

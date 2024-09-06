@@ -118,8 +118,8 @@ pub fn derive_new_type(input: TokenStream) -> TokenStream {
     impls.into_iter().collect()
 }
 
-/// Parses a [TokenStream], validates the new type,
-/// and returns a [ParsedInput].
+/// Parses a [`TokenStream`], validates the new type,
+/// and returns a [`ParsedInput`].
 fn parse_new_type(input: DeriveInput) -> ParsedInput {
     let name = input.ident;
     let generics = input.generics;

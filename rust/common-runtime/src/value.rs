@@ -15,7 +15,7 @@ pub enum Value {
 }
 
 impl Value {
-    /// Check if a [ValueKind] corresponds to the type of this [Value]
+    /// Check if a [`ValueKind`] corresponds to the type of this [`Value`]
     pub fn is_of_kind(&self, kind: &ValueKind) -> bool {
         match self {
             Value::String(_) if kind == &ValueKind::String => true,
@@ -27,7 +27,7 @@ impl Value {
     }
 }
 
-/// The set of variant types for [Value]
+/// The set of variant types for [`Value`]
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ValueKind {
     /// A UTF-8 string

@@ -8,7 +8,7 @@ use tokio::net::TcpListener;
 use tokio::task::JoinHandle;
 
 /// The critical metadata needed to access the virtual environment
-/// that is started by the [start_runtime] helper
+/// that is started by the [`start_runtime`] helper
 pub struct VirtualEnvironment {
     /// A gRPC client that has been configured to access the running
     /// [crate::NativeRuntime]
@@ -25,7 +25,7 @@ pub struct VirtualEnvironment {
 }
 
 /// Starts a `common-runtime` server connected to a `common-builder`,
-/// returning a handle to a [RuntimeClient], and handlers to
+/// returning a handle to a [`RuntimeClient`], and handlers to
 /// tokio threads for the server lifetimes.
 pub async fn start_runtime() -> Result<VirtualEnvironment> {
     let builder_listener = TcpListener::bind("127.0.0.1:0").await?;
