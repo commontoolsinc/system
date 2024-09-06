@@ -7,7 +7,7 @@
 extern crate common_macros;
 
 /// Contains implementation for the `#[common_tracing]` macro.
-/// Prefer using the [common_tracing::common_tracing] macro over
+/// Prefer using the [`common_tracing`] macro over
 /// calling these functions directly.
 pub mod macro_impl;
 

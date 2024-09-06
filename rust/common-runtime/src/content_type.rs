@@ -2,7 +2,10 @@ use std::fmt::Display;
 
 use common_protos::common;
 
-/// Supported content types that may be embodied as a [crate::CommonModule]
+#[cfg(doc)]
+use crate::Module;
+
+/// Supported content types that may be embodied as a [`Module`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ContentType {
     /// JavaScript or TypeScript code

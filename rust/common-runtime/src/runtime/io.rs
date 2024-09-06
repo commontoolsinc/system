@@ -5,6 +5,9 @@ use common_protos::common;
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 
+#[cfg(doc)]
+use crate::ModuleDriver;
+
 /// A wrapper type around the mapping of IO names
 /// for Common Modules.
 #[derive(NewType, Default, Clone, Debug)]
@@ -135,12 +138,12 @@ impl TryFrom<HashMap<String, common::Value>> for IoValues {
 /// A generic trait for a reference to state. The implementation may embody
 /// state that is opaque, readable and/or writable.
 pub trait InputOutput: Clone + Default + ConditionalSync + std::fmt::Debug {
-    /// Attempt to read some [Value] from state that is assigned some well-known
+    /// Attempt to read some [`Value`] from state that is assigned some well-known
     /// `key`. A value may be returned if it is part of the state, and the reader
     /// is allowed to read it.
     fn read(&self, key: &str) -> Option<Value>;
 
-    /// Write some [Value] to a well-known `key`. The write may or may not be
+    /// Write some [`Value`] to a well-known `key`. The write may or may not be
     /// accepted. There is no prescription made as to the transactional
     /// guarantees of a call to `write`. Subsequent calls to `read` for the same
     /// `key` may or may not reflect the effect of a `write`, regardless of
@@ -158,7 +161,7 @@ pub trait InputOutput: Clone + Default + ConditionalSync + std::fmt::Debug {
     /// Get a mutable reference to the output [Data]
     fn output_mut(&mut self) -> &mut IoData;
 
-    /// Get the shape of the output, which is the expected [ValueKind] that maps
+    /// Get the shape of the output, which is the expected [`ValueKind`] that maps
     /// to each allowed key in the output space
     fn output_shape(&self) -> &IoShape;
 }
@@ -192,8 +195,8 @@ where
     }
 }
 
-/// An implementation of [InputOutput] that is suitable for use with many kinds
-/// of [crate::ModuleDriver].
+/// An implementation of [`InputOutput`] that is suitable for use with many kinds
+/// of [`ModuleDriver`].
 #[derive(Debug, Default, Clone)]
 pub struct BasicIo {
     input: IoData,
@@ -203,7 +206,7 @@ pub struct BasicIo {
 }
 
 impl BasicIo {
-    /// Instantiate a [RuntimeIo], providing initial input state, and the
+    /// Instantiate a [`BasicIo`], providing initial input state, and the
     /// expected shape of output state.
     pub fn new(input: IoData, output_shape: IoShape) -> Self {
         let label_constraints = Label::constrain(input.iter().map(|(_, v)| &v.label));
@@ -215,8 +218,8 @@ impl BasicIo {
         }
     }
 
-    /// Takes input values [IoValues] and an output shape [IoShape], and converts
-    /// the values into [Data] with strictest labels. Used for
+    /// Takes input values [`IoValues`] and an output shape [`IoShape`], and converts
+    /// the values into [`Data`] with strictest labels. Used for
     /// specifying initial state.
     pub fn from_initial_state(input_values: IoValues, output_shape: IoShape) -> Self {
         let mut map = BTreeMap::new();

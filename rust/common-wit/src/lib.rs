@@ -29,7 +29,7 @@ pub enum Target {
 }
 
 impl Target {
-    /// The presumptive WIT world that corresponds to a give [WitTarget]
+    /// The presumptive WIT world that corresponds to a given [`Target`]
     pub fn world(&self) -> &'static str {
         match self {
             Target::CommonFunction => "common:function/module",
@@ -68,7 +68,7 @@ impl std::fmt::Display for Target {
     }
 }
 
-/// A map of files that correspond to a give [WitTarget]
+/// A map of files that correspond to a give [`Target`]
 
 #[repr(transparent)]
 #[derive(Clone)]
@@ -81,7 +81,7 @@ impl AsRef<BTreeMap<String, &'static [u8]>> for WitTargetFileMap {
 }
 
 impl WitTargetFileMap {
-    /// Efficiently writes the files in the [WitTargetFileMap] to a target
+    /// Efficiently writes the files in the [`WitTargetFileMap`] to a target
     /// location on the local filesystem
     #[cfg(not(target_arch = "wasm32"))]
     pub async fn write_to(self, target_directory: &std::path::Path) -> Result<(), std::io::Error> {

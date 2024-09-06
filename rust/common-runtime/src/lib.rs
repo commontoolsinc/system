@@ -2,7 +2,7 @@
 
 //! A library that constitutes the substantial implementation of a Common Runtime.
 
-// TODO: All [async_trait::async_trait]-using code must be made compatible with
+// TODO: All [`async_trait::async_trait`]-using code must be made compatible with
 // the `wasm32-unknown-unknown` target.
 
 #[macro_use]

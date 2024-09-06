@@ -10,7 +10,7 @@ use tokio::process::Command;
 use tokio::task::JoinSet;
 use tracing::instrument;
 
-/// A JavaScript-based [Bake] implementation,
+/// A JavaScript-based [`Bake`] implementation,
 /// using `jco`.
 #[derive(Debug)]
 pub struct JavaScriptBaker {}

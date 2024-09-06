@@ -7,7 +7,7 @@ use super::ModuleDefinition;
 
 /// Remote Function Definition
 ///
-/// A newtype over a [ModuleDefinition]; it can only be constructed for
+/// A newtype over a [`ModuleDefinition`]; it can only be constructed for
 /// definitions whose target is [Target::CommonFunction].or [Target::CommonFunctionVm] and whose affinity
 /// allows for remote instantiation.
 #[derive(NewType)]

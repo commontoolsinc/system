@@ -18,7 +18,7 @@ pub struct EsmTestServer {
 }
 
 impl EsmTestServer {
-    /// Create a new [ESMTestServer], serving the
+    /// Create a new [`EsmTestServer`], serving the
     /// `dir` directory at the host HTTP root "/".
     pub fn new<P: AsRef<Path>>(dir: P) -> Self {
         Self {
@@ -28,7 +28,7 @@ impl EsmTestServer {
     }
 
     /// Start the static server on `port`. Upon success, a
-    /// [SocketAddr] is returned of the static server.
+    /// [`SocketAddr`] is returned of the static server.
     pub async fn start_with_port(&mut self, port: u16) -> Result<SocketAddr> {
         let listener = TcpListener::bind((Ipv4Addr::new(127, 0, 0, 1), port)).await?;
         let addr = listener.local_addr()?;
@@ -43,13 +43,13 @@ impl EsmTestServer {
     }
 
     /// Start the static server, using an available port implicitly.
-    /// See [ESMTestServer::start_with_port] for more details.
+    /// See [`EsmTestServer::start_with_port`] for more details.
     pub async fn start(&mut self) -> Result<SocketAddr> {
         self.start_with_port(0).await
     }
 
     /// Terminates the static server. Called automatically when
-    /// [ESMTestServer] is dropped.
+    /// [`EsmTestServer`] is dropped.
     pub fn stop(&mut self) {
         if let Some(handle) = self.handle.take() {
             handle.abort();
