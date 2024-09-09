@@ -4,8 +4,9 @@ use common_protos::{
     common,
     runtime::{self, runtime_client::RuntimeClient},
 };
-use common_runtime::Value;
+use common_runtime::{ContentType, ModuleBody, SourceCode, Value};
 use std::{
+    collections::BTreeMap,
     io::{stdin, Read},
     path::{Path, PathBuf},
 };
@@ -87,20 +88,13 @@ async fn exec_module(
                 },
             )]
             .into(),
+            target: common::Target::CommonFunctionVm.into(),
             module_reference: Some(
-                runtime::instantiate_module_request::ModuleReference::ModuleSource(
-                    common::ModuleSource {
-                        target: common::Target::CommonFunctionVm.into(),
-                        source_code: [(
-                            "module".into(),
-                            common::SourceCode {
-                                content_type: common::ContentType::JavaScript.into(),
-                                body: module_str.into(),
-                            },
-                        )]
-                        .into(),
-                    },
-                ),
+                ModuleBody::SourceCode(BTreeMap::from([(
+                    String::from("module"),
+                    SourceCode::from((ContentType::JavaScript, String::from(module_str))),
+                )]))
+                .into(),
             ),
         })
         .await?

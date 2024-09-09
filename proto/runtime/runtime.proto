@@ -5,13 +5,10 @@ import public "common/common.proto";
 package runtime;
 
 message InstantiateModuleRequest {
-  oneof module_reference {
-    common.ModuleSignature module_signature = 1;
-    common.ModuleSource module_source = 2;
-  }
-
-  map<string, common.ValueKind> output_shape = 4;
-  map<string, common.Value> default_input = 5;
+  common.ModuleBody module_reference = 1;
+  common.Target target = 2;
+  map<string, common.ValueKind> output_shape = 3;
+  map<string, common.Value> default_input = 4;
 }
 
 message InstantiateModuleResponse { string instance_id = 1; }

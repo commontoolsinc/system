@@ -81,8 +81,8 @@ impl ArtifactResolver {
             let id = if let ModuleBody::SourceCode(source_code_collection) = &definition.body {
                 let BuildComponentResponse { id } = builder_client
                     .build_component(tonic::Request::new(BuildComponentRequest {
+                        target: common_protos::common::Target::CommonFunction.into(),
                         module_source: Some(common_protos::common::ModuleSource {
-                            target: common_protos::common::Target::CommonFunction.into(),
                             source_code: source_code_collection
                                 .iter()
                                 .map(|(key, value)| (key.to_owned(), value.into()))
@@ -157,10 +157,8 @@ impl ArtifactResolver {
                 bundled_source_code,
             } = builder_client
                 .bundle_source_code(tonic::Request::new(BundleSourceCodeRequest {
-                    module_source: Some(common_protos::common::ModuleSource {
-                        target: target.into(),
-                        source_code,
-                    }),
+                    target: target.into(),
+                    module_source: Some(common_protos::common::ModuleSource { source_code }),
                 }))
                 .await
                 .map_err(|error| CommonRuntimeError::PreparationFailed(format!("{error}")))?

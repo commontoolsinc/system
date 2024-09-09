@@ -17,6 +17,15 @@ pub mod common {
             }
         }
     }
+
+    impl From<Target> for common_wit::Target {
+        fn from(value: Target) -> Self {
+            match value {
+                Target::CommonFunction => common_wit::Target::CommonFunction,
+                Target::CommonFunctionVm => common_wit::Target::CommonFunctionVm,
+            }
+        }
+    }
 }
 
 /// Protobufs for the module builder.

@@ -1,5 +1,7 @@
 #![cfg(not(target_arch = "wasm32"))]
 
+use std::collections::HashMap;
+
 use anyhow::Result;
 use common_builder::serve as serve_builder;
 use common_protos::{builder, common, runtime};
@@ -28,21 +30,20 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
                 },
             )]
             .into(),
-            module_reference: Some(
-                runtime::instantiate_module_request::ModuleReference::ModuleSource(
+            target: common::Target::CommonFunction.into(),
+            module_reference: Some(common::ModuleBody {
+                variant: Some(common::module_body::Variant::ModuleSource(
                     common::ModuleSource {
-                        target: common::Target::CommonFunction.into(),
-                        source_code: [(
-                            "module".into(),
+                        source_code: HashMap::from([(
+                            String::from("module"),
                             common::SourceCode {
                                 content_type: common::ContentType::JavaScript.into(),
                                 body: BASIC_MODULE_JS.into(),
                             },
-                        )]
-                        .into(),
+                        )]),
                     },
-                ),
-            ),
+                )),
+            }),
         })
         .await?
         .into_inner();
@@ -91,8 +92,8 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
 
     let builder::BuildComponentResponse { id: module_id } = builder_client
         .build_component(builder::BuildComponentRequest {
+            target: common::Target::CommonFunction.into(),
             module_source: Some(common::ModuleSource {
-                target: common::Target::CommonFunction.into(),
                 source_code: [(
                     "module".to_owned(),
                     common::SourceCode {
@@ -124,14 +125,12 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
                 },
             )]
             .into(),
-            module_reference: Some(
-                runtime::instantiate_module_request::ModuleReference::ModuleSignature(
-                    common::ModuleSignature {
-                        target: common::Target::CommonFunction.into(),
-                        id: module_id,
-                    },
-                ),
-            ),
+            target: common::Target::CommonFunction.into(),
+            module_reference: Some(common::ModuleBody {
+                variant: Some(common::module_body::Variant::ModuleSignature(
+                    common::ModuleSignature { id: module_id },
+                )),
+            }),
         })
         .await?
         .into_inner();
