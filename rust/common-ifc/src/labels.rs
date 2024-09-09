@@ -1,10 +1,17 @@
-use crate::{CommonIfcError, Data};
 use common_macros::Lattice;
 use std::{
     fmt::{Debug, Display},
     slice::Iter,
-    str::FromStr,
 };
+
+/// Enum representing either the [`Confidentiality`] or [`Integrity`] lattices.
+#[derive(Debug, PartialEq)]
+pub enum LabelType {
+    /// Represents [`Confidentiality`].
+    Confidentiality,
+    /// Represents [`Integrity`].
+    Integrity,
+}
 
 /// Trait representing a partially ordered lattice.
 pub trait Lattice: Display + Debug + Ord + PartialOrd + Eq + PartialEq + Sized {
@@ -17,34 +24,31 @@ pub trait Lattice: Display + Debug + Ord + PartialOrd + Eq + PartialEq + Sized {
     fn iter() -> Iter<'static, Self>;
 }
 
-/// Contains the [Confidentiality] and
-/// [Integrity] describing the confidentiality
-/// and integrity of data `T` associated with [Data].
+/// Contains the [`Confidentiality`] and
+/// [`Integrity`] describing the confidentiality
+/// and integrity of data `T` associated with data.
 #[derive(PartialEq, Debug, Clone, Default)]
 pub struct Label {
-    /// Confidentiality component of [Label].
+    /// Confidentiality component of [`Label`].
     pub confidentiality: Confidentiality,
-    /// Integrity component of [Label].
+    /// Integrity component of [`Label`].
     pub integrity: Integrity,
 }
 
 impl Label {
-    /// Create a [Label] that sets its [Confidentiality]
-    /// and [Integrity] to the highest confidentiality
-    /// and lowest integrity found in `input`.
-    pub fn constrain<'a, T, I>(input: I) -> Self
+    /// Create a [`Label`] that sets its [`Confidentiality`]
+    /// and [`Integrity`] to the highest confidentiality
+    /// found in `input`, and the lowest integrity.
+    pub fn constrain<'a, I>(input: I) -> Self
     where
-        T: 'static,
-        I: IntoIterator<Item = (&'a String, &'a Data<T>)>,
+        I: IntoIterator<Item = &'a Label>,
     {
         let mut max_conf = Confidentiality::bottom();
-        let mut min_int = Integrity::top();
-        for (_, data) in input {
-            let (conf, int) = (&data.label).into();
+        for label in input {
+            let (conf, _) = label.into();
             max_conf = std::cmp::max(max_conf, conf);
-            min_int = std::cmp::min(min_int, int);
         }
-        (max_conf, min_int).into()
+        (max_conf, Integrity::bottom()).into()
     }
 }
 
@@ -69,84 +73,64 @@ impl From<&Label> for (Confidentiality, Integrity) {
     }
 }
 
-/// Levels of integrity for a [Data], ordered
+/// Levels of integrity for data, ordered
 /// from least to most integrity.
-#[derive(Lattice, Default, Ord, PartialOrd, Eq, PartialEq, Clone, Debug)]
+#[derive(
+    strum::Display,
+    strum::EnumString,
+    Lattice,
+    Default,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Clone,
+    Debug,
+)]
 pub enum Integrity {
     /// The lowest integrity label.
     #[default]
+    #[strum(to_string = "LowIntegrity")]
     Low,
     /// The highest integrity label.
+    #[strum(to_string = "HighIntegrity")]
     High,
 }
 
-impl Display for Integrity {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use Integrity::*;
-        write!(
-            f,
-            "{}",
-            match self {
-                High => "HighIntegrity",
-                Low => "LowIntegrity",
-            }
-        )
-    }
-}
-
-impl FromStr for Integrity {
-    type Err = CommonIfcError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Integrity::*;
-        match s {
-            "HighIntegrity" => Ok(High),
-            "LowIntegrity" => Ok(Low),
-            _ => Err(CommonIfcError::Conversion),
-        }
-    }
-}
-
-/// Levels of confidentiality for a [Data], ordered
+/// Levels of confidentiality for data, ordered
 /// from least to most confidential.
-#[derive(Lattice, Default, Ord, PartialOrd, Eq, PartialEq, Clone, Debug)]
+#[derive(
+    strum::Display,
+    strum::EnumString,
+    Lattice,
+    Default,
+    Ord,
+    PartialOrd,
+    Eq,
+    PartialEq,
+    Clone,
+    Debug,
+)]
 pub enum Confidentiality {
     /// The lowest confidentiality label.
+    #[strum(to_string = "Public")]
     Public,
     /// The highest confidentiality label.
     #[default]
+    #[strum(to_string = "Private")]
     Private,
 }
 
-impl Display for Confidentiality {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        use Confidentiality::*;
-        write!(
-            f,
-            "{}",
-            match self {
-                Private => "Private",
-                Public => "Public",
-            }
-        )
-    }
-}
-
-impl FromStr for Confidentiality {
-    type Err = CommonIfcError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Confidentiality::*;
-        match s {
-            "Private" => Ok(Private),
-            "Public" => Ok(Public),
-            _ => Err(CommonIfcError::Conversion),
-        }
+#[cfg(feature = "render")]
+impl common_graph::RenderableValue for Label {
+    fn render_value(&self) -> String {
+        self.confidentiality.to_string()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::BTreeMap;
     use Confidentiality::*;
     use Integrity::*;
 
@@ -177,34 +161,30 @@ mod tests {
 
     #[test]
     fn it_constrains_from_input() {
-        let private_high = ("vh".into(), Data::from(("data", Private, High)));
-        let private_low = ("vl".into(), Data::from(("data", Private, Low)));
-        let public_high = ("bh".into(), Data::from(("data", Public, High)));
-        let public_low = ("bl".into(), Data::from(("data", Public, Low)));
-
-        fn input(seq: [&(String, Data<&'static str>); 2]) -> BTreeMap<String, Data<&'static str>> {
-            BTreeMap::from(seq.map(|i| i.to_owned()))
-        }
+        let private_high = (Private, High).into();
+        let private_low = (Private, Low).into();
+        let public_high = (Public, High).into();
+        let public_low = (Public, Low).into();
 
         assert_eq!(
-            Label::constrain(&input([&private_high, &public_low])),
+            Label::constrain([&private_high, &public_low]),
             (Private, Low).into(),
         );
         assert_eq!(
-            Label::constrain(&input([&private_low, &public_high])),
+            Label::constrain([&private_low, &public_high]),
             (Private, Low).into(),
         );
         assert_eq!(
-            Label::constrain(&input([&public_low, &public_high])),
+            Label::constrain([&public_low, &public_high]),
             (Public, Low).into(),
         );
         assert_eq!(
-            Label::constrain(&input([&private_low, &private_high])),
+            Label::constrain([&private_low, &private_high]),
             (Private, Low).into(),
         );
         assert_eq!(
-            Label::constrain(&input([&private_high, &private_high])),
-            (Private, High).into(),
+            Label::constrain([&private_high, &private_high]),
+            (Private, Low).into(),
         );
     }
 }

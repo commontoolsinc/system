@@ -10,7 +10,7 @@ use super::source_code::SourceCodeCollection;
 /// [crate::ModuleDefinition].
 #[derive(Clone)]
 pub enum ModuleBody {
-    /// A signature body is a [ModuleId] that can be used to look up a pre-built
+    /// A signature body is a [`ModuleId`] that can be used to look up a pre-built
     /// artifact
     Signature(ModuleId),
     /// A source code body contains code that may be built into a runnable
@@ -41,8 +41,8 @@ impl From<(&Target, &ModuleBody)> for ModuleId {
 
 impl ModuleBody {
     // TODO: Module reference should not be a holder of target
-    /// Convert the [ModuleBody] into a [ModuleReference] with the given
-    /// [Target]
+    /// Convert the [`ModuleBody`] into a [`ModuleReference`] with the given
+    /// [`Target`]
     pub fn to_module_reference(&self, target: &Target) -> ModuleReference {
         let target = common::Target::from(target);
         match self {

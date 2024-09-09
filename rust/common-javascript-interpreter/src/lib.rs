@@ -8,6 +8,7 @@
 //! enables us to evaluate `common:module` JavaScript within a Wasm sandbox.
 #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 #[allow(warnings)]
+#[rustfmt::skip]
 mod bindings;
 
 #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]

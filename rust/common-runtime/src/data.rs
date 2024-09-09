@@ -1,21 +1,22 @@
-use crate::{CommonIfcError, Confidentiality, Integrity, Label};
+use crate::CommonRuntimeError;
+use common_ifc::{Confidentiality, Integrity, Label};
 use common_protos::common as proto;
 use std::str::FromStr;
 
 /// The data that gets passed between runtime modules,
 /// containing the underlying `T` and its confidentiality
-/// and integrity [Label].
+/// and integrity [`Label`].
 #[derive(PartialEq, Clone, Debug)]
 pub struct Data<T> {
     /// The inner value.
     pub value: T,
-    /// [Label] representing confidentiality and integrity
+    /// [`Label`] representing confidentiality and integrity
     /// of `value`.
     pub label: Label,
 }
 
 impl<T> Data<T> {
-    /// Creates a [Data] from a value `T` using the
+    /// Creates a [`Data`] from a value `T` using the
     /// strictest labels: the most confidential, and the
     /// least integrity.
     pub fn with_strict_labels(value: T) -> Self {
@@ -30,17 +31,19 @@ impl<T> TryFrom<proto::LabeledData> for Data<T>
 where
     T: TryFrom<proto::Value>,
 {
-    type Error = CommonIfcError;
+    type Error = CommonRuntimeError;
     fn try_from(data: proto::LabeledData) -> Result<Self, Self::Error> {
         Ok(Data {
             value: data
                 .value
-                .ok_or(CommonIfcError::Conversion)?
+                .ok_or(CommonRuntimeError::InvalidValue)?
                 .try_into()
-                .map_err(|_| CommonIfcError::Conversion)?,
+                .map_err(|_| CommonRuntimeError::InvalidValue)?,
             label: (
-                Confidentiality::from_str(&data.confidentiality)?,
-                Integrity::from_str(&data.integrity)?,
+                Confidentiality::from_str(&data.confidentiality)
+                    .map_err(|_| CommonRuntimeError::InvalidValue)?,
+                Integrity::from_str(&data.integrity)
+                    .map_err(|_| CommonRuntimeError::InvalidValue)?,
             )
                 .into(),
         })

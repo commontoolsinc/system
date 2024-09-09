@@ -10,7 +10,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-/// Entry point for CLI tool, taking a parsed [Cli] object.
+/// Entry point for CLI tool, taking a parsed [`Cli`] object.
 pub async fn exec_command(cli: Cli) -> Result<()> {
     use crate::cli::Command::*;
 
@@ -55,7 +55,7 @@ async fn run(module_path: PathBuf, port: u16, use_stdin: bool) -> Result<()> {
     Ok(())
 }
 
-/// Return the module found at `path` as a [String],
+/// Return the module found at `path` as a [`String`],
 /// normalizing for CLI usage.
 async fn module_from_path<P: AsRef<Path>>(path: P) -> Result<String> {
     let path_ref = path.as_ref();
@@ -134,8 +134,8 @@ async fn exec_module(
     }
 }
 
-/// Starts a [common_runtime] server listening on `runtime_port`,
-/// with a [common_builder] server.
+/// Starts a [`common_runtime`] server listening on `runtime_port`,
+/// with a [`common_builder`] server.
 async fn serve(runtime_port: u16) -> Result<()> {
     use common_builder::serve as serve_builder;
     use common_runtime::serve as serve_runtime;

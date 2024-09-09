@@ -23,14 +23,14 @@ static JAVASCRIPT_COMMON_FUNCTION_INTERPRETER: Bytes = Bytes::from_static(includ
     "JAVASCRIPT_COMMON_FUNCTION_INTERPRETER_WASM_PATH"
 )));
 
-/// Well-known virtual module interpreters that may be requested from an [ArtifactResolver]
+/// Well-known virtual module interpreters that may be requested from an [`ArtifactResolver`]
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub enum VirtualModuleInterpreter {
     /// A JavaScript interpreter that emulates a `common:function/module`
     JavaScriptFunction,
 }
 
-/// An [ArtifactResolver] is a one-stop shop for accessing
+/// An [`ArtifactResolver`] is a one-stop shop for accessing
 #[derive(Clone)]
 pub struct ArtifactResolver {
     builder_address: Option<Uri>,
@@ -39,7 +39,7 @@ pub struct ArtifactResolver {
 }
 
 impl ArtifactResolver {
-    /// Instantiate a new [ArtifactResolver], optionally providing a [Uri] that
+    /// Instantiate a new [`ArtifactResolver`], optionally providing a [`Uri`] that
     /// refers to a Builder gRPC server
     pub fn new(builder_address: Option<Uri>) -> Result<Self, CommonRuntimeError> {
         Ok(Self {
@@ -49,7 +49,7 @@ impl ArtifactResolver {
         })
     }
 
-    /// Look up the Wasm artifact for a well-known [VirtualModuleInterpreter]
+    /// Look up the Wasm artifact for a well-known [`VirtualModuleInterpreter`]
     pub async fn get_virtual_module_interpreter_wasm(
         &self,
         kind: VirtualModuleInterpreter,
@@ -61,7 +61,7 @@ impl ArtifactResolver {
         }
     }
 
-    /// Given a [ModuleDefinition], resolve the Wasm artifact represents the
+    /// Given a [`ModuleDefinition`], resolve the Wasm artifact represents the
     /// substantive implementation of the corresponding Module.
     pub async fn get_module_wasm(
         &self,
@@ -118,7 +118,7 @@ impl ArtifactResolver {
         }
     }
 
-    /// Given a [ModuleDefinition] with a [ModuleBody::SourceCode] body, resolve a bundled
+    /// Given a [`ModuleDefinition`] with a [ModuleBody::SourceCode] body, resolve a bundled
     /// artifact that combines all of its source code inputs
     pub async fn get_bundled_source_code(
         &self,

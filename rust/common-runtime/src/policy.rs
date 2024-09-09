@@ -1,9 +1,10 @@
 use crate::{CommonRuntimeError, InputOutput};
 use common_ifc::{Context as IfcContext, Policy};
 
-/// A type that wraps an inner value that has been validated against some [Policy].
-/// A [Validated] can only be created through a fallible step in which the wrapped
-/// value is validated against the [Policy].
+/// A wrapper around `T` that has been validated against some [`Policy`].
+///
+/// A [`Validated`] can only be created through a fallible step
+/// in which the wrapped value is validated against the [`Policy`].
 pub struct Validated<T> {
     policy: Policy,
     inner: T,
@@ -15,7 +16,7 @@ impl<T> Validated<T> {
         self.inner
     }
 
-    /// The [Policy] that was used to validate the wrapped value
+    /// The [`Policy`] that was used to validate the wrapped value
     pub fn policy(&self) -> &Policy {
         &self.policy
     }
@@ -28,7 +29,7 @@ where
     type Error = CommonRuntimeError;
 
     fn try_from((policy, context, io): (Policy, &IfcContext, Io)) -> Result<Self, Self::Error> {
-        policy.validate(io.input().iter(), context)?;
+        policy.validate(io.input().iter().map(|(k, v)| (k, &v.label)), context)?;
         Ok(Self { policy, inner: io })
     }
 }
@@ -46,16 +47,13 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::collections::BTreeMap;
-
+    use super::Validated;
+    use crate::{BasicIo, Data, IoData, IoValues, Value};
     use anyhow::Result;
     use common_ifc::{
-        Confidentiality, Context as IfcContext, Data, Integrity, ModuleEnvironment, Policy,
+        Confidentiality, Context as IfcContext, Integrity, ModuleEnvironment, Policy,
     };
-
-    use crate::{BasicIo, IoData, IoValues, Value};
-
-    use super::Validated;
+    use std::collections::BTreeMap;
 
     #[test]
     fn it_accepts_io_that_aligns_with_the_policy() -> Result<()> {

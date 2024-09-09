@@ -3,7 +3,7 @@ use bytes::Bytes;
 use common_protos::common;
 use std::collections::BTreeMap;
 
-/// A pairing of raw source code bytes and an associated [ContentType]
+/// A pairing of raw source code bytes and an associated [`ContentType`]
 #[derive(Debug, Clone)]
 pub struct SourceCode {
     /// The mime of the source

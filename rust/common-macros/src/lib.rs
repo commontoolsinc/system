@@ -14,7 +14,7 @@ extern crate proc_macro;
 #[cfg(feature = "tracing")]
 #[proc_macro_attribute]
 /// An attribute macro for decorating tests with an
-/// initialized [tracing_subscriber::Subscriber].
+/// initialized `tracing_subscriber::Subscriber`.
 /// Requires the `common_tracing` dependency.
 ///
 /// Implementation defined in `common_tracing::implementation::common_tracing_impl`

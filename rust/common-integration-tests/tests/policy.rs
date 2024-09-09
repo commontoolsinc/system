@@ -2,14 +2,13 @@
 
 use anyhow::Result;
 use common_builder::{serve as serve_builder, BuilderError};
-use common_ifc::{
-    Confidentiality, Context as IfcContext, Data, Integrity, ModuleEnvironment, Policy,
-};
+use common_ifc::{Confidentiality, Context as IfcContext, Integrity, ModuleEnvironment, Policy};
 use common_runtime::{
     target::function_vm::{NativeFunctionVmContext, NativeFunctionVmFactory},
-    Affinity, ArtifactResolver, BasicIo, ContentType, FunctionInterface, FunctionVmDefinition,
-    HasModuleContext, InputOutput, IoData, IoShape, ModuleBody, ModuleContext, ModuleDefinition,
-    ModuleDriver, ModuleFactory, NativeRuntime, SourceCode, Validated, Value, ValueKind,
+    Affinity, ArtifactResolver, BasicIo, ContentType, Data, FunctionInterface,
+    FunctionVmDefinition, HasModuleContext, InputOutput, IoData, IoShape, ModuleBody,
+    ModuleContext, ModuleDefinition, ModuleDriver, ModuleFactory, NativeRuntime, SourceCode,
+    Validated, Value, ValueKind,
 };
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
@@ -118,7 +117,7 @@ async fn it_propagates_labels() -> Result<()> {
             "foo" => ("foo", Confidentiality::Private, Integrity::High)
         },
         {
-           "bar" => ("foo:bar", Confidentiality::Private, Integrity::High)
+           "bar" => ("foo:bar", Confidentiality::Private, Integrity::Low)
         }
     );
 

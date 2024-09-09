@@ -18,7 +18,7 @@ impl Display for ModuleInstanceId {
     }
 }
 
-/// A [ModuleId] uniquely identifies a given Common Module. At this time it is
+/// A [`ModuleId`] uniquely identifies a given Common Module. At this time it is
 /// always expected to represent the hash of the Common Module's Wasm Component
 /// artifact.
 ///
@@ -26,9 +26,9 @@ impl Display for ModuleInstanceId {
 /// sources, perhaps?
 #[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum ModuleId {
-    /// The [ModuleId] is in the form of [blake3::Hash] bytes.
+    /// The [`ModuleId`] is in the form of [blake3::Hash] bytes.
     Hash(blake3::Hash),
-    /// The [ModuleId] is a base64-encoded string
+    /// The [`ModuleId`] is a base64-encoded string
     Base64(String),
 }
 
@@ -85,7 +85,7 @@ impl TryFrom<ModuleId> for ModuleInstanceId {
 }
 
 impl ModuleId {
-    /// Convert the [ModuleId] to raw bytes corresponding to the [blake3::Hash]
+    /// Convert the [`ModuleId`] to raw bytes corresponding to the [blake3::Hash]
     pub fn to_bytes(&self) -> Result<Vec<u8>, CommonRuntimeError> {
         Ok(match self {
             ModuleId::Hash(hash) => hash.as_bytes().to_vec(),

@@ -11,11 +11,11 @@ pub use r#trait::*;
 use async_trait::async_trait;
 use bytes::Bytes;
 
-/// Multivariant implementation of [Bake].
+/// Multivariant implementation of [`Bake`].
 pub enum Baker {
-    /// Uses [JavaScriptBaker].
+    /// Uses [`JavaScriptBaker`].
     JavaScript,
-    /// Uses [PythonBaker].
+    /// Uses [`PythonBaker`].
     Python,
 }
 

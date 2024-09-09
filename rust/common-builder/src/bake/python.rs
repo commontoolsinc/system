@@ -6,7 +6,7 @@ use common_wit::{Target, WitTargetFileMap};
 use tempfile::TempDir;
 use tokio::{process::Command, task::JoinSet};
 
-/// A python-based [Bake] implementation,
+/// A python-based [`Bake`] implementation,
 /// using `componentize-py`.
 #[derive(Debug)]
 pub struct PythonBaker {}

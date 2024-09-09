@@ -2,6 +2,7 @@
 members = [
   "rust/common-builder",
   "rust/common-javascript-interpreter",
+  "rust/common-graph",
   "rust/common-ifc",
   "rust/common-integration-tests",
   "rust/common-macros",
@@ -28,6 +29,7 @@ boa_runtime = { version = "0.19" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
 common-builder = { path = "./rust/common-builder" }
+common-graph = { path = "./rust/common-graph" }
 common-ifc = { path = "./rust/common-ifc" }
 common-integration-tests = { path = "./rust/common-integration-tests" }
 common-javascript-interpreter = { path = "./rust/common-javasript-interpreter" }
@@ -59,6 +61,7 @@ rust-embed = { version = "8.4" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1" }
 sieve-cache = { version = "0.2" }
+strum = { version = "0.26" }
 syn = { version = "2" }
 tempfile = { version = "3" }
 thiserror = { version = "1" }

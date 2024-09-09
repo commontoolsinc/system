@@ -13,8 +13,8 @@ use common_wit::Target;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-/// Instantiate a module using the provided [WasmtimeCompile] sandbox and cache the live instance
-/// in the provided [BTreeMap] against its instance ID.
+/// Instantiate a module using the provided[`WasmtimeCompile`] sandbox and cache the live instance
+/// in the provided[`BTreeMap`] against its instance ID.
 pub async fn instantiate_module(
     request: InstantiateModuleRequest,
     runtime: Arc<Mutex<NativeRuntime>>,
