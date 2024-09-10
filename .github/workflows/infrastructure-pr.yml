@@ -1,0 +1,37 @@
+name: Trigger auto deployment in infrastructure repo
+
+on:
+  workflow_call:
+    inputs:
+      builder_digest:
+        required: true
+        type: string
+      runtime_digest:
+        required: true
+        type: string
+      target_ref:
+        required: false
+        type: string
+        default: main
+
+    secrets:
+      CI_PR_PAT:
+        description: "PAT for testing"
+        required: true
+
+jobs:
+  main:
+    name: Trigger workflow_dispatch event in infrastructure repo
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: call workflow_dispatch API
+        env:
+          GITHUB_TOKEN: ${{ secrets.CI_PR_PAT }}
+          target_ref: ${{ inputs.target_ref || 'main' }}
+        run: |
+          gh workflow run infrastructure-pr.yml \
+            -R commontoolsinc/infrastructure \
+            -f builder_digest="${{ inputs.builder_digest }}" \
+            -f runtime_digest="${{ inputs.runtime_digest }}" \
+            -r ${{ env.target_ref }}
