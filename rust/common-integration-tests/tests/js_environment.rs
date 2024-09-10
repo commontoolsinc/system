@@ -145,6 +145,7 @@ async fn exec_module(
     let runtime::RunModuleResponse { output } = runtime_client
         .run_module(runtime::RunModuleRequest {
             instance_id,
+            keep_alive: false,
             input: [(
                 "input".into(),
                 common::LabeledData {

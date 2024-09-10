@@ -1,7 +1,12 @@
 #![cfg(not(target_arch = "wasm32"))]
 
+use std::collections::HashMap;
+
 use anyhow::Result;
-use common_protos::{common, runtime};
+use common_protos::{
+    common::{self, LabeledData},
+    runtime::{self, runtime_client::RuntimeClient},
+};
 use common_runtime::helpers::{start_runtime, VirtualEnvironment};
 use common_test_fixtures::sources::common::BASIC_MODULE_JS;
 use common_tracing::common_tracing;
@@ -43,33 +48,47 @@ async fn it_interprets_and_runs_a_common_script() -> Result<()> {
         .await?
         .into_inner();
 
-    let runtime::RunModuleResponse { output } = runtime_client
-        .run_module(runtime::RunModuleRequest {
-            instance_id,
-            input: [(
-                "foo".into(),
-                common::LabeledData {
-                    value: Some(common::Value {
-                        variant: Some(common::value::Variant::String("updated foo".into())),
-                    }),
-                    confidentiality: "Public".into(),
-                    integrity: "LowIntegrity".into(),
-                },
-            )]
-            .into(),
-        })
-        .await?
-        .into_inner();
+    async fn run(
+        runtime_client: &mut RuntimeClient<tonic::transport::channel::Channel>,
+        instance_id: &str,
+        keep_alive: bool,
+    ) -> Result<HashMap<String, LabeledData>> {
+        let runtime::RunModuleResponse { output } = runtime_client
+            .run_module(runtime::RunModuleRequest {
+                instance_id: instance_id.to_string(),
+                keep_alive,
+                input: [(
+                    "foo".into(),
+                    common::LabeledData {
+                        value: Some(common::Value {
+                            variant: Some(common::value::Variant::String("updated foo".into())),
+                        }),
+                        confidentiality: "Public".into(),
+                        integrity: "LowIntegrity".into(),
+                    },
+                )]
+                .into(),
+            })
+            .await?
+            .into_inner();
+        Ok(output)
+    }
 
-    assert_eq!(
-        output.get("bar"),
-        Some(&common::LabeledData {
-            value: Some(common::Value {
-                variant: Some(common::value::Variant::String("updated foo:bar".into()))
-            }),
-            confidentiality: "Public".into(),
-            integrity: "LowIntegrity".into(),
-        })
-    );
+    for keep_alive in [true, false] {
+        let output = run(&mut runtime_client, &instance_id, keep_alive).await?;
+        assert_eq!(
+            output.get("bar"),
+            Some(&common::LabeledData {
+                value: Some(common::Value {
+                    variant: Some(common::value::Variant::String("updated foo:bar".into()))
+                }),
+                confidentiality: "Public".into(),
+                integrity: "LowIntegrity".into(),
+            })
+        );
+    }
+    // The second run does not keep the module alive.
+    // This third run should fail.
+    assert!(run(&mut runtime_client, &instance_id, true).await.is_err());
     Ok(())
 }

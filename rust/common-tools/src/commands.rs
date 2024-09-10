@@ -103,6 +103,7 @@ async fn exec_module(
     let input_io = input.unwrap_or_default();
     let runtime::RunModuleResponse { output } = runtime_client
         .run_module(runtime::RunModuleRequest {
+            keep_alive: false,
             instance_id,
             input: [(
                 "input".into(),

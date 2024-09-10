@@ -16,6 +16,7 @@ message InstantiateModuleResponse { string instance_id = 1; }
 message RunModuleRequest {
   string instance_id = 1;
   map<string, common.LabeledData> input = 2;
+  bool keep_alive = 4;
 }
 
 message RunModuleResponse { map<string, common.LabeledData> output = 1; }

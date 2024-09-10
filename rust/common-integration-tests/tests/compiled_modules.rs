@@ -51,6 +51,7 @@ async fn it_compiles_and_runs_an_uncompiled_module() -> Result<()> {
     let runtime::RunModuleResponse { output } = runtime_client
         .run_module(runtime::RunModuleRequest {
             instance_id,
+            keep_alive: false,
             input: [(
                 "foo".into(),
                 common::LabeledData {
@@ -138,6 +139,7 @@ async fn it_runs_a_precompiled_module() -> Result<()> {
     let runtime::RunModuleResponse { output } = runtime_client
         .run_module(runtime::RunModuleRequest {
             instance_id,
+            keep_alive: false,
             input: [(
                 "foo".into(),
                 common::LabeledData {

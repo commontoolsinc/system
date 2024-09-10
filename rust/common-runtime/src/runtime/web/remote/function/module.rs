@@ -1,17 +1,18 @@
-use async_trait::async_trait;
-use common_protos::runtime::{RunModuleRequest, RunModuleResponse};
-use http::Uri;
-use std::sync::Arc;
-
+use super::WebRemoteFunctionContext;
 use crate::{
     remote::client::make_runtime_client, CommonRuntimeError, FunctionInterface, HasModuleContext,
     HasModuleContextMut, InputOutput, IoData, Module, ModuleContext, ModuleId, ModuleInstanceId,
     RemoteFunctionDefinition, Validated,
 };
+use async_trait::async_trait;
+use common_protos::runtime::{RunModuleRequest, RunModuleResponse};
+use http::Uri;
+use std::sync::Arc;
 
-use super::WebRemoteFunctionContext;
+#[cfg(doc)]
+use crate::{ModuleDefinition, WebRuntime};
 
-/// An `common:function/module`-based Module facade for the [crate::WebRuntime].
+/// An `common:function/module`-based Module facade for the [`WebRuntime`].
 pub struct WebRemoteFunction {
     module_id: ModuleId,
     instance_id: ModuleInstanceId,
@@ -20,7 +21,7 @@ pub struct WebRemoteFunction {
 }
 
 impl WebRemoteFunction {
-    /// Instantiate a [WebRemoteFunction] with a [crate::ModuleDefinition] and
+    /// Instantiate a [`WebRemoteFunction`] with a [`ModuleDefinition`] and
     /// remote Runtime session properties
     pub fn new(
         definition: Arc<RemoteFunctionDefinition>,
@@ -53,6 +54,7 @@ impl FunctionInterface for WebRemoteFunction {
             .run_module(RunModuleRequest {
                 instance_id: self.instance_id.to_string(),
                 input: io.into_inner().input().into(),
+                keep_alive: true,
             })
             .await
             .map_err(|error| CommonRuntimeError::ModuleRunFailed(format!("{error}")))?
