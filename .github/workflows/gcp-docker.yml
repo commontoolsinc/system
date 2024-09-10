@@ -112,7 +112,6 @@ jobs:
     with:
       builder_digest: ${{ needs.builder.outputs.docker_digest }}
       runtime_digest: ${{ needs.runtime.outputs.docker_digest }}
-      source_repo: https://github.com/${{ github.repository }}
-      source_ref: ${{ github.ref }}
+      source_ref: ${{ github.sha }}
     secrets:
       CI_PR_PAT: ${{ secrets.CI_PR_PAT }}
