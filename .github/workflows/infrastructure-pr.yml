@@ -49,4 +49,5 @@ jobs:
             -f runtime_digest="${{ inputs.runtime_digest }}" \
             -f source_ref="${{ inputs.source_ref }}" \
             -f source_repo="${{ github.repository }}" \
+            -f run_id="${{ github.run_id }}" \
             -r ${{ env.target_ref }}
