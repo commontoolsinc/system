@@ -114,4 +114,5 @@ jobs:
       runtime_digest: ${{ needs.runtime.outputs.docker_digest }}
       source_ref: ${{ github.sha }}
     secrets:
-      CI_PR_PAT: ${{ secrets.CI_PR_PAT }}
+      APP_ID: ${{ secrets.APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
