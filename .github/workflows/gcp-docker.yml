@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches-ignore:
-      - 'dependabot/**'
+      - "dependabot/**"
   pull_request:
     branches-ignore:
-      - 'dependabot/**'
+      - "dependabot/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -112,5 +112,7 @@ jobs:
     with:
       builder_digest: ${{ needs.builder.outputs.docker_digest }}
       runtime_digest: ${{ needs.runtime.outputs.docker_digest }}
+      source_repo: https://github.com/${{ github.repository }}
+      source_ref: ${{ github.ref }}
     secrets:
       CI_PR_PAT: ${{ secrets.CI_PR_PAT }}
