@@ -18,19 +18,29 @@ on:
         type: string
 
     secrets:
-      CI_PR_PAT:
-        description: "PAT for testing"
+      APP_ID:
         required: true
-
+        description: GitHub App ID
+      APP_PRIVATE_KEY:
+        required: true
+        description: GitHub App private key
 jobs:
   main:
     name: Trigger workflow_dispatch event in infrastructure repo
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: "system,infrastructure"
+
       - name: call workflow_dispatch API
         env:
-          GITHUB_TOKEN: ${{ secrets.CI_PR_PAT }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           target_ref: ${{ inputs.target_ref || 'main' }}
         run: |
           gh workflow run infrastructure-pr.yml \
