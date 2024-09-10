@@ -40,7 +40,7 @@ jobs:
 
       - name: call workflow_dispatch API
         env:
-          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           target_ref: ${{ inputs.target_ref || 'main' }}
         run: |
           gh workflow run infrastructure-pr.yml \
