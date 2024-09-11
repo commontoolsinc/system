@@ -5,10 +5,12 @@ dist
 lib
 *.tsbuildinfo
 .DS_Store
-.vscode
+.vscode/*
 __pycache__
 cache
 deps
 typescript/packages/planning-server/.env
 .wasm_cache
 .*.done
+!.vscode/launch.json
+!.vscode/extensions.json
