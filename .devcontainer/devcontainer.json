@@ -23,7 +23,45 @@
 				"redhat.vscode-yaml",
 				"rust-lang.rust-analyzer",
 				"vadimcn.vscode-lldb"
-			]
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "nix-bash",
+				"terminal.integrated.defaultProfile.osx": "nix-zsh",
+				"terminal.integrated.profiles.linux": {
+					"nix-bash": {
+						"args": [
+							"develop"
+						],
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					},
+					"nix-zsh": {
+						"args": [
+							"develop",
+							"-c",
+							"zsh"
+						],
+						"icon": "zap",
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					}
+				},
+				"terminal.integrated.profiles.osx": {
+					"nix-bash": {
+						"args": [
+							"develop"
+						],
+						"icon": "zap",
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					},
+					"nix-zsh": {
+						"args": [
+							"develop",
+							"-c",
+							"zsh"
+						],
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					}
+				}
+			}
 		}
 	},
 	"postCreateCommand": {
