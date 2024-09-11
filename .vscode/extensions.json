@@ -1,0 +1,7 @@
+{
+	"recommendations": [
+		"bbenoist.Nix",
+		"jnoortheen.nix-ide",
+		"rust-lang.rust-analyzer"
+	]
+}
