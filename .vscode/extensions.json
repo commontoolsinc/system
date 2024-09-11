@@ -10,6 +10,7 @@
 		"jnoortheen.nix-ide",
 		"ms-vscode-remote.vscode-remote-extensionpack",
 		"redhat.vscode-yaml",
-		"rust-lang.rust-analyzer"
+		"rust-lang.rust-analyzer",
+		"vadimcn.vscode-lldb"
 	]
 }
