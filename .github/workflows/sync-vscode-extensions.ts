@@ -96,4 +96,10 @@ function syncExtensions(
 	console.log("VSCode extensions synchronized successfully.");
 }
 
+//@ts-ignore
+const repoRoot = process.argv[2];
+if (repoRoot) {
+	//@ts-ignore
+	process.chdir(repoRoot);
+}
 syncExtensions();
