@@ -32,10 +32,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - run: npx @devcontainers/cli up --workspace-folder .
+      - name: Bring up Dev Container
+        run: npx @devcontainers/cli up --workspace-folder .
 
       - name: Verify Cargo project
         run: npx @devcontainers/cli exec --workspace-folder . "/usr/local/cargo/bin/cargo" verify-project
+        if: false
 
       - name: Run Nix develop
         run: npx @devcontainers/cli exec --workspace-folder . "/nix/var/nix/profiles/default/bin/nix" develop
+        if: false
+
+      - name: Run `cargo verify-project` via Nix inside Dev Container
+        run: npx @devcontainers/cli exec --workspace-folder . "/nix/var/nix/profiles/default/bin/nix" develop -c cargo verify-project
