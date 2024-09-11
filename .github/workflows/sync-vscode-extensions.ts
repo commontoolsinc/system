@@ -1,3 +1,5 @@
+#!/usr/bin/env -S npx -y tsx --no-cache
+
 // @ts-expect-error
 import * as fs from 'fs';
 
