@@ -6,6 +6,8 @@ concurrency:
 
 on:
   push:
+    branches-ignore:
+      - "dependabot/**"
     paths:
       - ".devcontainer/devcontainer.json"
       - ".github/workflows/validate-devcontainer.yml"
@@ -17,6 +19,19 @@ on:
 
 jobs:
   validate:
+    # This step will run in two scenarios:
+    # 1. When the event is not a pull request and the repository is not a fork
+    # 2. When the event is a pull request and either:
+    #    a) The pull request is from a fork, or
+    #    b) The branch name starts with 'dependabot/'
+    if: |
+      (
+        github.event_name != 'pull_request' && !github.event.pull_request.head.repo.fork
+      ) || (
+        github.event_name == 'pull_request' && (
+          github.event.pull_request.head.repo.fork || startsWith(github.head_ref, 'dependabot/')
+        )
+      )
     runs-on: ubuntu-latest
     name: Validate Dev Container
     steps:
