@@ -1,3 +1,4 @@
+// @ts-expect-error
 import * as fs from 'fs';
 
 interface DevContainer {
@@ -12,6 +13,12 @@ interface VSCodeExtensions {
 	recommendations: string[];
 }
 
+/**
+ * Detect the indentation used in a JSON string.
+ * @param json JSON string.
+ * @param fallback Fallback indentation.
+ * @returns Indentation used in the JSON string.
+ */
 function detectJsonIndentation(json: string, fallback: string = "\t"): string | number {
 	const spaces = json.match(/^(\s+)/);
 	if (spaces) {
@@ -22,6 +29,11 @@ function detectJsonIndentation(json: string, fallback: string = "\t"): string | 
 
 }
 
+/**
+ * Read and parse a JSON file, removing comments.
+ * @param path Path to the JSON file.
+ * @returns Parsed JSON data and indentation.
+ */
 function readCleanJson<T>(path: string): { data: T, indentation: string | number; } {
 	const file = fs.readFileSync(path, "utf8");
 	const stripForwardSlashForwardSlashComment = new RegExp('//(.*)', 'g');
@@ -37,20 +49,34 @@ function readCleanJson<T>(path: string): { data: T, indentation: string | number
 	};
 }
 
-function syncExtensions(): void {
+/**
+ * Combine and deduplicate extension lists.
+ * @param extensionLists List of extension lists.
+ * @returns Combined and deduplicated extension list.
+ */
+function combineExtensions(extensionLists: string[][]): string[] {
+	return [...new Set(extensionLists.flat())].sort();
+}
+
+/**
+ * Synchronize the extensions in devcontainer.json and extensions.json files.
+ */
+function syncExtensions(
+	devcontainerFilePath: string = ".devcontainer/devcontainer.json",
+	extensionsFilePath: string = ".vscode/extensions.json"
+): void {
 	// Read devcontainer.json
-	const { data: devcontainer, indentation: devcontainerIndentation } = readCleanJson<DevContainer>(".devcontainer/devcontainer.json");
+	const { data: devcontainer, indentation: devcontainerIndentation } = readCleanJson<DevContainer>(devcontainerFilePath);
 	const devcontainerExtensions = devcontainer.customizations.vscode.extensions || [];
 	console.info("devcontainer.json extensions: ", devcontainerExtensions);
 
 	// Read extensions.json
-	const { data: vscodeExtensions, indentation: vscodeExtensionsIndentation } = readCleanJson<VSCodeExtensions>(".vscode/extensions.json");
+	const { data: vscodeExtensions, indentation: vscodeExtensionsIndentation } = readCleanJson<VSCodeExtensions>(extensionsFilePath);
 	const recommendations = vscodeExtensions.recommendations || [];
 	console.info("extensions.json recommendations: ", recommendations);
 
 	// Combine and deduplicate extensions
-	const combinedExtensions = [...new Set([...devcontainerExtensions, ...recommendations])]
-		.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: 'base' }));
+	const combinedExtensions = combineExtensions([devcontainerExtensions, recommendations]);
 
 	console.info("Combined extensions: ", combinedExtensions);
 
