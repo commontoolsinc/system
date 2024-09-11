@@ -34,4 +34,8 @@ jobs:
 
       - run: npx @devcontainers/cli up --workspace-folder .
 
-      - run: npx @devcontainers/cli exec --workspace-folder . "/usr/local/cargo/bin/cargo" verify-project
+      - name: Verify Cargo project
+        run: npx @devcontainers/cli exec --workspace-folder . "/usr/local/cargo/bin/cargo" verify-project
+
+      - name: Run Nix develop
+        run: npx @devcontainers/cli exec --workspace-folder . "/nix/var/nix/profiles/default/bin/nix" develop
