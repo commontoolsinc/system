@@ -41,11 +41,14 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: Sync VSCode extensions
-          title: Sync VSCode extensions for ${{ github.ref_name }}
+          title: "chore: Sync VSCode extensions for ${{ github.ref_name }}"
           branch: extension-sync-${{ github.ref_name }}
           delete-branch: true
           sign-commits: true
           base: ${{ github.ref_name }}
+          add-paths: |
+            .devcontainer/devcontainer.json
+            .vscode/extensions.json
           body: |
             This PR synchronizes the VSCode extensions between `.devcontainer/devcontainer.json` and `.vscode/extensions.json` for the `${{ github.ref_name }}` branch.
 
