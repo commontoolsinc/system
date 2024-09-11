@@ -246,7 +246,6 @@ jobs:
         with:
           name: test-results-${{ hashFiles('./test-results') }}
           path: ./test-results
-
   build-js:
     name: 'Build JS Packages'
     needs: ['lints']
@@ -274,6 +273,26 @@ jobs:
           cd typescript
           npm ci
           npm run build --workspaces
+  
+  nix-setup:
+    name: 'Nix Setup'
+    needs: ['lints']
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+        with:
+          use-flakehub: false
+          diagnostic-endpoint: ''
+      - uses: DeterminateSystems/flake-checker-action@main
+        with:
+          send-statistics: false
+      - uses: Swatinem/rust-cache@v2
+      - uses: actions/download-artifact@v4
+      - name: 'Run nix build'
+        run: |
+          nix build .
 
   workflow-analysis:
     name: 'Workflow analysis'

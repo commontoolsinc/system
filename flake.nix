@@ -98,7 +98,7 @@
           name = "jco";
           src = ./typescript;
           dontNpmBuild = true;
-          npmDepsHash = "sha256-0DgVWHNOYUZFIIf7dOvoQkJNZzxYDAF94sXonUl0lU0=";
+          npmDepsHash = "sha256-DFoNL5qRg39Tqz88P8rQ0slJjlfvfQzRvoJ32yZuZlU=";
         };
 
         wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
@@ -131,6 +131,43 @@
           };
       in
       {
+        packages.default = let
+	  rust-toolchain = rustToolchain "stable";
+	  rust-platform = pkgs.makeRustPlatform {
+            cargo = rust-toolchain;
+            rustc = rust-toolchain;
+          };
+	in
+	with pkgs; rustPlatform.buildRustPackage {
+            /* Don't run tests as part of this task */
+            doCheck = false;
+            buildPhase = ''
+              bash ./wit/wit-tools.sh deps
+              cargo build -p common-runtime --release
+            '';
+            installPhase = ''
+              mkdir -p $out/runtime
+              cp ./target/release/runtime $out/runtime
+            '';
+            name = "runtime";
+            src = ./.;
+            nativeBuildInputs = [
+              rust-toolchain
+              openssl
+              pkg-config
+              protobuf
+              cargo-component
+              cargo-nextest
+              wasm-bindgen-cli
+              wit-deps-cli
+              nodejs
+              jco
+            ];
+            cargoLock = {
+              lockFile = ./Cargo.lock;
+            };
+          };
+
         devShells = {
           default = makeDevShell "stable";
           nightly = makeDevShell "nightly";
