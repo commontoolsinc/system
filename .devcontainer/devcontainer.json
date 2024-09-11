@@ -7,5 +7,22 @@
 		"ghcr.io/devcontainers/features/nix:1": {},
 		"ghcr.io/devcontainers/features/node:1": {},
 		"ghcr.io/devcontainers/features/rust:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bbenoist.Nix",
+				"jnoortheen.nix-ide",
+				"rust-lang.rust-analyzer",
+				"ms-vscode-remote.vscode-remote-extensionpack",
+				"fill-labs.dependi",
+				"dustypomerleau.rust-syntax",
+				"dbaeumer.vscode-eslint",
+				"EditorConfig.EditorConfig",
+				"redhat.vscode-yaml",
+				"GitHub.vscode-pull-request-github",
+				"github.vscode-github-actions"
+			]
+		}
 	}
 }

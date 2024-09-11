@@ -2,6 +2,14 @@
 	"recommendations": [
 		"bbenoist.Nix",
 		"jnoortheen.nix-ide",
-		"rust-lang.rust-analyzer"
+		"rust-lang.rust-analyzer",
+		"ms-vscode-remote.vscode-remote-extensionpack",
+		"fill-labs.dependi",
+		"dustypomerleau.rust-syntax",
+		"dbaeumer.vscode-eslint",
+		"EditorConfig.EditorConfig",
+		"redhat.vscode-yaml",
+		"GitHub.vscode-pull-request-github",
+		"github.vscode-github-actions"
 	]
 }
