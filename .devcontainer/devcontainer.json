@@ -32,6 +32,8 @@
 						"args": [
 							"develop"
 						],
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
 						"path": "/nix/var/nix/profiles/default/bin/nix"
 					},
 					"nix-zsh": {
@@ -40,7 +42,8 @@
 							"-c",
 							"zsh"
 						],
-						"icon": "zap",
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
 						"path": "/nix/var/nix/profiles/default/bin/nix"
 					}
 				},
@@ -49,7 +52,8 @@
 						"args": [
 							"develop"
 						],
-						"icon": "zap",
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
 						"path": "/nix/var/nix/profiles/default/bin/nix"
 					},
 					"nix-zsh": {
@@ -58,6 +62,8 @@
 							"-c",
 							"zsh"
 						],
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
 						"path": "/nix/var/nix/profiles/default/bin/nix"
 					}
 				}
