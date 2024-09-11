@@ -2,7 +2,9 @@
 	"name": "Ubuntu",
 	"image": "mcr.microsoft.com/devcontainers/base:jammy",
 	"features": {
-		"ghcr.io/devcontainers/features/nix:1": {},
+		"ghcr.io/devcontainers/features/nix:1": {
+			"extraNixConfig": "experimental-features = nix-command flakes"
+		},
 		"ghcr.io/devcontainers/features/node:1": {},
 		"ghcr.io/devcontainers/features/rust:1": {}
 	},
@@ -24,5 +26,8 @@
 			]
 		}
 	},
-	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y protobuf-compiler libprotobuf-dev"
+	"postCreateCommand": {
+		"protobuf": "sudo apt-get update && sudo apt-get install -y protobuf-compiler libprotobuf-dev",
+		"git": "git config --global --add safe.directory /workspaces/*"
+	}
 }
