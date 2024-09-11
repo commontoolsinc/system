@@ -1,15 +1,15 @@
 {
 	"recommendations": [
 		"bbenoist.Nix",
-		"jnoortheen.nix-ide",
-		"rust-lang.rust-analyzer",
-		"ms-vscode-remote.vscode-remote-extensionpack",
-		"fill-labs.dependi",
-		"dustypomerleau.rust-syntax",
 		"dbaeumer.vscode-eslint",
+		"dustypomerleau.rust-syntax",
 		"EditorConfig.EditorConfig",
-		"redhat.vscode-yaml",
+		"fill-labs.dependi",
+		"github.vscode-github-actions",
 		"GitHub.vscode-pull-request-github",
-		"github.vscode-github-actions"
+		"jnoortheen.nix-ide",
+		"ms-vscode-remote.vscode-remote-extensionpack",
+		"redhat.vscode-yaml",
+		"rust-lang.rust-analyzer"
 	]
 }
