@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - 64-create-dev-container-config
     paths:
       - ".devcontainer/devcontainer.json"
       - ".vscode/extensions.json"
