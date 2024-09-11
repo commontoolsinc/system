@@ -56,8 +56,10 @@ function readCleanJson<T>(path: string): { data: T, indentation: string | number
  * @param extensionLists List of extension lists.
  * @returns Combined and deduplicated extension list.
  */
-function combineExtensions(extensionLists: string[][]): string[] {
-	return [...new Set(extensionLists.flat())].sort();
+function unionOfStringLists(extensionLists: string[][]): string[] {
+	return [...new Set(extensionLists.flat())].sort(
+		(a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })
+	);
 }
 
 /**
@@ -78,7 +80,7 @@ function syncExtensions(
 	console.info("extensions.json recommendations: ", recommendations);
 
 	// Combine and deduplicate extensions
-	const combinedExtensions = combineExtensions([devcontainerExtensions, recommendations]);
+	const combinedExtensions = unionOfStringLists([devcontainerExtensions, recommendations]);
 
 	console.info("Combined extensions: ", combinedExtensions);
 
