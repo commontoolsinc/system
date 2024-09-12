@@ -13,10 +13,9 @@ use common_protos::{
         BuildComponentRequest, BuildComponentResponse, BundleSourceCodeRequest,
         BundleSourceCodeResponse, ReadComponentRequest, ReadComponentResponse,
     },
-    common::{ContentType, ModuleSource, Target as TargetProto},
+    common::{ContentType, ModuleSource},
     MAX_MESSAGE_SIZE,
 };
-use common_wit::Target;
 use tokio::net::TcpListener;
 use tonic::{transport::Server as TonicServer, Request, Response, Status};
 
@@ -28,12 +27,8 @@ impl Builder {
     fn take_one_from_module_source(
         &self,
         module_source: Option<ModuleSource>,
-    ) -> Option<(Target, ContentType, Vec<u8>)> {
+    ) -> Option<(ContentType, Vec<u8>)> {
         if let Some(module_source) = module_source {
-            let target = match module_source.target() {
-                TargetProto::CommonFunction => Target::CommonFunction,
-                TargetProto::CommonFunctionVm => Target::CommonFunctionVm,
-            };
             let source_code = module_source.source_code;
 
             if source_code.len() > 1 {
@@ -42,7 +37,7 @@ impl Builder {
             }
 
             if let Some((_, source_code)) = source_code.into_iter().next() {
-                Some((target, source_code.content_type(), source_code.body))
+                Some((source_code.content_type(), source_code.body))
             } else {
                 None
             }
@@ -59,15 +54,15 @@ impl BuilderProto for Builder {
         request: Request<BuildComponentRequest>,
     ) -> Result<Response<BuildComponentResponse>, Status> {
         let request = request.into_inner();
-
-        let (target, baker, source_code) = if let Some((target, content_type, source_code)) =
+        let target = request.target().into();
+        let (baker, source_code) = if let Some((content_type, source_code)) =
             self.take_one_from_module_source(request.module_source)
         {
             let baker = match content_type {
                 ContentType::JavaScript => Baker::JavaScript,
                 ContentType::Python => Baker::Python,
             };
-            (target, baker, source_code)
+            (baker, source_code)
         } else {
             return Err(Status::invalid_argument(
                 "Must provide at least one source to build",
@@ -106,11 +101,11 @@ impl BuilderProto for Builder {
     ) -> Result<Response<BundleSourceCodeResponse>, Status> {
         let request = request.into_inner();
 
-        let source_code = if let Some((target, content_type, source_code)) =
+        let source_code = if let Some((content_type, source_code)) =
             self.take_one_from_module_source(request.module_source)
         {
-            match (target, content_type) {
-                (Target::CommonFunction, ContentType::JavaScript) => source_code,
+            match content_type {
+                ContentType::JavaScript => source_code,
                 _ => {
                     return Err(Status::invalid_argument(
                         "Only JavaScript targetting 'common:module' may be bundled!",

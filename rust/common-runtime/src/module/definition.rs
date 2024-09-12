@@ -39,6 +39,6 @@ pub struct ModuleDefinition {
 
 impl From<&ModuleDefinition> for ModuleId {
     fn from(value: &ModuleDefinition) -> Self {
-        (&value.target, &value.body).into()
+        (&value.body).into()
     }
 }

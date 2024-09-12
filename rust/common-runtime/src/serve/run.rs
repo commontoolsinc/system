@@ -13,11 +13,16 @@ pub async fn run_module(
 ) -> Result<RunModuleResponse, CommonRuntimeError> {
     let instance_id = ModuleInstanceId(request.instance_id);
     let live_modules = live_modules.lock().await;
-    let function = live_modules
-        .get(&instance_id)
-        .await
-        .ok_or(CommonRuntimeError::UnknownInstanceId(instance_id))?;
-
+    let function = match request.keep_alive {
+        true => live_modules
+            .get(&instance_id)
+            .await
+            .ok_or(CommonRuntimeError::UnknownInstanceId(instance_id))?,
+        false => live_modules
+            .take(&instance_id)
+            .await
+            .ok_or(CommonRuntimeError::UnknownInstanceId(instance_id))?,
+    };
     let input = request.input.try_into()?;
     let policy = Policy::with_defaults()?;
 

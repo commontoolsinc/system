@@ -1,10 +1,6 @@
-use common_protos::common::{self, ModuleSource};
-use common_protos::runtime::instantiate_module_request::ModuleReference;
-use common_wit::Target;
-
-use super::ModuleId;
-
-use super::source_code::SourceCodeCollection;
+use super::{source_code::SourceCodeCollection, ModuleId, SourceCode};
+use crate::{CommonRuntimeError, Result};
+use common_protos::common as protos;
 
 /// The variants that are accepted as the body field of a
 /// [crate::ModuleDefinition].
@@ -18,14 +14,12 @@ pub enum ModuleBody {
     SourceCode(SourceCodeCollection),
 }
 
-impl From<(&Target, &ModuleBody)> for ModuleId {
-    fn from((target, value): (&Target, &ModuleBody)) -> ModuleId {
+impl From<&ModuleBody> for ModuleId {
+    fn from(value: &ModuleBody) -> ModuleId {
         match value {
             ModuleBody::Signature(id) => id.clone(),
             ModuleBody::SourceCode(source_code_collection) => {
                 let mut hasher = blake3::Hasher::new();
-
-                hasher.update(target.to_string().as_bytes());
 
                 for (name, source_code) in source_code_collection {
                     hasher.update(name.as_bytes());
@@ -39,28 +33,45 @@ impl From<(&Target, &ModuleBody)> for ModuleId {
     }
 }
 
-impl ModuleBody {
-    // TODO: Module reference should not be a holder of target
-    /// Convert the [`ModuleBody`] into a [`ModuleReference`] with the given
-    /// [`Target`]
-    pub fn to_module_reference(&self, target: &Target) -> ModuleReference {
-        let target = common::Target::from(target);
-        match self {
+impl TryFrom<protos::ModuleBody> for ModuleBody {
+    type Error = CommonRuntimeError;
+    fn try_from(value: protos::ModuleBody) -> Result<Self> {
+        let variant = value.variant.ok_or(CommonRuntimeError::InvalidValue)?;
+        Ok(match variant {
+            protos::module_body::Variant::ModuleSignature(module_signature) => {
+                ModuleBody::Signature(ModuleId::Base64(module_signature.id.clone()))
+            }
+            protos::module_body::Variant::ModuleSource(module_source) => ModuleBody::SourceCode(
+                module_source
+                    .source_code
+                    .into_iter()
+                    .map(|(key, value)| (key, SourceCode::from(value)))
+                    .collect(),
+            ),
+        })
+    }
+}
+
+impl From<ModuleBody> for protos::ModuleBody {
+    fn from(value: ModuleBody) -> Self {
+        let variant = match value {
             ModuleBody::Signature(id) => {
-                ModuleReference::ModuleSignature(common::ModuleSignature {
-                    target: target.into(),
+                protos::module_body::Variant::ModuleSignature(protos::ModuleSignature {
                     id: id.to_string(),
                 })
             }
             ModuleBody::SourceCode(source_code_collection) => {
-                ModuleReference::ModuleSource(ModuleSource {
-                    target: target.into(),
+                protos::module_body::Variant::ModuleSource(protos::ModuleSource {
                     source_code: source_code_collection
-                        .iter()
-                        .map(|(name, source_code)| (name.to_owned(), source_code.into()))
+                        .into_iter()
+                        .map(|(name, source_code)| (name, source_code.into()))
                         .collect(),
                 })
             }
+        };
+
+        protos::ModuleBody {
+            variant: Some(variant),
         }
     }
 }

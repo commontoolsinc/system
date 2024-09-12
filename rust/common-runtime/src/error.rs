@@ -3,6 +3,10 @@ use common_ifc::CommonIfcError;
 use std::fmt::Debug;
 use thiserror::Error;
 
+/// [`std::result::Result`] type with [CommonRuntimeError]
+/// as its error.
+pub type Result<T> = ::std::result::Result<T, CommonRuntimeError>;
+
 /// Various errors that may be encountered when invoking runtime code.
 #[derive(Error, PartialEq, Debug)]
 pub enum CommonRuntimeError {

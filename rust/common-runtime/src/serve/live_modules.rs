@@ -61,7 +61,7 @@ impl ModuleManager<Function> for LiveModules {
         self.functions.lock().await.get(id).cloned()
     }
 
-    async fn take(&self, id: ModuleInstanceId) -> Option<Function> {
-        self.functions.lock().await.remove(&id)
+    async fn take(&self, id: &ModuleInstanceId) -> Option<Function> {
+        self.functions.lock().await.remove(id)
     }
 }

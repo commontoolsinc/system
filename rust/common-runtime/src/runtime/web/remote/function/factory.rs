@@ -6,11 +6,17 @@ use crate::{
     ModuleFactory, ModuleInstanceId, RemoteFunctionDefinition,
 };
 use async_trait::async_trait;
-use common_protos::runtime::{InstantiateModuleRequest, InstantiateModuleResponse};
+use common_protos::{
+    common,
+    runtime::{InstantiateModuleRequest, InstantiateModuleResponse},
+};
 use http::Uri;
 
-/// An implementor of [ModuleFactory] for [WebRemoteFunction] Modules that may be
-/// instantiated by a [crate::WebRuntime]
+#[cfg(doc)]
+use crate::{ModuleDefinition, WebRuntime};
+
+/// An implementor of [`ModuleFactory`] for [`WebRemoteFunction`] Modules that may be
+/// instantiated by a [`WebRuntime`]
 #[derive(Clone)]
 pub struct WebRemoteFunctionFactory {
     definition: Arc<RemoteFunctionDefinition>,
@@ -18,8 +24,8 @@ pub struct WebRemoteFunctionFactory {
 }
 
 impl WebRemoteFunctionFactory {
-    /// Instantiate a new [WebRemoteFunctionFactory] for a given
-    /// [crate::ModuleDefinition] and various Wasm runtime acoutrement
+    /// Instantiate a new [`WebRemoteFunctionFactory`] for a given
+    /// [`ModuleDefinition`] and various Wasm runtime acoutrement
     pub fn new(definition: RemoteFunctionDefinition, remote_runtime_address: Uri) -> Self {
         Self {
             remote_runtime_address,
@@ -44,12 +50,8 @@ impl ModuleFactory for WebRemoteFunctionFactory {
             .instantiate_module(InstantiateModuleRequest {
                 output_shape: context.io().output_shape().into(),
                 default_input: context.io().input().into(),
-                module_reference: Some(
-                    self.definition
-                        .inner()
-                        .body
-                        .to_module_reference(&self.definition.inner().target),
-                ),
+                target: common::Target::from(&self.definition.inner().target).into(),
+                module_reference: Some(self.definition.inner().body.to_owned().into()),
             })
             .await
             .map_err(|error| CommonRuntimeError::ModuleInstantiationFailed(format!("{error}")))?

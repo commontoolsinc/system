@@ -38,3 +38,15 @@ impl From<SourceCode> for common::SourceCode {
         (&value).into()
     }
 }
+
+impl<B> From<(ContentType, B)> for SourceCode
+where
+    B: Into<Bytes>,
+{
+    fn from(value: (ContentType, B)) -> Self {
+        SourceCode {
+            content_type: value.0,
+            body: value.1.into(),
+        }
+    }
+}
