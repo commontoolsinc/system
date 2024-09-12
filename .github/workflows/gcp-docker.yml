@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   push:
     branches-ignore:
-      - 'dependabot/**'
+      - "dependabot/**"
   pull_request:
     branches-ignore:
-      - 'dependabot/**'
+      - "dependabot/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
@@ -27,7 +27,7 @@ jobs:
       image_name: base
       dockerfile: ./Dockerfile
       context: .
-      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      push: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
       build_args: |
         BASE_IMAGE=debian:bookworm-slim
       gcp_project_id: ${{ vars.GCP_PROJECT_ID }}
@@ -56,13 +56,13 @@ jobs:
 
   runtime:
     name: Runtime
-    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' }}
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs:
       - base
       - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      push: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
       image_name: runtime
       dockerfile: ./rust/Dockerfile
       context: .
@@ -80,13 +80,13 @@ jobs:
 
   builder:
     name: Builder
-    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' }}
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch' }}
     needs:
       - base
       - monolith
     uses: ./.github/workflows/reusable-gcp-docker-build-push.yml
     with:
-      push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      push: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
       image_name: builder
       dockerfile: ./rust/Dockerfile
       context: .
@@ -101,3 +101,18 @@ jobs:
     secrets:
       GCP_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT }}
       GCP_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+
+  deploy:
+    name: Auto deploy
+    if: ${{ ( github.event_name == 'push' && github.ref == 'refs/heads/main' ) || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - runtime
+      - builder
+    uses: ./.github/workflows/infrastructure-pr.yml
+    with:
+      builder_digest: ${{ needs.builder.outputs.docker_digest }}
+      runtime_digest: ${{ needs.runtime.outputs.docker_digest }}
+      source_ref: ${{ github.sha }}
+    secrets:
+      APP_ID: ${{ secrets.APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}

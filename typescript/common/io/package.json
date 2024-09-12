@@ -24,6 +24,6 @@
   "homepage": "https://github.com/commontoolsinc/system#readme",
   "dependencies": {},
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "typescript": "^5.6.2"
   }
 }
