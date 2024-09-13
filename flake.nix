@@ -32,6 +32,7 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
+        inherit (pkgs) lib stdenv darwin;
 
         /**
          * Helper function to select a Rust toolchain by name e.g., "stable", "nightly".
@@ -71,10 +72,11 @@
               wit-deps-cli
               rust-toolchain
               nodejs
-              chromium
-              chromedriver
               jco
 
+            ] ++ lib.optionals stdenv.isDarwin [
+              darwin.apple_sdk.frameworks.SystemConfiguration
+              darwin.apple_sdk.frameworks.Security
             ];
 
             shellHook = ''
@@ -104,7 +106,11 @@
         wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
           pname = "wit-deps-cli";
           version = "0.3.4";
-          buildInputs = [ pkgs.rust-bin.stable.latest.default ];
+          buildInputs = [ pkgs.rust-bin.stable.latest.default ]
+                ++ lib.optionals stdenv.isDarwin [
+                  darwin.apple_sdk.frameworks.SystemConfiguration
+                  darwin.apple_sdk.frameworks.Security
+                ];
 
           src = pkgs.fetchCrate {
             inherit pname version;
@@ -120,7 +126,11 @@
             # NOTE: Version must be kept in sync with Cargo.toml
             # version of `wasm-bindgen` dependency!
             version = "0.2.93";
-            buildInputs = [ pkgs.rust-bin.stable.latest.default ];
+            buildInputs = [ pkgs.rust-bin.stable.latest.default ]
+                ++ lib.optionals stdenv.isDarwin [
+                    darwin.apple_sdk.frameworks.SystemConfiguration
+                    darwin.apple_sdk.frameworks.Security
+                ];
 
             src = pkgs.fetchCrate {
               inherit pname version;
@@ -162,6 +172,9 @@
               wit-deps-cli
               nodejs
               jco
+            ] ++ lib.optionals stdenv.isDarwin [
+                darwin.apple_sdk.frameworks.SystemConfiguration
+                darwin.apple_sdk.frameworks.Security
             ];
             cargoLock = {
               lockFile = ./Cargo.lock;
