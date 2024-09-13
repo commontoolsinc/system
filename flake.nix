@@ -42,6 +42,7 @@
           let
             rustToolchain = pkgs.rust-bin.${toolchain}.latest.default.override {
               targets = [
+                "aarch64-apple-darwin"
                 "wasm32-unknown-unknown"
                 "wasm32-wasip1"
               ];
