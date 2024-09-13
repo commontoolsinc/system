@@ -32,6 +32,7 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
+        inherit (pkgs) lib stdenv darwin;
 
         /**
          * Helper function to select a Rust toolchain by name e.g., "stable", "nightly".
@@ -41,6 +42,7 @@
           let
             rustToolchain = pkgs.rust-bin.${toolchain}.latest.default.override {
               targets = [
+                "aarch64-apple-darwin"
                 "wasm32-unknown-unknown"
                 "wasm32-wasip1"
               ];
@@ -71,10 +73,11 @@
               wit-deps-cli
               rust-toolchain
               nodejs
-              chromium
-              chromedriver
               jco
 
+            ] ++ lib.optionals stdenv.isDarwin [
+              darwin.apple_sdk.frameworks.SystemConfiguration
+              darwin.apple_sdk.frameworks.Security
             ];
 
             shellHook = ''
@@ -98,13 +101,17 @@
           name = "jco";
           src = ./typescript;
           dontNpmBuild = true;
-          npmDepsHash = "sha256-DFoNL5qRg39Tqz88P8rQ0slJjlfvfQzRvoJ32yZuZlU=";
+          npmDepsHash = "sha256-Nfhe2YyD7fhHoOiQEnrb8C6A0RfgOMa1xFqbTIAykyA=";
         };
 
         wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
           pname = "wit-deps-cli";
           version = "0.3.4";
-          buildInputs = [ pkgs.rust-bin.stable.latest.default ];
+          buildInputs = [ pkgs.rust-bin.stable.latest.default ]
+                ++ lib.optionals stdenv.isDarwin [
+                  darwin.apple_sdk.frameworks.SystemConfiguration
+                  darwin.apple_sdk.frameworks.Security
+                ];
 
           src = pkgs.fetchCrate {
             inherit pname version;
@@ -120,7 +127,11 @@
             # NOTE: Version must be kept in sync with Cargo.toml
             # version of `wasm-bindgen` dependency!
             version = "0.2.93";
-            buildInputs = [ pkgs.rust-bin.stable.latest.default ];
+            buildInputs = [ pkgs.rust-bin.stable.latest.default ]
+                ++ lib.optionals stdenv.isDarwin [
+                    darwin.apple_sdk.frameworks.SystemConfiguration
+                    darwin.apple_sdk.frameworks.Security
+                ];
 
             src = pkgs.fetchCrate {
               inherit pname version;
@@ -162,6 +173,9 @@
               wit-deps-cli
               nodejs
               jco
+            ] ++ lib.optionals stdenv.isDarwin [
+                darwin.apple_sdk.frameworks.SystemConfiguration
+                darwin.apple_sdk.frameworks.Security
             ];
             cargoLock = {
               lockFile = ./Cargo.lock;
