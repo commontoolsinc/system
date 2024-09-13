@@ -39,12 +39,17 @@ message SourceCode {
   bytes body = 2;
 }
 
+message ModuleBody {
+  oneof variant {
+    ModuleSignature module_signature = 1;
+    ModuleSource module_source = 2;
+  }
+}
+
 message ModuleSignature {
-  Target target = 1;
-  string id = 2;
+  string id = 1;
 }
 
 message ModuleSource {
-  Target target = 1;
-  map<string, SourceCode> source_code = 2;
+  map<string, SourceCode> source_code = 1;
 }

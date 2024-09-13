@@ -9,6 +9,7 @@ lib
 __pycache__
 cache
 deps
+/result
 typescript/packages/planning-server/.env
 .wasm_cache
 .*.done

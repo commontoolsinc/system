@@ -123,10 +123,10 @@ async fn exec_module(
                 },
             )]
             .into(),
-            module_reference: Some(
-                runtime::instantiate_module_request::ModuleReference::ModuleSource(
+            target: common::Target::CommonFunctionVm.into(),
+            module_reference: Some(common::ModuleBody {
+                variant: Some(common::module_body::Variant::ModuleSource(
                     common::ModuleSource {
-                        target: common::Target::CommonFunctionVm.into(),
                         source_code: [(
                             "module".into(),
                             common::SourceCode {
@@ -136,8 +136,8 @@ async fn exec_module(
                         )]
                         .into(),
                     },
-                ),
-            ),
+                )),
+            }),
         })
         .await?
         .into_inner();
@@ -145,6 +145,7 @@ async fn exec_module(
     let runtime::RunModuleResponse { output } = runtime_client
         .run_module(runtime::RunModuleRequest {
             instance_id,
+            keep_alive: false,
             input: [(
                 "input".into(),
                 common::LabeledData {
