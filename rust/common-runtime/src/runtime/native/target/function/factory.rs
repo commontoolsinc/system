@@ -41,7 +41,7 @@ impl NativeFunctionFactory {
         wasmtime_wasi::add_to_linker_async(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-        wasmtime_wasi_http::proxy::add_only_http_to_linker(&mut linker)
+        wasmtime_wasi_http::add_only_http_to_linker_async(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
         add_to_linker(&mut linker)
@@ -68,13 +68,10 @@ impl ModuleFactory for NativeFunctionFactory {
     ) -> Result<Self::Module, CommonRuntimeError> {
         let mut store = Store::new(&self.engine, context);
 
-        let (module, instance) =
-            Module::instantiate_async(&mut store, &self.component, &self.linker)
-                .await
-                .map_err(|error| {
-                    CommonRuntimeError::ModuleInstantiationFailed(format!("{error}"))
-                })?;
+        let module = Module::instantiate_async(&mut store, &self.component, &self.linker)
+            .await
+            .map_err(|error| CommonRuntimeError::ModuleInstantiationFailed(format!("{error}")))?;
 
-        NativeFunction::new(self.definition.clone(), store, module, instance)
+        NativeFunction::new(self.definition.clone(), store, module)
     }
 }

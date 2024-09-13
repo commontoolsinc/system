@@ -88,14 +88,14 @@ url = { version = "2" }
 # by flake.nix.
 wasm-bindgen = { version = "0.2.93" }
 wasm-bindgen-test = { version = "0.3.43" }
-wasmtime = { version = "22" }
-wasmtime-wasi = { version = "22" }
-wasmtime-wasi-http = { version = "22" }
-wasmtime-environ = { version = "22" }
+wasmtime = { version = "24" }
+wasmtime-wasi = { version = "24" }
+wasmtime-wasi-http = { version = "24" }
+wasmtime-environ = { version = "24" }
 web-sys = { version = "0.3" }
-wit-bindgen = { version = "0.27" }
-wit-bindgen-rt = { version = "0.27" }
-wit-parser = { version = "0.212" }
+wit-bindgen = { version = "0.32" }
+wit-bindgen-rt = { version = "0.32" }
+wit-parser = { version = "0.217" }
 
 [profile.release]
 codegen-units = 1
