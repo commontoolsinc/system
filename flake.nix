@@ -100,7 +100,7 @@
           name = "jco";
           src = ./typescript;
           dontNpmBuild = true;
-          npmDepsHash = "sha256-DFoNL5qRg39Tqz88P8rQ0slJjlfvfQzRvoJ32yZuZlU=";
+          npmDepsHash = "sha256-Nfhe2YyD7fhHoOiQEnrb8C6A0RfgOMa1xFqbTIAykyA=";
         };
 
         wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
