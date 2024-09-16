@@ -1,10 +1,9 @@
+use crate::{
+    module::ModuleContext, runtime::BasicIo, target::bindings::BindingsView, ModuleContextMut,
+};
 use common_ifc::Context as IfcContext;
 use wasmtime::component::ResourceTable;
-use wasmtime_wasi::WasiCtx;
-
-use crate::{module::ModuleContext, runtime::BasicIo, ModuleContextMut};
-
-pub(crate) mod bindings;
+use wasmtime_wasi::{WasiCtx, WasiView};
 
 /// The backing [ModuleContext] for a
 /// [crate::target::function_vm::NativeFunctionVm] Module.
@@ -54,5 +53,25 @@ impl ModuleContext for NativeFunctionVmContext {
 impl ModuleContextMut for NativeFunctionVmContext {
     fn io_mut(&mut self) -> &mut Self::Io {
         &mut self.io
+    }
+}
+
+impl BindingsView for NativeFunctionVmContext {
+    fn common_table(&self) -> &ResourceTable {
+        &self.resources
+    }
+
+    fn common_table_mut(&mut self) -> &mut ResourceTable {
+        &mut self.resources
+    }
+}
+
+impl WasiView for NativeFunctionVmContext {
+    fn table(&mut self) -> &mut ResourceTable {
+        &mut self.wasi_resources
+    }
+
+    fn ctx(&mut self) -> &mut WasiCtx {
+        &mut self.wasi_ctx
     }
 }

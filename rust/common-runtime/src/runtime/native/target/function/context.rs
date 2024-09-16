@@ -1,11 +1,10 @@
+use crate::{
+    module::ModuleContext, runtime::BasicIo, target::bindings::BindingsView, ModuleContextMut,
+};
 use common_ifc::Context as IfcContext;
 use wasmtime::component::ResourceTable;
-use wasmtime_wasi::WasiCtx;
-use wasmtime_wasi_http::WasiHttpCtx;
-
-use crate::{module::ModuleContext, runtime::BasicIo, ModuleContextMut};
-
-pub(crate) mod bindings;
+use wasmtime_wasi::{WasiCtx, WasiView};
+use wasmtime_wasi_http::{WasiHttpCtx, WasiHttpView};
 
 /// The backing [ModuleContext] for a [crate::target::function::NativeFunction]
 /// Module
@@ -62,5 +61,35 @@ impl ModuleContext for NativeFunctionContext {
 impl ModuleContextMut for NativeFunctionContext {
     fn io_mut(&mut self) -> &mut Self::Io {
         &mut self.io
+    }
+}
+
+impl BindingsView for NativeFunctionContext {
+    fn common_table(&self) -> &ResourceTable {
+        &self.resources
+    }
+
+    fn common_table_mut(&mut self) -> &mut ResourceTable {
+        &mut self.resources
+    }
+}
+
+impl WasiView for NativeFunctionContext {
+    fn table(&mut self) -> &mut ResourceTable {
+        &mut self.wasi_resources
+    }
+
+    fn ctx(&mut self) -> &mut WasiCtx {
+        &mut self.wasi_ctx
+    }
+}
+
+impl WasiHttpView for NativeFunctionContext {
+    fn ctx(&mut self) -> &mut wasmtime_wasi_http::WasiHttpCtx {
+        &mut self.wasi_http_ctx
+    }
+
+    fn table(&mut self) -> &mut ResourceTable {
+        &mut self.wasi_http_resources
     }
 }

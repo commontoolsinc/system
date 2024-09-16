@@ -1,16 +1,17 @@
-use std::sync::Arc;
-
 use crate::{
-    module::FunctionVmDefinition, ArtifactResolver, CommonRuntimeError, ContentType, ModuleFactory,
-    VirtualModuleInterpreter,
+    module::FunctionVmDefinition,
+    target::{
+        bindings::vm::{add_to_linker, VirtualModule},
+        function_vm::{NativeFunctionVm, NativeFunctionVmContext},
+    },
+    ArtifactResolver, CommonRuntimeError, ContentType, ModuleFactory, VirtualModuleInterpreter,
 };
 use async_trait::async_trait;
+use std::sync::Arc;
 use wasmtime::{
     component::{Component, Linker},
     Engine as WasmtimeEngine, Store,
 };
-
-use super::{bindings::VirtualModule, NativeFunctionVm, NativeFunctionVmContext};
 
 /// An implementor of [ModuleFactory] for [NativeFunctionVm] Modules that may be
 /// instantiated by a [crate::NativeRuntime]
@@ -75,7 +76,7 @@ impl NativeFunctionVmFactory {
         wasmtime_wasi::add_to_linker_async(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-        VirtualModule::add_to_linker(&mut linker, |environment| environment)
+        add_to_linker(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
         Ok(NativeFunctionVmFactory {
