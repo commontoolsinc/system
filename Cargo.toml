@@ -87,6 +87,7 @@ url = { version = "2" }
 # version of wasm-bindgen-cli that is installed globally e.g.,
 # by flake.nix.
 wasm-bindgen = { version = "0.2.93" }
+wasm-bindgen-futures = { version = "0.4.43" }
 wasm-bindgen-test = { version = "0.3.43" }
 wasmtime = { version = "24" }
 wasmtime-wasi = { version = "24" }

@@ -274,10 +274,17 @@ jobs:
           npm ci
           npm run build --workspaces
   
-  nix-setup:
-    name: 'Nix Setup'
+  nix-build:
+    name: 'Nix build'
     needs: ['lints']
     runs-on: 'ubuntu-latest'
+    strategy:
+      matrix:
+        include:
+          - package: "default"
+            artifact-name: "runtime"
+          - package: "web-runtime"
+            artifact-name: "web-runtime"
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
@@ -288,11 +295,13 @@ jobs:
       - uses: DeterminateSystems/flake-checker-action@main
         with:
           send-statistics: false
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/download-artifact@v4
       - name: 'Run nix build'
         run: |
-          nix build .
+          nix build .#${{ matrix.package }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ./result
 
   workflow-analysis:
     name: 'Workflow analysis'

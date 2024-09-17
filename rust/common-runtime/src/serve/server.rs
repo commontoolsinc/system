@@ -90,6 +90,7 @@ impl From<CommonRuntimeError> for Status {
                 Status::invalid_argument(format!("{value}"))
             }
             CommonRuntimeError::PolicyRejection(_) => Status::invalid_argument(format!("{value}")),
+            CommonRuntimeError::InvalidValueKind(_) => Status::invalid_argument(format!("{value}")),
         }
     }
 }

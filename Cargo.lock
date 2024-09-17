@@ -881,10 +881,12 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "wasm-bindgen-test",
  "wasmtime",
  "wasmtime-wasi",
  "wasmtime-wasi-http",
+ "web-sys",
 ]
 
 [[package]]
