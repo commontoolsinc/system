@@ -374,9 +374,9 @@ dependencies = [
 
 [[package]]
 name = "boa_ast"
-version = "0.19.0"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b49637e7ecb7c541c46c3e885d4c49326ad8076dbfb88bef2cf3165d8ea7df2b"
+checksum = "3a69ee3a749ea36d4e56d92941e7b25076b493d4917c3d155b6cf369e23547d9"
 dependencies = [
  "bitflags 2.6.0",
  "boa_interner",
@@ -388,9 +388,9 @@ dependencies = [
 
 [[package]]
 name = "boa_engine"
-version = "0.19.0"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "411558b4cbc7d0303012e26721815e612fed78179313888fd5dd8d6c50d70099"
+checksum = "06e4559b35b80ceb2e6328481c0eca9a24506663ea33ee1e279be6b5b618b25c"
 dependencies = [
  "arrayvec",
  "bitflags 2.6.0",
@@ -447,9 +447,9 @@ dependencies = [
 
 [[package]]
 name = "boa_interner"
-version = "0.19.0"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b779280420804c70da9043d152c84eb96e2f7c9e7d1ec3262decf59f9349df"
+checksum = "4e18df2272616e1ba0322a69333d37dbb78797f1aa0595aad9dc41e8ecd06ad9"
 dependencies = [
  "boa_gc",
  "boa_macros",
@@ -475,9 +475,9 @@ dependencies = [
 
 [[package]]
 name = "boa_parser"
-version = "0.19.0"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd63fe8faf62561fc8c50f9402687e8cfde720b57d292fb3b4ac17c821878ac1"
+checksum = "62b59dc05bf1dc019b11478a92986f590cff43fced4d20e866eefb913493e91c"
 dependencies = [
  "bitflags 2.6.0",
  "boa_ast",
