@@ -83,6 +83,7 @@
                 rust-toolchain
                 chromium
                 chromedriver
+                google-cloud-sdk
               ] ++ common-build-inputs;
 
               shellHook = ''
@@ -145,8 +146,36 @@
             };
         in
         {
-          packages = {
-            default =
+          packages = rec {
+            builder =
+              let
+                rust-toolchain = rustToolchain "stable";
+                rust-platform = pkgs.makeRustPlatform {
+                  cargo = rust-toolchain;
+                  rustc = rust-toolchain;
+                };
+              in
+              rust-platform.buildRustPackage {
+                name = "builder";
+                src = ./.;
+                /* Don't run tests as part of this task */
+                doCheck = false;
+                buildPhase = ''
+                  bash ./wit/wit-tools.sh deps
+                  cargo build -p common-builder --release
+                '';
+                installPhase = ''
+                  mkdir -p $out/builder
+                  cp ./target/release/builder $out/builder
+                '';
+
+                nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
+                cargoLock = {
+                  lockFile = ./Cargo.lock;
+                };
+              };
+
+            runtime =
               let
                 rust-toolchain = rustToolchain "stable";
                 rust-platform = pkgs.makeRustPlatform {
@@ -206,6 +235,30 @@
                   lockFile = ./Cargo.lock;
                 };
               };
+
+            runtime-docker-image = pkgs.dockerTools.buildLayeredImage {
+              name = "common-runtime";
+              tag = "latest";
+              created = "now";
+              config.Entrypoint = [ "${runtime}/runtime/runtime" ];
+            };
+
+            builder-docker-image = pkgs.dockerTools.buildLayeredImage {
+              name = "common-builder";
+              tag = "latest";
+              created = "now";
+              contents = [
+                jco
+              ];
+              # NOTE: This is needed because the extremely minimal base image
+              # doesn't have a /tmp! And, for now we initialize a temporary DB
+              # for caching build artifacts.
+              fakeRootCommands = ''
+                mkdir -p /tmp
+              '';
+              enableFakechroot = true;
+              config.Entrypoint = [ "${builder}/builder/builder" ];
+            };
           };
 
           devShells = {
