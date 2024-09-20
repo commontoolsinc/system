@@ -6,7 +6,7 @@ use crate::{
 };
 use async_trait::async_trait;
 use std::sync::Arc;
-use wasmtime::{component::Instance, AsContextMut, Store};
+use wasmtime::{AsContextMut, Store};
 
 /// An `common:function/module`-based Module for the [crate::NativeRuntime].
 pub struct NativeFunction {
@@ -14,8 +14,6 @@ pub struct NativeFunction {
     instance_id: ModuleInstanceId,
     store: Store<NativeFunctionContext>,
     module: GuestModule,
-    #[allow(dead_code)]
-    instance: Instance,
 }
 
 impl NativeFunction {
@@ -25,7 +23,6 @@ impl NativeFunction {
         definition: Arc<FunctionDefinition>,
         store: Store<NativeFunctionContext>,
         module: GuestModule,
-        instance: Instance,
     ) -> Result<Self, CommonRuntimeError> {
         let module_id = ModuleId::from(&*(*definition));
         let instance_id = ModuleInstanceId::try_from(module_id.clone())?;
@@ -35,7 +32,6 @@ impl NativeFunction {
             instance_id,
             store,
             module,
-            instance,
         })
     }
 }

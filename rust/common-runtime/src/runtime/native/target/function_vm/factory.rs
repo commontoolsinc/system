@@ -101,7 +101,7 @@ impl ModuleFactory for NativeFunctionVmFactory {
     ) -> Result<Self::Module, CommonRuntimeError> {
         let mut store = Store::new(&self.engine, context);
 
-        let (virtual_module, instance) =
+        let virtual_module =
             VirtualModule::instantiate_async(&mut store, &self.interpreter, &self.linker)
                 .await
                 .map_err(|error| {
@@ -116,6 +116,6 @@ impl ModuleFactory for NativeFunctionVmFactory {
                 CommonRuntimeError::ModuleInstantiationFailed(format!("Script error: {error}"))
             })?;
 
-        NativeFunctionVm::new(self.definition.clone(), store, virtual_module, instance)
+        NativeFunctionVm::new(self.definition.clone(), store, virtual_module)
     }
 }

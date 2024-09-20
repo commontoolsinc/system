@@ -6,7 +6,7 @@ use crate::{
 };
 use async_trait::async_trait;
 use std::sync::Arc;
-use wasmtime::{component::Instance, AsContextMut, Store};
+use wasmtime::{AsContextMut, Store};
 
 /// An `common:function/virtual-module`-based Module for the
 /// [crate::NativeRuntime].
@@ -15,8 +15,6 @@ pub struct NativeFunctionVm {
     module_id: ModuleId,
     store: Store<NativeFunctionVmContext>,
     module: GuestVirtualModule,
-    #[allow(dead_code)]
-    instance: Instance,
 }
 
 impl NativeFunctionVm {
@@ -26,7 +24,6 @@ impl NativeFunctionVm {
         definition: Arc<FunctionVmDefinition>,
         store: Store<NativeFunctionVmContext>,
         module: GuestVirtualModule,
-        instance: Instance,
     ) -> Result<Self, CommonRuntimeError> {
         let module_id = ModuleId::from(&*(*definition));
         let instance_id = ModuleInstanceId::try_from(module_id.clone())?;
@@ -36,7 +33,6 @@ impl NativeFunctionVm {
             instance_id,
             store,
             module,
-            instance,
         })
     }
 }
