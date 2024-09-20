@@ -25,6 +25,7 @@ impl ModuleDefinition {
     pub fn interpret_host_definition(
         definition: JavaScriptModuleDefinition,
     ) -> Result<(Self, IoValues), String> {
+        debug!("START");
         let body = ModuleBody::SourceCode(BTreeMap::from([(
             "module.js".to_owned(),
             SourceCode {
@@ -33,14 +34,18 @@ impl ModuleDefinition {
             },
         )]));
 
+        debug!("A");
+
         let inputs = Object::from(definition.inputs());
         let outputs = Object::from(definition.outputs());
 
+        debug!("B");
         let mut default_inputs = BTreeMap::new();
         let mut input_shape = BTreeMap::new();
 
         let input_keys = Object::keys(&inputs);
 
+        debug!("C");
         for key in input_keys {
             let (Some(key), Some(value)) = (key.as_string(), Reflect::get(&inputs, &key).ok())
             else {

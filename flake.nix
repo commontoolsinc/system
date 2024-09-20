@@ -203,7 +203,12 @@
                 };
               };
 
-            web-runtime =
+            /**
+             * Builds the source files for an NPM package that bundles
+             * up the runtime (compiled to Web Assembly) and an auto-generated
+             * JavaScript library with bindings into the runtime's API.
+             */
+            runtime-npm-package =
               let
                 rust-toolchain = rustToolchain "stable";
                 rust-platform = pkgs.makeRustPlatform {
@@ -223,7 +228,7 @@
                   export HOME=`pwd`
 
                   bash ./wit/wit-tools.sh deps
-                  wasm-pack build --target web -m no-install ./rust/common-runtime
+                  wasm-pack build --target bundler -m no-install ./rust/common-runtime
                 '';
                 installPhase = ''
                   mkdir -p $out

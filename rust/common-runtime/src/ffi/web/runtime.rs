@@ -1,6 +1,7 @@
 use std::{cell::RefCell, collections::BTreeMap, rc::Rc};
 
 use common_ifc::ModuleEnvironment;
+use common_macros::common_tracing;
 use http::Uri;
 use wasm_bindgen::prelude::*;
 
@@ -30,8 +31,12 @@ impl CommonRuntime {
     /// Construct a new [`CommonRuntime`], passing an optional URL to a backing
     /// remote Runtime that will be used when instantiating and invoking remote
     /// modules
+    // #[common_tracing]
     #[wasm_bindgen(constructor)]
     pub fn new(remote_runtime_address: Option<String>) -> Self {
+        console_error_panic_hook::set_once();
+        tracing_wasm::set_as_global_default();
+
         let remote_runtime_address = if let Some(raw_address) = remote_runtime_address {
             Some(
                 Uri::try_from(raw_address)
@@ -41,6 +46,8 @@ impl CommonRuntime {
         } else {
             None
         };
+
+        info!("Common Runtime constructed!");
 
         CommonRuntime {
             inner: Rc::new(RefCell::new(

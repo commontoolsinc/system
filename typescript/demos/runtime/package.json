@@ -1,0 +1,24 @@
+{
+  "name": "runtime",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.1",
+    "@shoelace-style/shoelace": "^2.16.0",
+    "common-runtime": "file:/nix/store/8dszcwikm7j9vx2s5wqv5ddkcphsz20c-web-runtime/common-runtime",
+    "lit": "^3.2.0",
+    "vite-plugin-static-copy": "^1.0.6",
+    "vite-plugin-top-level-await": "^1.4.4",
+    "vite-plugin-wasm": "^3.3.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1"
+  }
+}
