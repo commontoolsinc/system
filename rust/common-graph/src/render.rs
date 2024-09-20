@@ -35,6 +35,10 @@ where
     pub port_background_color: String,
     /// Background color of port groups.
     pub port_group_background_color: String,
+    /// Background color of root node objects.
+    pub root_node_background_color: String,
+    /// Background color of root port groups.
+    pub root_port_group_background_color: String,
     /// Data from a processed graph to visualize.
     pub graph_data: Option<OwnedGraphData<V>>,
 }
@@ -52,6 +56,8 @@ where
             node_background_color: "darkgrey".into(),
             port_background_color: "white".into(),
             port_group_background_color: "lightgrey".into(),
+            root_node_background_color: "dodgerblue3".into(),
+            root_port_group_background_color: "dodgerblue2".into(),
             graph_data: None,
         }
     }
@@ -118,6 +124,18 @@ where
     /// Set [RenderOpts]' `port_group_background_color`.
     pub fn port_group_background_color(mut self, color: &str) -> Self {
         self.opts.port_group_background_color = color.into();
+        self
+    }
+
+    /// Set [RenderOpts]' `root_node_background_color`.
+    pub fn root_node_background_color(mut self, color: &str) -> Self {
+        self.opts.root_node_background_color = color.into();
+        self
+    }
+
+    /// Set [RenderOpts]' `root_port_group_background_color`.
+    pub fn root_port_group_background_color(mut self, color: &str) -> Self {
+        self.opts.root_port_group_background_color = color.into();
         self
     }
 
@@ -204,18 +222,22 @@ where
     V: RenderableValue + Clone,
 {
     let node_id = node.label().to_string();
-    validate_slug(&node_id)?;
+    let slug_id = slugify_str(&node_id)?;
 
     writeln!(
         w,
         r#"
-subgraph {node_id} {{
+subgraph {slug_id} {{
   label = "{node_id}";
   style = "rounded,filled";
   color = {};
   cluster = true;
 "#,
-        options.node_background_color
+        if index == 0 {
+            &options.root_node_background_color
+        } else {
+            &options.node_background_color
+        }
     )?;
 
     let input_slugs = render_ports::<T, W, V>(w, node, index, options, PortType::Input)?;
@@ -303,7 +325,13 @@ where
     label = "{}";
     color = "{}";
 "#,
-        rank, port_type, options.port_group_background_color
+        rank,
+        port_type,
+        if index == 0 {
+            &options.root_port_group_background_color
+        } else {
+            &options.port_group_background_color
+        }
     )?;
 
     let mut port_slugs = vec![];
@@ -354,38 +382,94 @@ where
         None => String::from("None"),
     })
 }
+
 fn slugify_port(node_id: &str, port: &str, port_type: &PortType) -> Result<String> {
-    let slug = format!("{}__{}__{}", node_id, port_type, port);
-    validate_slug(&slug)?;
-    Ok(slug)
+    slugify_str(&format!("{}__{}__{}", node_id, port_type, port,))
 }
 
-/// Validates a generated slug for compatibility with dot.
-/// The first character must be an alphanumeric or '_',
-/// and all remaining characters must be alphanumeric or '_'.
-fn validate_slug(slug: &str) -> Result<()> {
-    match slug.chars().next() {
-        Some(c) if c.is_ascii_alphabetic() || c == '_' => {}
-        _ => {
-            return Err(CommonGraphError::InternalError(format!(
-                "Invalid slug: {}",
-                slug
-            )))
+/// Dot strings contain only `_0-9a-zA-Z` values,
+/// with the first character being `0-9a-zA-Z` (no
+/// underscore). Slugify a string for dot by replacing
+/// all invalid characters with dot-safe values.
+fn slugify_str(input: &str) -> Result<String> {
+    let mut out = String::with_capacity(input.len());
+
+    for (index, c) in input.chars().enumerate() {
+        let is_valid = match index == 0 {
+            true => c.is_ascii_alphabetic() || c == '_',
+            false => c.is_ascii_alphanumeric() || c == '_',
+        };
+        match is_valid {
+            true => out.push(c),
+            false => byte_to_str(c, &mut out)?,
         }
     }
-    if !slug.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
-        return Err(CommonGraphError::InternalError(format!(
-            "Invalid slug: {}",
-            slug
-        )));
+
+    /// Converts a character as a stringified
+    /// form of its UTF8 bytes, pushing results
+    /// to the `out` String.
+    ///
+    /// For example, `"$data"` renders as "B36data",
+    /// where `"$"` is transformed to `"B36"`.
+    fn byte_to_str(c: char, out: &mut String) -> Result<()> {
+        let mut buffer: [u8; 4] = [0; 4];
+        c.encode_utf8(&mut buffer);
+        out.push('B');
+        for byte in buffer {
+            if byte == 0 {
+                continue;
+            }
+            if byte >= 100 {
+                out.push('1');
+            }
+            if byte >= 10 {
+                let char_digit = char::from_digit((u32::from(byte) % 100u32) / 10u32, 10).ok_or(
+                    CommonGraphError::Unexpected("Digit out of range of radix.".into()),
+                )?;
+                out.push(char_digit);
+            }
+            let char_digit = char::from_digit(u32::from(byte) % 10u32, 10).ok_or(
+                CommonGraphError::Unexpected("Digit out of range of radix.".into()),
+            )?;
+            out.push(char_digit);
+        }
+        Ok(())
     }
-    Ok(())
+
+    Ok(out)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::super::GraphBuilder;
     use super::*;
+    use crate::GraphBuilder;
+
+    #[test]
+    fn it_slugifies_node_and_port_names() -> Result<()> {
+        let graph = GraphBuilder::default()
+            .set_graph_input(vec!["$event", "/data/foo"])
+            .set_graph_output(vec!["$event", "/data/foo"])
+            .node("東", (), vec!["in"], vec!["out"])
+            .node("1numericstart", (), vec!["in"], vec!["out"])
+            .connect_input("$event", ("東", "in"))?
+            .connect_input("/data/foo", ("1numericstart", "in"))?
+            .connect_output(("東", "out"), "$event")?
+            .connect_output(("1numericstart", "out"), "/data/foo")?
+            .build()?;
+
+        let mut out = std::io::Cursor::new(vec![]);
+        RenderOptsBuilder::<()>::default().render(&graph, &mut out)?;
+        let dot = String::from_utf8(out.into_inner())?;
+        // "$event" => "B36event"
+        assert!(dot.contains("Root__input__B36event"));
+        // "/data/foo" => "B47dataB47foo"
+        assert!(dot.contains("Root__input__B47dataB47foo"));
+        // "東" => "B130157177"
+        assert!(dot.contains("B130157177__input__in"));
+        // "1numericstart" => "B49numericstart"
+        assert!(dot.contains("B49numericstart__input__in"));
+        Ok(())
+    }
 
     #[test]
     fn it_renders_to_dot_format() -> Result<()> {
@@ -393,44 +477,49 @@ mod tests {
         let graph = builder
             .set_label("Storage")
             .set_graph_input(vec![
-                "event_reset",
-                "event_confirm",
-                "todos",
-                "api_key",
-                "journal",
+                "$reset",
+                "$confirm",
+                "/data/todos",
+                "/data/api_key",
+                "/data/journal",
             ])
             .set_graph_output(vec![
-                "event_reset",
-                "event_confirm",
-                "todos",
-                "api_key",
-                "journal",
+                "$reset",
+                "$confirm",
+                "/data/todos",
+                "/data/api_key",
+                "/data/journal",
             ])
             .node(
                 "PromptUI",
                 (),
-                vec!["todos", "journal", "reset_trigger", "confirm_trigger"],
+                vec![
+                    "/data/todos",
+                    "/data/journal",
+                    "reset_trigger",
+                    "confirm_trigger",
+                ],
                 vec!["prompt", "rendertree"],
             )
-            .node("LLM", (), vec!["prompt", "api_key"], vec!["dream"])
+            .node("LLM", (), vec!["prompt", "/data/api_key"], vec!["dream"])
             .node("ConfirmUI", (), vec!["dream"], vec!["rendertree"])
             .node(
                 "RenderSink",
                 (),
                 vec!["rendertree1", "rendertree2"],
-                vec!["event_reset", "event_confirm"],
+                vec!["$reset", "$confirm"],
             )
-            .connect_input("event_reset", ("PromptUI", "reset_trigger"))?
-            .connect_input("event_confirm", ("PromptUI", "confirm_trigger"))?
-            .connect_input("todos", ("PromptUI", "todos"))?
-            .connect_input("journal", ("PromptUI", "journal"))?
-            .connect_input("api_key", ("LLM", "api_key"))?
+            .connect_input("$reset", ("PromptUI", "reset_trigger"))?
+            .connect_input("$confirm", ("PromptUI", "confirm_trigger"))?
+            .connect_input("/data/todos", ("PromptUI", "/data/todos"))?
+            .connect_input("/data/journal", ("PromptUI", "/data/journal"))?
+            .connect_input("/data/api_key", ("LLM", "/data/api_key"))?
             .connect(("PromptUI", "prompt"), ("LLM", "prompt"))?
             .connect(("LLM", "dream"), ("ConfirmUI", "dream"))?
             .connect(("PromptUI", "rendertree"), ("RenderSink", "rendertree1"))?
             .connect(("ConfirmUI", "rendertree"), ("RenderSink", "rendertree2"))?
-            .connect_output(("RenderSink", "event_reset"), "event_reset")?
-            .connect_output(("RenderSink", "event_confirm"), "event_confirm")?
+            .connect_output(("RenderSink", "$reset"), "$reset")?
+            .connect_output(("RenderSink", "$confirm"), "$confirm")?
             .build()?;
 
         let mut out = std::io::Cursor::new(vec![]);
