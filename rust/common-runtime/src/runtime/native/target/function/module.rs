@@ -1,18 +1,12 @@
-use std::sync::Arc;
-
-use async_trait::async_trait;
-use wasmtime::{component::Instance, AsContextMut, Store};
-
+use super::{super::bindings::module::Module as GuestModule, NativeFunctionContext};
 use crate::{
-    module::{FunctionInterface, ModuleContext},
+    module::{FunctionInterface, HasModuleContext, ModuleContext},
     CommonRuntimeError, FunctionDefinition, HasModuleContextMut, InputOutput, IoData, Module,
     ModuleContextMut, ModuleId, ModuleInstanceId, Validated,
 };
-
-use super::{
-    super::super::super::super::module::HasModuleContext, bindings::Module as GuestModule,
-    NativeFunctionContext,
-};
+use async_trait::async_trait;
+use std::sync::Arc;
+use wasmtime::{component::Instance, AsContextMut, Store};
 
 /// An `common:function/module`-based Module for the [crate::NativeRuntime].
 pub struct NativeFunction {

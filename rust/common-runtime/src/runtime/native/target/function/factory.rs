@@ -1,19 +1,17 @@
-use std::sync::Arc;
-
 use crate::{
-    CommonRuntimeError,
-    {
-        module::FunctionDefinition, target::function::NativeFunction, ArtifactResolver,
-        ModuleFactory,
+    target::{
+        bindings::module::{add_to_linker, Module},
+        function::{NativeFunction, NativeFunctionContext},
     },
+    CommonRuntimeError,
+    {module::FunctionDefinition, ArtifactResolver, ModuleFactory},
 };
 use async_trait::async_trait;
+use std::sync::Arc;
 use wasmtime::{
     component::{Component, Linker},
     Engine as WasmtimeEngine, Store,
 };
-
-use super::{bindings::Module, NativeFunctionContext};
 
 /// An implementor of [ModuleFactory] for [NativeFunction] Modules that may be
 /// instantiated by a [crate::NativeRuntime]
@@ -46,7 +44,7 @@ impl NativeFunctionFactory {
         wasmtime_wasi_http::proxy::add_only_http_to_linker(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-        Module::add_to_linker(&mut linker, |environment| environment)
+        add_to_linker(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
         Ok(NativeFunctionFactory {

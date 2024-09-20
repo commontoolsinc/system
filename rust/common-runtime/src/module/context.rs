@@ -14,11 +14,35 @@ pub trait ModuleContext: ConditionalSend {
     fn ifc(&self) -> &IfcContext;
 }
 
+impl<T> ModuleContext for &mut T
+where
+    T: ModuleContext,
+{
+    type Io = T::Io;
+
+    fn io(&self) -> &Self::Io {
+        T::io(self)
+    }
+
+    fn ifc(&self) -> &IfcContext {
+        T::ifc(self)
+    }
+}
+
 /// Mutable properties that may be required in a [`ModuleContext`] in order to
 /// make use of some Common Modules
 pub trait ModuleContextMut: ModuleContext {
     /// Read-write access to the [`ModuleContext`]'s [`InputOutput`]
     fn io_mut(&mut self) -> &mut Self::Io;
+}
+
+impl<T> ModuleContextMut for &mut T
+where
+    T: ModuleContextMut + ModuleContext,
+{
+    fn io_mut(&mut self) -> &mut Self::Io {
+        T::io_mut(self)
+    }
 }
 
 /// A trait that is implemented by things that have a [`ModuleContext`]. All
