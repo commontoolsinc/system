@@ -25,11 +25,11 @@ print_help() {
 update_deps() {
     for wit in "${WITS[@]}"
     do
-        cd "$SCRIPT_DIR/common/$wit" && wit-deps && cd -
+        cd "$SCRIPT_DIR/common/$wit" && wit-deps && cd - > /dev/null
     done
     for component in "${WASM_COMPONENTS[@]}"
     do
-        cd "$SCRIPT_DIR/../$component" && wit-deps && cd -
+        cd "$SCRIPT_DIR/../$component" && wit-deps && cd - > /dev/null
     done
 }
 
