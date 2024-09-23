@@ -22,6 +22,9 @@ mod serve;
 #[cfg(not(target_arch = "wasm32"))]
 pub use serve::*;
 
+#[cfg(target_arch = "wasm32")]
+pub mod ffi;
+
 pub mod sync;
 
 mod policy;

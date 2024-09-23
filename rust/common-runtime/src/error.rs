@@ -47,6 +47,10 @@ pub enum CommonRuntimeError {
     #[error("Invalid Value")]
     InvalidValue,
 
+    /// A provided ValueKind was not recognized
+    #[error("Invalid or unsupported kind of value: {0}")]
+    InvalidValueKind(String),
+
     /// The provided module sources were missing or otherwise invalid
     #[error("Invalid module source: {0}")]
     InvalidModuleSource(String),

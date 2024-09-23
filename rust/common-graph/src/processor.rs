@@ -146,7 +146,9 @@ where
     V: Clone,
 {
     type Item<'next>
-    = GraphProcessorItem<'next, T, V> where Self: 'next;
+        = GraphProcessorItem<'next, T, V>
+    where
+        Self: 'next;
 
     type Output = GraphData<'g, V>;
 

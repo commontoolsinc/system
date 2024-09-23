@@ -1,0 +1,14 @@
+services:
+  builder:
+    image: localhost/common-builder:latest
+    ports:
+      - '8082:8082'
+    environment:
+      RUST_LOG=builder=debug
+  runtime:
+    image: localhost/common-runtime:latest
+    command: ["--builder-address", "http://builder:8082"]
+    ports:
+      - '8081:8081'
+    environment:
+      RUST_LOG=runtime=debug

@@ -51,6 +51,20 @@ impl From<&Value> for ValueKind {
     }
 }
 
+impl TryFrom<&str> for ValueKind {
+    type Error = CommonRuntimeError;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
+        Ok(match value {
+            "string" => ValueKind::String,
+            "boolean" => ValueKind::Boolean,
+            "number" => ValueKind::Number,
+            "buffer" => ValueKind::Buffer,
+            any_other => return Err(CommonRuntimeError::InvalidValueKind(any_other.to_owned())),
+        })
+    }
+}
+
 impl TryFrom<proto::Value> for Value {
     type Error = CommonRuntimeError;
 
