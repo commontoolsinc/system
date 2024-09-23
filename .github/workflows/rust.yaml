@@ -281,10 +281,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - package: "default"
+          - package: "runtime"
             artifact-name: "runtime"
-          - package: "web-runtime"
-            artifact-name: "web-runtime"
+          - package: "runtime-npm-package"
+            artifact-name: "common-runtime"
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
