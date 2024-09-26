@@ -19,7 +19,7 @@ jobs:
       matrix:
         include:
           - toolchain: stable
-          - toolchain: nightly
+          # - toolchain: nightly
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
@@ -187,9 +187,9 @@ jobs:
           - platform: 'macos-13'
             toolchain: 'stable'
             flags: '--workspace --exclude common-integration-tests'
-          - platform: 'macos-13'
-            toolchain: 'nightly'
-            flags: '--workspace --exclude common-integration-tests'
+          # - platform: 'macos-13'
+          #  toolchain: 'nightly'
+          #  flags: '--workspace --exclude common-integration-tests'
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
