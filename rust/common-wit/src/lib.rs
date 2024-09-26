@@ -69,7 +69,6 @@ impl std::fmt::Display for Target {
 }
 
 /// A map of files that correspond to a give [`Target`]
-
 #[repr(transparent)]
 #[derive(Clone)]
 pub struct WitTargetFileMap(BTreeMap<String, &'static [u8]>);

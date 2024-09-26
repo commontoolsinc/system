@@ -100,10 +100,10 @@ where
             if !node.is_root() && node.inputs().is_empty() {
                 queue.push_back(node.index())
             }
-            return (
+            (
                 node.inputs().iter().map(|(key, _)| key.as_str()),
                 node.outputs().iter().map(|(key, _)| key.as_str()),
-            );
+            )
         }));
 
         // Seed input data on root node outputs
