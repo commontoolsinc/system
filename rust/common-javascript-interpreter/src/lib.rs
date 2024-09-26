@@ -17,6 +17,8 @@ mod data;
 mod io;
 #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 mod module;
+#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
+mod util;
 
 #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 mod guest {
