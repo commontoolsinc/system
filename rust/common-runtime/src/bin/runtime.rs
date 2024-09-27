@@ -43,7 +43,21 @@ pub async fn main() -> Result<(), common_runtime::CommonRuntimeError> {
 
     info!("Server listening on {}", socket_address);
 
-    serve(listener, cli.builder_address).await?;
+    // Use `http` by default if no scheme provided in
+    // builder address.
+    let builder_address = cli.builder_address.map(|builder_address| {
+        if builder_address.scheme().is_none() {
+            http::uri::Builder::from(builder_address)
+                .scheme("http")
+                .path_and_query("/")
+                .build()
+                .expect("Failed applying default schema to builder address.")
+        } else {
+            builder_address
+        }
+    });
+
+    serve(listener, builder_address).await?;
 
     Ok(())
 }
