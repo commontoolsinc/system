@@ -5,74 +5,125 @@ Notes on building and testing `system`.
 This document might get out of date - check github workflow files (`.github/workflows/rust.yaml` et al)
 for the most up-to-date build that are run as part of the CI process.
 
-## Dependencies
+## Nix 
 
-This project uses both Rust and Node.js. Both toolchains and dependencies will need to be installed.
+This project uses Nix to setup the dependencies needed, including Rust and Node.js. Nix is used to produce build targets, as well as scaffolding a shell for development. All build targets and devshells are configured in `flake.nix`.
 
-### Nix
+It's recommended to install nix via instructions on [zero-to-nix](https://zero-to-nix.com/start/install), which also configures flakes.
 
-Optionally, you may set up Nix (follow these instructions). If you use Nix, you
-can ignore most of the rest of this document.
-
-There is a `flake.nix` that can be used to scaffold the correct
-dev environment in one step:
+To use the nix devshell that includes all required dependencies:
 
 ```sh
 nix develop
 ```
 
-If you use a non-`bash` shell, you can specify it this way:
+For non-`bash` shells, a `-c` flag can be provided:
 
 ```sh
 nix develop -c zsh
 ```
 
-If you want to have a dev environment with a Rust Nightly toolchain:
+For alternate environments (other than default, only `nightly` supported), try:
 
 ```sh
 nix develop .#nightly
 ```
 
 After you drop into the Nix development environment, you can
-build the project as normal e.g., `cargo build`.
+build the project as normal e.g., `cargo build`, `cargo test`.
 
-### System
+## Build Targets
 
-Install [protobuf-compiler] for your system.
+Currently there are several build targets defined in the `flake.nix`. To build a target, execute the following replacing `TARGET` with the build target name:
 
-### Rust
-
-First, install [cargo] and [binstall] to set up the toolchain.
-Then, install some Rust tools:
-
-```bash
-cargo binstall wit-deps-cli wasm-tools cargo-component cargo-nextest
+```sh
+nix build .#TARGET
 ```
 
-### Node.js
+The output of the build can be found in `./result`.
 
-First, install [node.js].
-Then, install some node.js tools:
+* `runtime`: The runtime server, produced by [common-runtime]. 
+* `builder`: The builder server, produced by [common-builder].
+* `runtime-npm-package`: The JavaScript module wrapping a wasm32 build of [common-runtime].
+* `runtime-docker-image`: A Docker container image of [common-runtime].
+* `builder-docker-image`: A Docker container image of [common-builder].
 
-```bash
-npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js
-```
+## WebAssembly Interface Types (WIT) dependencies
 
-### WebAssembly Interface Types (WIT) dependencies
-
-Finally, install the WIT dependencies:
+WIT definitions are used to generate bindings in the project. If building via nix, this is handled. If developing and WIT definitions are modified, then this command must be run:
 
 ```bash
 ./wit/wit-tools.sh deps
 ```
 
-## Tests
+## Running Services
 
-Once all dependencies are set up, run:
+The primary service is the [common-runtime]. Currently, an additional service is needed to run alongside the runtime, the [common-builder] service, which compiles the wasm artifacts on demand for Compiled Modules, and handles bundling of artifacts for Interpreted Modules.
 
-```bash
-cargo test
+Generally the [common-runtime] uses port 8081, and [common-builder] port 8082.
+
+### Running via cargo
+
+To run these services via cargo, ensure your environment is setup with nix, run these two services in separate shells:
+
 ```
+RUST_LOG=debug cargo run -p common-builder
+```
+
+```
+RUST_LOG=debug cargo run -p common-runtime -- --builder-address 127.0.0.1:8082
+```
+
+The runtime can be accessed via `127.0.0.1:8081`.
+
+### Running via Docker
+
+> :warning: Currently resolving an issue with docker compose [#210], run via cargo in the interim.
+
+First, install docker for your platform. The images must first be built and loaded into the docker environment.
+
+First, build the runtime and load into docker:
+
+```sh
+nix build .#runtime-docker-image
+docker load < result
+```
+
+The `common-runtime:latest` image should be added to your docker environment:
+
+```sh
+$ docker image ls
+REPOSITORY       TAG       IMAGE ID       CREATED          SIZE
+common-runtime   latest    0c2736dcb30c   2 minutes ago   57.4MB
+```
+
+Now build and load the builder service image:
+
+```sh
+nix build .#builder-docker-image
+docker load < result
+```
+
+Both images should be in the docker environment:
+
+```sh
+$ docker image ls
+REPOSITORY       TAG       IMAGE ID       CREATED          SIZE
+common-builder   latest    4a0ee08316cf   44 seconds ago   519MB
+common-runtime   latest    0c2736dcb30c   2 minutes ago    57.4MB
+```
+
+With images built, docker compose can now be run, exposing these services:
+
+```sh
+docker compose up
+```
+
+#### Helpful Docker Commands
+
+
+* Stop all containers: `docker stop $(docker ps -a -q)`
+* Remove all containers: `docker rm $(docker ps -a -q)`
 
 ## Optimizations
 
@@ -92,6 +143,8 @@ For an example of this, refer to the [`rust.yaml` Github Workflow](./.github/wor
 [binstall]: https://github.com/cargo-bins/cargo-binstall
 [node.js]: https://nodejs.org/en/learn/getting-started/how-to-install-nodejs
 [protobuf-compiler]: https://grpc.io/docs/protoc-installation/
+[common-runtime]: ./rust/common-runtime
+[common-builder]: ./rust/common-builder
 
 ## Makefile Overview
 
