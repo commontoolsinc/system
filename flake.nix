@@ -190,6 +190,7 @@
                 doCheck = false;
                 buildPhase = ''
                   bash ./wit/wit-tools.sh deps
+                  export CARGO_COMPONENT_CACHE_DIR=.cargo-component-cache
                   cargo build -p common-runtime --release
                 '';
                 installPhase = ''
@@ -228,7 +229,9 @@
                   export HOME=`pwd`
 
                   bash ./wit/wit-tools.sh deps
-                  wasm-pack build --target bundler -m no-install ./rust/common-runtime
+                  wasm-pack build --target web -m no-install ./rust/common-runtime
+                  cp ./typescript/common-runtime/README.md ./rust/common-runtime/pkg/README.md
+                  cp ./typescript/common-runtime/example.html ./rust/common-runtime/pkg/example.html
                 '';
                 installPhase = ''
                   mkdir -p $out

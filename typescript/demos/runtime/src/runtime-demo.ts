@@ -1,6 +1,6 @@
 import { LitElement, css, html } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
-import { CommonFunction, CommonRuntime, JavaScriptModuleDefinition, JavaScriptValueMap } from 'common-runtime/common_runtime.js';
+import init, { CommonFunction, CommonRuntime, JavaScriptModuleDefinition, JavaScriptValueMap } from 'common-runtime/common_runtime.js';
 import callouts from './callouts.js';
 
 import { specToFunction, FunctionDetails } from './ai/module/javascript.js';
@@ -8,6 +8,8 @@ import { specToFunction, FunctionDetails } from './ai/module/javascript.js';
 import "@shoelace-style/shoelace/dist/themes/dark.css";
 import "@shoelace-style/shoelace";
 import { SlTextarea } from '@shoelace-style/shoelace';
+
+await init();
 
 const defaultForValueType = (valueType: "string" | "number" | "boolean" | "buffer") => {
   switch (valueType) {
