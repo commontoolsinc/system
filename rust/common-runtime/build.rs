@@ -45,7 +45,7 @@ fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str, en
     if cached_artifact_file.is_file() {
         println!("cargo:warning=Using .wasm_cache/{}", artifact_file_name);
         println!("cargo::rerun-if-changed={}", cached_artifact_file.display());
-        let _ = create_dir_all(&artifact_dir);
+        create_dir_all(&artifact_dir).unwrap();
         copy(cached_artifact_file, artifact_path.clone()).unwrap();
     } else {
         println!(
@@ -60,6 +60,7 @@ fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str, en
             .arg("--release")
             .arg(format!("--package={}", crate_name))
             .env("CARGO_TARGET_DIR", out_dir)
+            .env("RUST_BACKTRACE", "1")
             .env_remove("CARGO_ENCODED_RUSTFLAGS");
 
         let status = cmd.status().unwrap();
