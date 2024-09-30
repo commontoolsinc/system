@@ -10,7 +10,7 @@
     "./common/*"
   ],
   "dependencies": {
-    "@bytecodealliance/jco": "1.4.4",
+    "@bytecodealliance/jco": "1.7.0",
     "@bytecodealliance/componentize-js": "=0.9.0"
   },
   "bin": {
