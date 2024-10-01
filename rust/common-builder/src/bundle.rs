@@ -103,6 +103,7 @@ impl JavaScriptBundler {
             emit_options: EmitOptions {
                 source_map: SourceMapOption::None,
                 source_map_file: None,
+                source_map_base: None,
                 inline_sources: false,
                 remove_comments: true,
             },

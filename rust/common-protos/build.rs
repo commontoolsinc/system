@@ -34,7 +34,7 @@ fn main() {
         .file_descriptor_set_path(out_dir.join("protos_descriptor.bin"))
         // Will always rebuild unless `emit_rerun_if_changed` is false.
         .emit_rerun_if_changed(false)
-        .compile(&sources, &[proto_path.clone()])
+        .compile_protos(&sources, &[proto_path.clone()])
         .unwrap();
 
     for path in [COMMON_SOURCE, BUILDER_SOURCE, RUNTIME_SOURCE] {

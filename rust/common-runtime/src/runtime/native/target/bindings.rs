@@ -17,6 +17,8 @@
 
 use crate::{InputOutput, ModuleContext, ModuleContextMut, Value};
 use async_trait::async_trait;
+use wasmtime::component::Resource;
+use wasmtime_wasi::{ResourceTable, WasiCtx, WasiView};
 
 /// Helper function for linking contexts.
 fn type_annotate<T: BindingsView, F>(val: F) -> F
@@ -156,8 +158,6 @@ use module::common::{
     self,
     data::types::{Reference, Value as GuestValue},
 };
-use wasmtime::component::Resource;
-use wasmtime_wasi::{ResourceTable, WasiCtx, WasiView};
 
 impl From<GuestValue> for Value {
     fn from(value: GuestValue) -> Self {
@@ -222,7 +222,7 @@ where
         Ok(self.io().read(key).map(|value| value.into()))
     }
 
-    fn drop(&mut self, rep: Resource<Reference>) -> wasmtime::Result<()> {
+    async fn drop(&mut self, rep: Resource<Reference>) -> wasmtime::Result<()> {
         let host_resource = Resource::<HostReference>::new_own(rep.rep());
         self.common_table_mut().delete(host_resource)?;
         Ok(())
