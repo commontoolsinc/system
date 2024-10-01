@@ -32,21 +32,32 @@ nix develop .#nightly
 After you drop into the Nix development environment, you can
 build the project as normal e.g., `cargo build`, `cargo test`.
 
-## Build Targets
+## Targets
 
-Currently there are several build targets defined in the `flake.nix`. To build a target, execute the following replacing `TARGET` with the build target name:
+Currently there are several build targets defined in the `flake.nix`. All flake actions can be displayed via `nix flake show`. To build a target, execute the following replacing `TARGET` with the build target name:
 
 ```sh
 nix build .#TARGET
 ```
 
-The output of the build can be found in `./result`.
+The output of the builds can be found in `./result`.
 
 * `runtime`: The runtime server, produced by [common-runtime]. 
 * `builder`: The builder server, produced by [common-builder].
-* `runtime-npm-package`: The JavaScript module wrapping a wasm32 build of [common-runtime].
-* `runtime-docker-image`: A Docker container image of [common-runtime].
-* `builder-docker-image`: A Docker container image of [common-builder].
+* `runtime-web`: The JavaScript module wrapping a wasm32 build of [common-runtime].
+* `runtime-image`: A Docker container image of [common-runtime].
+* `builder-image`: A Docker container image of [common-builder].
+* `wasm-components`: Wasm artifacts used by the runtime. Used for optimizing e.g. CI builds.
+
+## Testing
+
+See `./scripts/ops-test` for running unit, integration, doc, and lint tests. Mostly a wrapper for running cargo tests.
+
+```sh
+# Run unit tests
+nix develop .
+./scripts/ops-test unit
+```
 
 ## WebAssembly Interface Types (WIT) dependencies
 

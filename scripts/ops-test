@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ROOT_DIR="$SCRIPT_DIR/../"
+
+print_help() {
+    echo "Perform maintanance operations on Common System source code"
+    echo ""
+    echo "Usage: ops-test [COMMAND]"
+    echo ""
+    echo "Commands:"
+    echo "  unit         Run rust unit tests."
+    echo "  integration  Run rust integration tests."
+    echo "  doc          Run rust doc tests."
+    echo "  lint         Run linting and formatting tests."
+    echo "  help         Print this message."
+    exit 0
+}
+
+unit_tests() {
+    cargo test --workspace --exclude common-integration-tests
+}
+
+integration_tests() {
+    CHROMEDRIVER=`which chromedriver` cargo nextest run --package common-integration-tests \
+        --profile ci --color always
+}
+
+doc_tests() {
+    cargo test --doc --all-features
+}
+
+lint_tests() {
+    $ROOT_DIR/wit/wit-tools.sh lint
+    cargo clippy --all -- -D warnings
+    cargo fmt --all -- --check
+}
+
+case "$1" in
+  unit)
+    unit_tests
+    ;;
+  integration)
+    integration_tests
+    ;;
+  doc)
+    doc_tests
+    ;;
+  lint)
+    lint_tests
+    ;;
+  *)
+    print_help
+    ;;
+esac

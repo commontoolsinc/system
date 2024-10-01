@@ -11,244 +11,93 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  lints:
-    name: 'Lints'
-    runs-on: ubuntu-latest
-    continue-on-error: false
-    strategy:
-      matrix:
-        include:
-          - toolchain: stable
-          # - toolchain: nightly
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - name: 'Install OS packages (Ubuntu)'
-        run: |
-          sudo apt update && sudo apt upgrade -y
-          sudo apt install -y protobuf-compiler libprotobuf-dev
-      - name: 'Setup Rust'
-        run: |
-          curl -sSf https://sh.rustup.rs | sh -s -- -y
-          rustup toolchain install ${{matrix.toolchain}}
-          rustup +${{matrix.toolchain}} component add clippy
-          rustup +${{matrix.toolchain}} component add rustfmt
-      - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
-      - name: Install binaries from cargo
-        run: |
-          cargo +${{ matrix.toolchain }} binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
-      - name: 'Install NPM dependencies'
-        run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
-      - name: 'Initialize wits'
-        run: |
-          ./wit/wit-tools.sh deps
-      - name: 'Run Wit Linter'
-        run: |
-          ./wit/wit-tools.sh lint
-      - name: 'Run Linter'
-        run: cargo +${{matrix.toolchain}} clippy --all -- -D warnings
-      - name: 'Check Format'
-        run: cargo +${{matrix.toolchain}} fmt --all -- --check
-
-  build-wasm32-unknown-unknown:
-    name: 'Build wasm32-unknown-unknown'
-    needs: ['lints']
+  precheck:
+    name: 'Precheck'
     runs-on: 'ubuntu-latest'
-    continue-on-error: false
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - name: 'Install OS packages (Ubuntu)'
+      - uses: ./.github/actions/nix-setup
+      - uses: DeterminateSystems/flake-checker-action@main
+        with:
+          send-statistics: false
+          ignore-missing-flake-lock: false
+      - name: 'Check wit-deps'
+        shell: bash
         run: |
-          sudo apt update && sudo apt upgrade -y
-          sudo apt install -y protobuf-compiler libprotobuf-dev
-      - name: 'Setup Rust'
-        run: |
-          curl -sSf https://sh.rustup.rs | sh -s -- -y
-          rustup toolchain install stable
-          rustup target add wasm32-unknown-unknown
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
-      - name: Install binaries from cargo
-        run: |
-          cargo binstall wit-deps-cli wasm-tools cargo-component --no-confirm --force
-      - name: 'Install NPM dependencies'
-        run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
-      - name: 'Initialize wits'
-        run: |
-          ./wit/wit-tools.sh deps
-      - name: 'Generate bindings for Wasm Components'
-        run: |
-          # NOTE: cargo-component doesn't invoke build.rs as expected when
-          # performing checked format
-          cd ./rust/common-javascript-interpreter
-          cargo component check
-      - name: 'Build wasm32-unknown-unknown'
-        run: cargo build --target wasm32-unknown-unknown
+          # Initializes the nix cache and checks `wit-deps`
+          # changes have been committed.
+          nix develop --command \
+            ./wit/wit-tools.sh deps
+          if [[ -n $(git diff .) ]]; then
+            echo "Changes to wit definitions detected."
+            echo "Run wit-deps before committing."
+            exit 1;
+          fi
 
   build-wasm-components:
     name: 'Build Wasm Components'
-    needs: ['lints']
+    needs: ['precheck']
     runs-on: 'ubuntu-latest'
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - name: 'Install OS packages (Ubuntu)'
-        run: |
-          sudo apt update && sudo apt upgrade -y
-          sudo apt install -y protobuf-compiler libprotobuf-dev
-      - name: 'Setup Rust'
-        run: |
-          curl -sSf https://sh.rustup.rs | sh -s -- -y
-          rustup toolchain install stable 
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
-      - name: Install binaries from cargo
-        run: |
-          cargo binstall cargo-component cargo-nextest wit-deps-cli wasm-tools --no-confirm --force
-      - name: 'Install NPM dependencies'
-        run: |
-          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
-      - name: 'Initialize wits'
-        run: |
-          ./wit/wit-tools.sh deps
+      - uses: ./.github/actions/nix-setup
       - name: 'Build Rust-based Wasm Components'
         shell: bash
         run: |
-          cargo component build \
-            -p common-javascript-interpreter \
-            --release
-        env:
-          RUST_LOG: debug
+          nix build .#wasm-components
       - uses: actions/upload-artifact@v4
         with:
           name: wasm-components
-          path: ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm
+          path: ./result/common-wasm-components/common_javascript_interpreter.wasm
   
-  docs:
-    name: 'Documentation tests'
-    needs: ['lints', 'build-wasm-components']
-    runs-on: 'ubuntu-latest'
-    steps:
-      - uses: actions/checkout@v4
-      - uses: Swatinem/rust-cache@v2
-      - uses: actions/download-artifact@v4
-      - name: 'Install OS packages (Ubuntu)'
-        run: |
-          sudo apt update && sudo apt upgrade -y
-          sudo apt install -y protobuf-compiler libprotobuf-dev tree
-      - name: 'Setup Rust'
-        run: |
-          curl -sSf https://sh.rustup.rs | sh -s -- -y
-          rustup toolchain install stable
-          rustup +stable target add wasm32-unknown-unknown
-      - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
-      - name: Install binaries from cargo
-        run: |
-          cargo +stable binstall cargo-component cargo-nextest wasm-bindgen-cli wit-deps-cli wasm-tools --no-confirm --force
-      - name: 'Install NPM dependencies'
-        run: |
-          npm install -g @bytecodealliance/jco@1.4.4 @bytecodealliance/componentize-js@0.9.0
-      - name: 'Initialize wits'
-        run: |
-          ./wit/wit-tools.sh deps
-      - name: 'Run Rust tests'
-        shell: bash
-        run: |
-          cargo test --doc --all-features
-
-  native-target-tests:
-    name: 'Native target tests'
-    needs: ['lints', 'build-wasm-components']
+  native-tests:
+    name: 'Tests'
+    needs: ['build-wasm-components']
     strategy:
       matrix:
         include:
-          - platform: 'ubuntu-latest'
+          - test: 'lint'
+            platform: 'ubuntu-latest'
             toolchain: 'stable'
-            flags: '--workspace --exclude common-integration-tests'
-          - platform: 'ubuntu-latest'
+          - test: 'doc'
+            platform: 'ubuntu-latest'
             toolchain: 'stable'
-            flags: '--package common-integration-tests'
-          - platform: 'ubuntu-latest'
+          - test: 'unit'
+            platform: 'ubuntu-latest'
+            toolchain: 'stable'
+          - test: 'integration'
+            platform: 'ubuntu-latest'
+            toolchain: 'stable'
+          - test: 'unit'
+            platform: 'ubuntu-latest'
             toolchain: 'nightly'
-            flags: '--workspace --exclude common-integration-tests'
-          - platform: 'macos-13'
+          - test: 'unit'
+            platform: 'macos-13'
             toolchain: 'stable'
-            flags: '--workspace --exclude common-integration-tests'
-          # - platform: 'macos-13'
-          #  toolchain: 'nightly'
-          #  flags: '--workspace --exclude common-integration-tests'
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - uses: ./.github/actions/nix-setup
       - uses: actions/download-artifact@v4
-      - name: 'Install OS packages (Ubuntu)'
-        if: ${{ matrix.platform == 'ubuntu-latest' }}
-        run: |
-          sudo apt update && sudo apt upgrade -y
-          sudo apt install -y protobuf-compiler libprotobuf-dev tree
-      - name: 'Install OS packages (MacOS)'
-        if: ${{ matrix.platform == 'macos-13' }}
-        run: |
-          brew install protobuf tree
-      - name: 'Setup Rust'
-        run: |
-          curl -sSf https://sh.rustup.rs | sh -s -- -y
-          rustup toolchain install ${{matrix.toolchain}}
-          rustup +${{matrix.toolchain}} target add wasm32-unknown-unknown
-      - name: 'Setup Node/NPM'
-        uses: actions/setup-node@v4
-        with:
-          node-version: lts/*
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
-      - name: Install binaries from cargo
-        run: |
-          cargo +${{ matrix.toolchain }} binstall cargo-component cargo-nextest wasm-bindgen-cli wit-deps-cli wasm-tools --no-confirm --force
-      - name: 'Install NPM dependencies'
-        run: |
-          npm install -g @bytecodealliance/jco@1.4.4 @bytecodealliance/componentize-js@0.9.0
-      - name: 'Initialize wits'
-        run: |
-          ./wit/wit-tools.sh deps
       - name: 'Run Rust tests'
         shell: bash
         run: |
           mv ./wasm-components ./.wasm_cache
-          mkdir -p test-results
-
-          echo "${{ matrix.platform }}
-          ${{ matrix.flags }}
-          ${{ matrix.toolchain}}" > test-results/target
-
-          CHROMEDRIVER=`which chromedriver` \
-            cargo +${{ matrix.toolchain }} \
-            nextest run ${{ matrix.flags }} \
-            --release \
-            --profile ci --color always 2>&1 | tee test-results/log
+          if [ ${{ matrix.toolchain }} == "nightly" ]; then
+            nix develop .#nightly --command ./scripts/ops-test ${{ matrix.test }}
+          else
+            nix develop --command ./scripts/ops-test ${{ matrix.test }}
+          fi
         env:
           RUST_LOG: info,common_runtime=trace,common_builder=trace,common_ifc=trace
           WASM_BINDGEN_TEST_TIMEOUT: 180
-      - uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ hashFiles('./test-results') }}
-          path: ./test-results
+
   build-js:
     name: 'Build JS Packages'
-    needs: ['lints']
+    needs: ['precheck']
     runs-on: 'ubuntu-latest'
     steps:
       - uses: actions/checkout@v4
@@ -276,39 +125,23 @@ jobs:
   
   nix-build:
     name: 'Nix build'
-    needs: ['lints']
+    needs: ['precheck']
     runs-on: 'ubuntu-latest'
     strategy:
       matrix:
         include:
           - package: "runtime"
             artifact-name: "runtime"
-          - package: "runtime-npm-package"
+          - package: "runtime-web"
             artifact-name: "common-runtime"
     steps:
       - uses: actions/checkout@v4
-      - uses: DeterminateSystems/nix-installer-action@main
-      - uses: DeterminateSystems/magic-nix-cache-action@main
-        with:
-          use-flakehub: false
-          diagnostic-endpoint: ''
-      - uses: DeterminateSystems/flake-checker-action@main
-        with:
-          send-statistics: false
+      - uses: ./.github/actions/nix-setup
       - name: 'Run nix build'
+        shell: bash
         run: |
           nix build .#${{ matrix.package }}
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact-name }}
           path: ./result
-
-  workflow-analysis:
-    name: 'Workflow analysis'
-    needs: ['native-target-tests']
-    permissions:
-      contents: read
-      pull-requests: write
-    if: github.ref != 'refs/heads/main'
-    uses: ./.github/workflows/workflow_analysis.yaml
-    secrets: inherit
