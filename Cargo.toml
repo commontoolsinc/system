@@ -41,8 +41,8 @@ common-tracing = { path = "./rust/common-tracing" }
 common-wit = { path = "./rust/common-wit" }
 criterion = { version = "0.5" }
 darling = { version = "0.20" }
-deno_emit = { version = "0.43" }
-deno_graph = { version = "0.79" }
+deno_emit = { version = "0.45" }
+deno_graph = { version = "0.82" } # Keep aligned with `deno_emit`'s version
 getrandom = { version = "0.2", features = ["js"] }
 http = { version = "1.1" }
 http-body-util = { version = "0.1" }
@@ -89,14 +89,14 @@ url = { version = "2" }
 wasm-bindgen = { version = "0.2.93" }
 wasm-bindgen-futures = { version = "0.4.43" }
 wasm-bindgen-test = { version = "0.3.43" }
-wasmtime = { version = "24" }
-wasmtime-wasi = { version = "24" }
-wasmtime-wasi-http = { version = "24" }
-wasmtime-environ = { version = "24" }
+wasmtime = { version = "25" }
+wasmtime-wasi = { version = "25" }
+wasmtime-wasi-http = { version = "25" }
+wasmtime-environ = { version = "25" }
 web-sys = { version = "0.3" }
-wit-bindgen = { version = "0.32" }
-wit-bindgen-rt = { version = "0.32" }
-wit-parser = { version = "0.217" }
+wit-bindgen = { version = "0.33" }
+wit-bindgen-rt = { version = "0.33" }
+wit-parser = { version = "0.218" }
 
 [profile.release]
 codegen-units = 1
