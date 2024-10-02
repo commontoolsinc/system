@@ -44,6 +44,7 @@
             cargo-nextest
             wasm-bindgen-cli
             wit-deps-cli
+            wasm-tools
             nodejs
             jco
           ] ++ lib.optionals stdenv.isDarwin [
@@ -81,9 +82,9 @@
             with pkgs; mkShell {
               buildInputs = [
                 rust-toolchain
+              ] ++ lib.optionals stdenv.isLinux [
                 chromium
                 chromedriver
-                google-cloud-sdk
               ] ++ common-build-inputs;
 
               shellHook = ''
@@ -112,7 +113,7 @@
 
           wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
             pname = "wit-deps-cli";
-            version = "0.3.4";
+            version = "0.3.7";
             buildInputs = [ pkgs.rust-bin.stable.latest.default ] ++ lib.optionals stdenv.isDarwin [
               darwin.apple_sdk.frameworks.SystemConfiguration
               darwin.apple_sdk.frameworks.Security
@@ -120,11 +121,32 @@
 
             src = pkgs.fetchCrate {
               inherit pname version;
-              sha256 = "sha256-TMECk5cIZOXgrUQlEPo6P+TPfmgVgO2Mf7phkR4Qw/U=";
+              sha256 = "sha256-cpnaXpQUOgPMMHR2NRPpip9HcseNTkGOp78Mi+l+W68=";
             };
 
-            cargoHash = "sha256-+7eHg3bQIt2ZhQCP0p0hGnn+yz9NX+1n45Yr5cZmoUA=";
+            cargoHash = "sha256-5il/RrJeWQ5DtKAryQYEZx9/Im/VtDAgu5k+fQpz98s=";
           };
+
+          wasm-tools = pkgs.rustPlatform.buildRustPackage
+            rec {
+              pname = "wasm-tools";
+              version = "1.218.0";
+              buildInputs = [ pkgs.rust-bin.stable.latest.default ] ++ lib.optionals stdenv.isDarwin [
+                darwin.apple_sdk.frameworks.SystemConfiguration
+                darwin.apple_sdk.frameworks.Security
+              ];
+
+              # wasm-tools tests requires a git submodule. Not sure how to resolve
+              # currently, so skip the post build tests.
+              doCheck = false;
+
+              src = pkgs.fetchCrate {
+                inherit pname version;
+                sha256 = "sha256-GURmrbsJxq+jHwQ5ERUVaMKXW4+46p8SCYMN/DxQyOs=";
+              };
+
+              cargoHash = "sha256-7qCco057lDBs+gPXlitoFslQrq7n2k5+NsFjBcmjBCU=";
+            };
 
           wasm-bindgen-cli = pkgs.rustPlatform.buildRustPackage
             rec {
@@ -165,8 +187,8 @@
                   cargo build -p common-builder --release
                 '';
                 installPhase = ''
-                  mkdir -p $out/builder
-                  cp ./target/release/builder $out/builder
+                  mkdir -p $out
+                  cp ./target/release/builder $out/common-builder
                 '';
 
                 nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
@@ -194,8 +216,40 @@
                   cargo build -p common-runtime --release
                 '';
                 installPhase = ''
-                  mkdir -p $out/runtime
-                  cp ./target/release/runtime $out/runtime
+                  mkdir -p $out
+                  cp ./target/release/runtime $out/common-runtime
+                '';
+
+                nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
+                cargoLock = {
+                  lockFile = ./Cargo.lock;
+                };
+              };
+            
+            wasm-components =
+              let
+                rust-toolchain = rustToolchain "stable";
+                rust-platform = pkgs.makeRustPlatform {
+                  cargo = rust-toolchain;
+                  rustc = rust-toolchain;
+                };
+              in
+              rust-platform.buildRustPackage {
+                name = "wasm-components";
+                src = ./.;
+                /* Don't run tests as part of this task */
+                doCheck = false;
+                buildPhase = ''
+                  bash ./wit/wit-tools.sh deps
+                  export CARGO_COMPONENT_CACHE_DIR=.cargo-component-cache
+                  cargo component build \
+                    -p common-javascript-interpreter \
+                    --release
+                '';
+                installPhase = ''
+                  mkdir -p $out/common-wasm-components
+                  cp ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm \
+                     $out/common-wasm-components/common_javascript_interpreter.wasm
                 '';
 
                 nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
@@ -209,7 +263,7 @@
              * up the runtime (compiled to Web Assembly) and an auto-generated
              * JavaScript library with bindings into the runtime's API.
              */
-            runtime-npm-package =
+            runtime-web =
               let
                 rust-toolchain = rustToolchain "stable";
                 rust-platform = pkgs.makeRustPlatform {
@@ -235,7 +289,7 @@
                 '';
                 installPhase = ''
                   mkdir -p $out
-                  mv ./rust/common-runtime/pkg $out/common-runtime
+                  mv ./rust/common-runtime/pkg $out/common-runtime-web
                 '';
 
                 nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
@@ -244,14 +298,14 @@
                 };
               };
 
-            runtime-docker-image = pkgs.dockerTools.buildLayeredImage {
+            runtime-image = pkgs.dockerTools.buildLayeredImage {
               name = "common-runtime";
               tag = "latest";
               created = "now";
               config.Entrypoint = [ "${runtime}/runtime/runtime" ];
             };
 
-            builder-docker-image = pkgs.dockerTools.buildLayeredImage {
+            builder-image = pkgs.dockerTools.buildLayeredImage {
               name = "common-builder";
               tag = "latest";
               created = "now";
