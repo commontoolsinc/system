@@ -113,7 +113,7 @@
 
           wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
             pname = "wit-deps-cli";
-            version = "0.3.7";
+            version = "0.4.0";
             buildInputs = [ pkgs.rust-bin.stable.latest.default ] ++ lib.optionals stdenv.isDarwin [
               darwin.apple_sdk.frameworks.SystemConfiguration
               darwin.apple_sdk.frameworks.Security
@@ -121,10 +121,10 @@
 
             src = pkgs.fetchCrate {
               inherit pname version;
-              sha256 = "sha256-cpnaXpQUOgPMMHR2NRPpip9HcseNTkGOp78Mi+l+W68=";
+              sha256 = "sha256-xU4qShOgneX9B5exkxxv/rx/yVPMflvcXQ/rQBOcBRg=";
             };
 
-            cargoHash = "sha256-5il/RrJeWQ5DtKAryQYEZx9/Im/VtDAgu5k+fQpz98s=";
+            cargoHash = "sha256-kjvbGJpdNk+achZykzSUk3dShYT+EXNlxRlc3N2UHpA=";
           };
 
           wasm-tools = pkgs.rustPlatform.buildRustPackage
