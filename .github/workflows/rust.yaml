@@ -103,7 +103,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@v1.10.3
+        uses: cargo-bins/cargo-binstall@v1.10.7
       - name: Install binaries from cargo
         run: |
           cargo binstall wit-deps-cli wasm-tools --no-confirm --force
