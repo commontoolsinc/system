@@ -1,0 +1,480 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_builder'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-builder"
+				],
+				"filter": {
+					"name": "common_builder",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug executable 'builder'",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=builder",
+					"--package=common-builder"
+				],
+				"filter": {
+					"name": "builder",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in executable 'builder'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--bin=builder",
+					"--package=common-builder"
+				],
+				"filter": {
+					"name": "builder",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'server'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=server",
+					"--package=common-builder"
+				],
+				"filter": {
+					"name": "server",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_test_fixtures'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-test-fixtures"
+				],
+				"filter": {
+					"name": "common_test_fixtures",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_protos'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-protos"
+				],
+				"filter": {
+					"name": "common_protos",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_wit'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-wit"
+				],
+				"filter": {
+					"name": "common_wit",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_tracing'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-tracing"
+				],
+				"filter": {
+					"name": "common_tracing",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'lattice'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=lattice",
+					"--package=common-macros"
+				],
+				"filter": {
+					"name": "lattice",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'new_type'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=new_type",
+					"--package=common-macros"
+				],
+				"filter": {
+					"name": "new_type",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_ifc'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-ifc"
+				],
+				"filter": {
+					"name": "common_ifc",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_graph'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-graph"
+				],
+				"filter": {
+					"name": "common_graph",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_integration_tests'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-integration-tests"
+				],
+				"filter": {
+					"name": "common_integration_tests",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'compiled_modules'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=compiled_modules",
+					"--package=common-integration-tests"
+				],
+				"filter": {
+					"name": "compiled_modules",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'interpreted_modules'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=interpreted_modules",
+					"--package=common-integration-tests"
+				],
+				"filter": {
+					"name": "interpreted_modules",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'js_environment'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=js_environment",
+					"--package=common-integration-tests"
+				],
+				"filter": {
+					"name": "js_environment",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'policy'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=policy",
+					"--package=common-integration-tests"
+				],
+				"filter": {
+					"name": "policy",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug integration test 'remote_functions'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--test=remote_functions",
+					"--package=common-integration-tests"
+				],
+				"filter": {
+					"name": "remote_functions",
+					"kind": "test"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_runtime'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-runtime"
+				],
+				"filter": {
+					"name": "common_runtime",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug executable 'runtime'",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=runtime",
+					"--package=common-runtime"
+				],
+				"filter": {
+					"name": "runtime",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in executable 'runtime'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--bin=runtime",
+					"--package=common-runtime"
+				],
+				"filter": {
+					"name": "runtime",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug benchmark 'runtime_bench'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--bench=runtime_bench",
+					"--package=common-runtime"
+				],
+				"filter": {
+					"name": "runtime_bench",
+					"kind": "bench"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in library 'common_tools'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--lib",
+					"--package=common-tools"
+				],
+				"filter": {
+					"name": "common_tools",
+					"kind": "lib"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug executable 'ct'",
+			"cargo": {
+				"args": [
+					"build",
+					"--bin=ct",
+					"--package=common-tools"
+				],
+				"filter": {
+					"name": "ct",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		},
+		{
+			"type": "lldb",
+			"request": "launch",
+			"name": "Debug unit tests in executable 'ct'",
+			"cargo": {
+				"args": [
+					"test",
+					"--no-run",
+					"--bin=ct",
+					"--package=common-tools"
+				],
+				"filter": {
+					"name": "ct",
+					"kind": "bin"
+				}
+			},
+			"args": [],
+			"cwd": "${workspaceFolder}"
+		}
+	]
+}

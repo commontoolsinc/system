@@ -1,0 +1,77 @@
+{
+	"name": "Common Tools System",
+	"image": "mcr.microsoft.com/devcontainers/base:jammy",
+	"features": {
+		"ghcr.io/devcontainers/features/nix:1": {
+			"extraNixConfig": "experimental-features = nix-command flakes"
+		},
+		"ghcr.io/devcontainers/features/node:1": {},
+		"ghcr.io/devcontainers/features/rust:1": {}
+	},
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"bbenoist.Nix",
+				"dbaeumer.vscode-eslint",
+				"dustypomerleau.rust-syntax",
+				"EditorConfig.EditorConfig",
+				"fill-labs.dependi",
+				"github.vscode-github-actions",
+				"GitHub.vscode-pull-request-github",
+				"jnoortheen.nix-ide",
+				"ms-vscode-remote.vscode-remote-extensionpack",
+				"redhat.vscode-yaml",
+				"rust-lang.rust-analyzer",
+				"vadimcn.vscode-lldb"
+			],
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "nix-bash",
+				"terminal.integrated.defaultProfile.osx": "nix-zsh",
+				"terminal.integrated.profiles.linux": {
+					"nix-bash": {
+						"args": [
+							"develop"
+						],
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					},
+					"nix-zsh": {
+						"args": [
+							"develop",
+							"-c",
+							"zsh"
+						],
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					}
+				},
+				"terminal.integrated.profiles.osx": {
+					"nix-bash": {
+						"args": [
+							"develop"
+						],
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					},
+					"nix-zsh": {
+						"args": [
+							"develop",
+							"-c",
+							"zsh"
+						],
+						"color": "terminal.ansiBlue",
+						"overrideName": true,
+						"path": "/nix/var/nix/profiles/default/bin/nix"
+					}
+				}
+			}
+		}
+	},
+	"postCreateCommand": {
+		"protobuf": "sudo apt-get update && sudo apt-get install -y protobuf-compiler libprotobuf-dev",
+		"git": "git config --global --add safe.directory /workspaces/*"
+	}
+}
