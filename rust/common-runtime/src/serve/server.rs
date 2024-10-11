@@ -1,8 +1,18 @@
+use super::LiveModules;
+use crate::NativeRuntime;
 use crate::{
-    run::run_module, serve::instantiate::instantiate_module, ArtifactResolver, CommonRuntimeError,
+    formula::{instantiate_formula, run_end_formula, run_init_formula, run_step_formula},
+    run::run_module,
+    serve::instantiate::instantiate_module,
+    ArtifactResolver, CommonRuntimeError,
 };
 use async_trait::async_trait;
 use common_protos::{
+    formula::{
+        InstantiateFormulaRequest, InstantiateFormulaResponse, RunEndFormulaRequest,
+        RunEndFormulaResponse, RunInitFormulaRequest, RunInitFormulaResponse,
+        RunStepFormulaRequest, RunStepFormulaResponse,
+    },
     runtime::{
         runtime_server::{Runtime as RuntimeServerHandlers, RuntimeServer},
         InstantiateModuleRequest, InstantiateModuleResponse, RunModuleRequest, RunModuleResponse,
@@ -18,10 +28,6 @@ use tower_http::{
     cors::{AllowOrigin, CorsLayer},
     trace::TraceLayer,
 };
-
-use crate::NativeRuntime;
-
-use super::LiveModules;
 
 /// A server-side entrypoint for sandboxed module instantiation
 pub struct Server {
@@ -65,6 +71,47 @@ impl RuntimeServerHandlers for Server {
     ) -> Result<tonic::Response<RunModuleResponse>, tonic::Status> {
         Ok(tonic::Response::new(
             run_module(request.into_inner(), self.live_modules.clone()).await?,
+        ))
+    }
+
+    async fn instantiate_formula(
+        &self,
+        request: tonic::Request<InstantiateFormulaRequest>,
+    ) -> Result<tonic::Response<InstantiateFormulaResponse>, tonic::Status> {
+        Ok(tonic::Response::new(
+            instantiate_formula(
+                request.into_inner(),
+                self.runtime.clone(),
+                self.live_modules.clone(),
+            )
+            .await?,
+        ))
+    }
+
+    async fn run_init_formula(
+        &self,
+        request: tonic::Request<RunInitFormulaRequest>,
+    ) -> Result<tonic::Response<RunInitFormulaResponse>, tonic::Status> {
+        Ok(tonic::Response::new(
+            run_init_formula(request.into_inner(), self.live_modules.clone()).await?,
+        ))
+    }
+
+    async fn run_step_formula(
+        &self,
+        request: tonic::Request<RunStepFormulaRequest>,
+    ) -> Result<tonic::Response<RunStepFormulaResponse>, tonic::Status> {
+        Ok(tonic::Response::new(
+            run_step_formula(request.into_inner(), self.live_modules.clone()).await?,
+        ))
+    }
+
+    async fn run_end_formula(
+        &self,
+        request: tonic::Request<RunEndFormulaRequest>,
+    ) -> Result<tonic::Response<RunEndFormulaResponse>, tonic::Status> {
+        Ok(tonic::Response::new(
+            run_end_formula(request.into_inner(), self.live_modules.clone()).await?,
         ))
     }
 }

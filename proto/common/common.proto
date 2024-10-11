@@ -10,6 +10,7 @@ enum ContentType {
 enum Target {
   COMMON_FUNCTION = 0;
   COMMON_FUNCTION_VM = 1;
+  COMMON_FORMULA_VM = 2;
 }
 
 enum ValueKind {

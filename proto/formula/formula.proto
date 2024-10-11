@@ -1,0 +1,108 @@
+syntax = "proto3";
+
+import public "common/common.proto";
+
+package formula;
+
+message Entity {
+  string id = 1; 
+}
+
+message Scalar {
+  oneof variant {
+    bool null = 1;
+    string string = 2;
+    double float = 3;
+    int32 integer = 4;
+    bool boolean = 5;
+    bytes buffer = 6;
+    Entity entity = 7;
+  }
+}
+
+message Datom {
+  Entity entity = 1;
+  string attribute = 2;
+  Scalar value = 3;
+  Entity cause = 4;
+}
+
+message Fact {
+  Entity entity = 1;
+  string attribute = 2;
+  Scalar value = 3;
+}
+
+enum InstructionKind {
+  ASSERT = 0;
+  RETRACT = 1;
+  IMPORT = 2; 
+}
+
+message Instruction {
+  InstructionKind kind = 1;
+  optional Fact value = 2;
+}
+
+message EntityRangeQuery {
+  Entity entity = 1;
+  optional string attribute = 2;
+  optional Scalar value = 3;
+}
+
+message AttributeRangeQuery {
+  optional Entity entity = 1;
+  string attribute = 2;
+  optional Scalar value = 3;
+}
+
+message ValueRangeQuery {
+  optional Entity entity = 1;
+  optional string attribute = 2;
+  Scalar value = 3;
+}
+
+message RangeQuery {
+  oneof variant {
+    EntityRangeQuery entity = 1;
+    AttributeRangeQuery attribute = 2;
+    ValueRangeQuery value = 3;
+  }
+}
+
+message InstantiateFormulaRequest {
+  common.ModuleBody module_reference = 1;
+  common.Target target = 2;
+}
+
+message InstantiateFormulaResponse { string instance_id = 1; }
+
+message RunInitFormulaRequest {
+  string instance_id = 1;
+  map<string, Scalar> input = 2;
+}
+
+message RunInitFormulaResponse {
+  bytes state = 1;
+  RangeQuery range_query = 2;
+}
+
+message RunStepFormulaRequest {
+  string instance_id = 1;
+  bytes state = 2;
+  repeated Datom datoms = 3;
+}
+
+message RunStepFormulaResponse {
+  bytes state = 1;
+  repeated Instruction instructions = 2;
+}
+
+message RunEndFormulaRequest {
+  string instance_id = 1;
+  bytes state = 2;
+}
+
+message RunEndFormulaResponse {
+  repeated Instruction instructions = 1;
+}

@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 import public "common/common.proto";
+import public "formula/formula.proto";
 
 package runtime;
 
@@ -26,4 +27,9 @@ service Runtime {
       returns (InstantiateModuleResponse) {}
 
   rpc RunModule(RunModuleRequest) returns (RunModuleResponse) {}
+  
+  rpc InstantiateFormula(formula.InstantiateFormulaRequest) returns (formula.InstantiateFormulaResponse) {}
+  rpc RunInitFormula(formula.RunInitFormulaRequest) returns (formula.RunInitFormulaResponse) {}
+  rpc RunStepFormula(formula.RunStepFormulaRequest) returns (formula.RunStepFormulaResponse) {}
+  rpc RunEndFormula(formula.RunEndFormulaRequest) returns (formula.RunEndFormulaResponse) {}
 }

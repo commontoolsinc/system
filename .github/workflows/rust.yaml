@@ -50,7 +50,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: wasm-components
-          path: ./result/common-wasm-components/common_javascript_interpreter.wasm
+          path: ./result/common-wasm-components/
   
   native-tests:
     name: 'Tests'

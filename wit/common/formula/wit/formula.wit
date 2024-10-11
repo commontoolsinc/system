@@ -1,0 +1,71 @@
+package common:formula@0.0.1;
+
+interface module {
+  type state = list<u8>;
+  
+  record entity {
+    id: string,
+  }
+
+  variant scalar {
+    null,
+    %string(string),
+    boolean(bool),
+    buffer(list<u8>),
+    float(f64),
+    integer(s32),
+    entity(entity),
+  }
+
+  record datom {
+    attribute: string,
+    value: scalar,
+    cause: entity,
+    entity: entity,
+  }
+
+  record fact {
+    entity: entity,
+    attribute: string,
+    value: scalar, 
+  }
+
+  record entity-range-query {
+    entity: entity,
+    attribute: option<string>,
+    value: option<scalar>,
+  }
+  
+  record attribute-range-query {
+    entity: option<entity>,
+    attribute: string,
+    value: option<scalar>,
+  }
+  
+  record value-range-query {
+    entity: option<entity>,
+    attribute: option<string>,
+    value: scalar,
+  }
+
+  variant range-query {
+    entity(entity-range-query),
+    attribute(attribute-range-query),
+    value(value-range-query),
+  }
+
+  variant instruction {
+    assert(fact),
+    retract(fact),
+    %import,
+  }
+  
+  init: func(input: list<tuple<string, scalar>>) -> result<tuple<state, range-query>, string>; 
+  step: func(state: state, datoms: list<datom>) -> result<tuple<state, list<instruction>>, string>;
+  end: func(state: state) -> result<list<instruction>, string>;
+}
+
+world virtual-module {
+  export module;
+  export set-source: func(source: string) -> result<_, string>;
+}

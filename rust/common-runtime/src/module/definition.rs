@@ -13,6 +13,9 @@ pub use function_vm::*;
 mod remote_function;
 pub use remote_function::*;
 
+mod formula_vm;
+pub use formula_vm::*;
+
 #[cfg(doc)]
 use crate::{Module, ModuleDriver};
 

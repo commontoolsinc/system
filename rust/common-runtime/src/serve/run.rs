@@ -45,6 +45,11 @@ pub async fn run_module(
 
             function.run(validated_io).await?
         }
+        _ => {
+            return Err(CommonRuntimeError::InternalError(
+                "Unexpected function type.".into(),
+            ))
+        }
     };
 
     Ok(RunModuleResponse {

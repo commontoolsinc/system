@@ -1,7 +1,7 @@
 use crate::{
     target::{
-        bindings::module::{add_to_linker, Module},
         function::{NativeFunction, NativeFunctionContext},
+        function_bindings::module::{add_to_linker, Module},
     },
     CommonRuntimeError,
     {module::FunctionDefinition, ArtifactResolver, ModuleFactory},

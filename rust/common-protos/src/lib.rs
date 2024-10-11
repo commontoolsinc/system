@@ -14,6 +14,7 @@ pub mod common {
             match target {
                 common_wit::Target::CommonFunction => Target::CommonFunction,
                 common_wit::Target::CommonFunctionVm => Target::CommonFunctionVm,
+                common_wit::Target::CommonFormulaVm => Target::CommonFormulaVm,
             }
         }
     }
@@ -23,6 +24,7 @@ pub mod common {
             match value {
                 Target::CommonFunction => common_wit::Target::CommonFunction,
                 Target::CommonFunctionVm => common_wit::Target::CommonFunctionVm,
+                Target::CommonFormulaVm => common_wit::Target::CommonFormulaVm,
             }
         }
     }
@@ -40,4 +42,11 @@ pub mod builder {
 #[allow(missing_docs)]
 pub mod runtime {
     tonic::include_proto!("runtime");
+}
+
+/// Protobufs for the formula runtime.
+#[cfg(feature = "runtime")]
+#[allow(missing_docs)]
+pub mod formula {
+    tonic::include_proto!("formula");
 }

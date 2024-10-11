@@ -2,6 +2,7 @@
 members = [
   "rust/common-builder",
   "rust/common-javascript-interpreter",
+  "rust/common-formula-javascript-interpreter",
   "rust/common-graph",
   "rust/common-ifc",
   "rust/common-integration-tests",

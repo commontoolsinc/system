@@ -30,6 +30,13 @@ fn main() {
         "common-javascript-interpreter",
         "JAVASCRIPT_COMMON_FUNCTION_INTERPRETER",
     );
+
+    build_component(
+        project_root_dir,
+        out_dir.as_path(),
+        "common-formula-javascript-interpreter",
+        "JAVASCRIPT_COMMON_FORMULA_INTERPRETER",
+    );
 }
 
 fn build_component(project_root_dir: &Path, out_dir: &Path, crate_name: &str, env_name: &str) {
