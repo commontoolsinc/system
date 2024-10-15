@@ -1,0 +1,62 @@
+name: Validate Dev Container
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  push:
+    branches-ignore:
+      - "dependabot/**"
+    paths:
+      - ".devcontainer/devcontainer.json"
+      - ".github/workflows/validate-devcontainer.yml"
+  pull_request:
+    paths:
+      - ".devcontainer/devcontainer.json"
+      - ".github/workflows/validate-devcontainer.yml"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    # This step will run in two scenarios:
+    # 1. When the event is not a pull request and the repository is not a fork
+    # 2. When the event is a pull request and either:
+    #    a) The pull request is from a fork, or
+    #    b) The branch name starts with 'dependabot/'
+    if: |
+      (
+        github.event_name != 'pull_request' && !github.event.pull_request.head.repo.fork
+      ) || (
+        github.event_name == 'pull_request' && (
+          github.event.pull_request.head.repo.fork || startsWith(github.head_ref, 'dependabot/')
+        )
+      )
+    runs-on: ubuntu-latest
+    name: Validate Dev Container
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+
+      # - name: Set up QEMU
+      #   uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Bring up Dev Container
+        run: npx @devcontainers/cli up --workspace-folder .
+
+      - name: Verify Cargo project
+        run: npx @devcontainers/cli exec --workspace-folder . "/usr/local/cargo/bin/cargo" verify-project
+        if: false
+
+      - name: Run Nix develop
+        run: npx @devcontainers/cli exec --workspace-folder . "/nix/var/nix/profiles/default/bin/nix" develop
+        if: false
+
+      - name: Run `cargo verify-project` via Nix inside Dev Container
+        run: npx @devcontainers/cli exec --workspace-folder . "/nix/var/nix/profiles/default/bin/nix" develop -c cargo verify-project
