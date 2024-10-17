@@ -77,6 +77,11 @@ pub async fn instantiate_module(
                 .add(function_module_instance.into())
                 .await
         }
+        _ => {
+            return Err(CommonRuntimeError::InvalidInstantiationParameters(
+                "Unsupported target.".into(),
+            ))
+        }
     };
 
     Ok(InstantiateModuleResponse {

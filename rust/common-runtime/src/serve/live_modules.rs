@@ -4,7 +4,9 @@ use async_trait::async_trait;
 use tokio::sync::Mutex;
 
 use crate::{
-    target::{function::NativeFunction, function_vm::NativeFunctionVm},
+    target::{
+        formula_vm::NativeFormulaVm, function::NativeFunction, function_vm::NativeFunctionVm,
+    },
     Module, ModuleInstanceId, ModuleManager,
 };
 
@@ -15,6 +17,8 @@ pub enum Function {
     Module(Arc<Mutex<NativeFunction>>),
     /// The `common:function/virtual-module` variant of a [crate::FunctionInterface]
     VirtualModule(Arc<Mutex<NativeFunctionVm>>),
+    /// The `common:formula/virtual-module` variant of a [crate::FunctionInterface]
+    VirtualFormula(Arc<Mutex<NativeFormulaVm>>),
 }
 
 impl Function {
@@ -22,6 +26,7 @@ impl Function {
         match self {
             Function::Module(module) => module.lock().await.instance_id().clone(),
             Function::VirtualModule(module) => module.lock().await.instance_id().clone(),
+            Function::VirtualFormula(module) => module.lock().await.instance_id().clone(),
         }
     }
 }
@@ -35,6 +40,12 @@ impl From<NativeFunction> for Function {
 impl From<NativeFunctionVm> for Function {
     fn from(value: NativeFunctionVm) -> Self {
         Function::VirtualModule(Arc::new(Mutex::new(value)))
+    }
+}
+
+impl From<NativeFormulaVm> for Function {
+    fn from(value: NativeFormulaVm) -> Self {
+        Function::VirtualFormula(Arc::new(Mutex::new(value)))
     }
 }
 

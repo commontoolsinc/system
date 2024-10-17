@@ -26,6 +26,9 @@ pub enum Target {
     /// Effectively the same as a Common Module, but intepreted w/o a compile step
     #[serde(rename = "common:function/virtual-module")]
     CommonFunctionVm,
+    /// Experimental Formula API
+    #[serde(rename = "common:formula/virtual-module")]
+    CommonFormulaVm,
 }
 
 impl Target {
@@ -34,6 +37,7 @@ impl Target {
         match self {
             Target::CommonFunction => "common:function/module",
             Target::CommonFunctionVm => "common:function/virtual-module",
+            Target::CommonFormulaVm => "common:formula/virtual-module",
         }
     }
 }
@@ -45,6 +49,7 @@ impl FromStr for Target {
         Ok(match s {
             "common:function/module" => Target::CommonFunction,
             "common:function/virtual-module" => Target::CommonFunctionVm,
+            "common:formula/virtual-module" => Target::CommonFormulaVm,
             _ => {
                 return Err(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
@@ -63,6 +68,7 @@ impl std::fmt::Display for Target {
             match self {
                 Target::CommonFunction => "common:function/module",
                 Target::CommonFunctionVm => "common:function/virtual-module",
+                Target::CommonFormulaVm => "common:formula/virtual-module",
             }
         )
     }
@@ -139,6 +145,7 @@ impl From<&Target> for WitTargetFileMap {
                 ("deps/io/io.wit".into(), COMMON_IO_WIT),
                 ("deps/data/data.wit".into(), COMMON_DATA_WIT),
             ]),
+            _ => unimplemented!(),
         })
     }
 }

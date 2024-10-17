@@ -1,4 +1,6 @@
-use super::{super::bindings::vm::VirtualModule as GuestVirtualModule, NativeFunctionVmContext};
+use super::{
+    super::function_bindings::vm::VirtualModule as GuestVirtualModule, NativeFunctionVmContext,
+};
 use crate::{
     module::{FunctionInterface, HasModuleContext, ModuleContext},
     CommonRuntimeError, FunctionVmDefinition, HasModuleContextMut, InputOutput, IoData, Module,

@@ -1,4 +1,4 @@
-use super::{super::bindings::module::Module as GuestModule, NativeFunctionContext};
+use super::{super::function_bindings::module::Module as GuestModule, NativeFunctionContext};
 use crate::{
     module::{FunctionInterface, HasModuleContext, ModuleContext},
     CommonRuntimeError, FunctionDefinition, HasModuleContextMut, InputOutput, IoData, Module,

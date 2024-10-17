@@ -245,11 +245,16 @@
                   cargo component build \
                     -p common-javascript-interpreter \
                     --release
+                  cargo component build \
+                    -p common-formula-javascript-interpreter \
+                    --release
                 '';
                 installPhase = ''
                   mkdir -p $out/common-wasm-components
                   cp ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm \
                      $out/common-wasm-components/common_javascript_interpreter.wasm
+                  cp ./target/wasm32-wasip1/release/common_formula_javascript_interpreter.wasm \
+                     $out/common-wasm-components/common_formula_javascript_interpreter.wasm
                 '';
 
                 nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;

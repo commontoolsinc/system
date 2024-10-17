@@ -1,0 +1,29 @@
+[package]
+name = "common-formula-javascript-interpreter"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+blake3 = { workspace = true }
+boa_engine = { workspace = true, features = ["js"] }
+boa_gc = { workspace = true }
+boa_runtime = { workspace = true }
+once_cell = { workspace = true }
+wit-bindgen-rt = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { workspace = true }
+
+[build-dependencies]
+common-wit = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
+common-test-fixtures = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component.target]
+path = "wit/deps/formula/formula.wit"
+world = "virtual-module"

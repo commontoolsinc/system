@@ -23,11 +23,17 @@ static JAVASCRIPT_COMMON_FUNCTION_INTERPRETER: Bytes = Bytes::from_static(includ
     "JAVASCRIPT_COMMON_FUNCTION_INTERPRETER_WASM_PATH"
 )));
 
+static JAVASCRIPT_COMMON_FORMULA_INTERPRETER: Bytes = Bytes::from_static(include_bytes!(env!(
+    "JAVASCRIPT_COMMON_FORMULA_INTERPRETER_WASM_PATH"
+)));
+
 /// Well-known virtual module interpreters that may be requested from an [`ArtifactResolver`]
 #[derive(Eq, PartialEq, Hash, Clone)]
 pub enum VirtualModuleInterpreter {
     /// A JavaScript interpreter that emulates a `common:function/module`
     JavaScriptFunction,
+    /// A JavaScript interpreter that emulates a `common:formula/module`
+    JavaScriptFormula,
 }
 
 /// An [`ArtifactResolver`] is a one-stop shop for accessing
@@ -57,6 +63,9 @@ impl ArtifactResolver {
         match kind {
             VirtualModuleInterpreter::JavaScriptFunction => {
                 Ok(JAVASCRIPT_COMMON_FUNCTION_INTERPRETER.clone())
+            }
+            VirtualModuleInterpreter::JavaScriptFormula => {
+                Ok(JAVASCRIPT_COMMON_FORMULA_INTERPRETER.clone())
             }
         }
     }
@@ -138,6 +147,7 @@ impl ArtifactResolver {
                 Target::CommonFunction | Target::CommonFunctionVm => {
                     common_protos::common::Target::CommonFunction
                 }
+                Target::CommonFormulaVm => common_protos::common::Target::CommonFormulaVm,
             };
 
             let source_code: std::collections::HashMap<String, common_protos::common::SourceCode> =

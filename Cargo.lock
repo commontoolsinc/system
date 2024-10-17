@@ -774,6 +774,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "common-formula-javascript-interpreter"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "blake3",
+ "boa_engine",
+ "boa_gc",
+ "boa_runtime",
+ "common-test-fixtures",
+ "common-wit",
+ "getrandom",
+ "once_cell",
+ "wit-bindgen-rt",
+]
+
+[[package]]
 name = "common-graph"
 version = "0.1.0"
 dependencies = [

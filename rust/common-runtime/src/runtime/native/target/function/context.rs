@@ -1,5 +1,6 @@
 use crate::{
-    module::ModuleContext, runtime::BasicIo, target::bindings::BindingsView, ModuleContextMut,
+    module::ModuleContext, runtime::BasicIo, target::function_bindings::BindingsView,
+    ModuleContextMut,
 };
 use common_ifc::Context as IfcContext;
 use wasmtime::component::ResourceTable;

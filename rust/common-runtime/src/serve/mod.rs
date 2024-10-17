@@ -1,3 +1,4 @@
+pub(crate) mod formula;
 pub(crate) mod instantiate;
 pub(crate) mod run;
 

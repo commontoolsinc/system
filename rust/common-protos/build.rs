@@ -3,6 +3,7 @@ use std::{env, path::PathBuf};
 const COMMON_SOURCE: &str = "common/common.proto";
 const BUILDER_SOURCE: &str = "builder/builder.proto";
 const RUNTIME_SOURCE: &str = "runtime/runtime.proto";
+const FORMULA_SOURCE: &str = "formula/formula.proto";
 
 fn is_set(var: &str) -> bool {
     env::var(var).is_ok()
@@ -23,6 +24,7 @@ fn main() {
     if is_set("CARGO_FEATURE_RUNTIME") {
         sources.push(BUILDER_SOURCE);
         sources.push(RUNTIME_SOURCE);
+        sources.push(FORMULA_SOURCE);
     } else if is_set("CARGO_FEATURE_BUILDER") {
         sources.push(BUILDER_SOURCE);
     }
@@ -37,7 +39,12 @@ fn main() {
         .compile_protos(&sources, &[proto_path.clone()])
         .unwrap();
 
-    for path in [COMMON_SOURCE, BUILDER_SOURCE, RUNTIME_SOURCE] {
+    for path in [
+        FORMULA_SOURCE,
+        COMMON_SOURCE,
+        BUILDER_SOURCE,
+        RUNTIME_SOURCE,
+    ] {
         println!("cargo:rerun-if-changed={}/{}", proto_path.display(), path);
     }
 }

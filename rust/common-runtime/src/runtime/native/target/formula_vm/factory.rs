@@ -1,9 +1,6 @@
 use crate::{
-    module::FunctionVmDefinition,
-    target::{
-        function_bindings::vm::{add_to_linker, VirtualModule},
-        function_vm::{NativeFunctionVm, NativeFunctionVmContext},
-    },
+    module::FormulaVmDefinition,
+    target::formula_vm::{NativeFormulaVm, NativeFormulaVmContext, VirtualModule},
     ArtifactResolver, CommonRuntimeError, ContentType, ModuleFactory, VirtualModuleInterpreter,
 };
 use async_trait::async_trait;
@@ -13,26 +10,26 @@ use wasmtime::{
     Engine as WasmtimeEngine, Store,
 };
 
-/// An implementor of [ModuleFactory] for [NativeFunctionVm] Modules that may be
+/// An implementor of [ModuleFactory] for [NativeFormulaVm] Modules that may be
 /// instantiated by a [crate::NativeRuntime]
 #[derive(Clone)]
-pub struct NativeFunctionVmFactory {
+pub struct NativeFormulaVmFactory {
     engine: WasmtimeEngine,
-    definition: Arc<FunctionVmDefinition>,
-    linker: Linker<NativeFunctionVmContext>,
+    definition: Arc<FormulaVmDefinition>,
+    linker: Linker<NativeFormulaVmContext>,
     interpreter: Arc<Component>,
     source_code: Arc<String>,
 }
 
-impl NativeFunctionVmFactory {
+impl NativeFormulaVmFactory {
     /// Given a [crate::ModuleDefinition], select an appropriate
     /// [VirtualModuleInterpreter] to be used as the VM to host the Module's
     /// source code
     pub fn select_virtual_module_interpreter(
-        definition: &FunctionVmDefinition,
+        definition: &FormulaVmDefinition,
     ) -> Result<VirtualModuleInterpreter, CommonRuntimeError> {
         Ok(match definition.content_type()? {
-            ContentType::JavaScript => VirtualModuleInterpreter::JavaScriptFunction,
+            ContentType::JavaScript => VirtualModuleInterpreter::JavaScriptFormula,
             any_other => {
                 return Err(CommonRuntimeError::PreparationFailed(format!(
                     "{any_other} is not a supported language for a virtual module"
@@ -59,13 +56,13 @@ impl NativeFunctionVmFactory {
         Ok(component)
     }
 
-    /// Instantiate a new [NativeFunctionVmFactory] for a given
+    /// Instantiate a new [NativeFormulaVmFactory] for a given
     /// [crate::ModuleDefinition] and various Wasm runtime acoutrement
     pub async fn new(
         engine: WasmtimeEngine,
         artifact_resolver: ArtifactResolver,
         interpreter: Arc<Component>,
-        definition: FunctionVmDefinition,
+        definition: FormulaVmDefinition,
     ) -> Result<Self, CommonRuntimeError> {
         let source_code = artifact_resolver
             .get_bundled_source_code(&definition)
@@ -76,10 +73,10 @@ impl NativeFunctionVmFactory {
         wasmtime_wasi::add_to_linker_async(&mut linker)
             .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-        add_to_linker(&mut linker)
-            .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
+        //bindings::add_to_linker(&mut linker)
+        //    .map_err(|error| CommonRuntimeError::LinkFailed(format!("{error}")))?;
 
-        Ok(NativeFunctionVmFactory {
+        Ok(NativeFormulaVmFactory {
             engine,
             definition: Arc::new(definition),
             linker,
@@ -90,10 +87,10 @@ impl NativeFunctionVmFactory {
 }
 
 #[async_trait]
-impl ModuleFactory for NativeFunctionVmFactory {
-    type Context = NativeFunctionVmContext;
+impl ModuleFactory for NativeFormulaVmFactory {
+    type Context = NativeFormulaVmContext;
 
-    type Module = NativeFunctionVm;
+    type Module = NativeFormulaVm;
 
     async fn instantiate(
         &self,
@@ -116,6 +113,6 @@ impl ModuleFactory for NativeFunctionVmFactory {
                 CommonRuntimeError::ModuleInstantiationFailed(format!("Script error: {error}"))
             })?;
 
-        NativeFunctionVm::new(self.definition.clone(), store, virtual_module)
+        NativeFormulaVm::new(self.definition.clone(), store, virtual_module)
     }
 }

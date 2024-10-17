@@ -1,18 +1,18 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use target::{function::NativeFunctionFactory, function_vm::NativeFunctionVmFactory};
+use target::{
+    formula_vm::NativeFormulaVmFactory, function::NativeFunctionFactory,
+    function_vm::NativeFunctionVmFactory,
+};
 use wasmtime::{
     component::Component, Config as WasmtimeConfig, Engine as WasmtimeEngine, OptLevel,
 };
 
 use crate::{
-    CommonRuntimeError,
-    {
-        cache::Cache,
-        module::{FunctionDefinition, FunctionVmDefinition, ModuleId},
-        ModuleDriver,
-    },
+    cache::Cache,
+    module::{FunctionDefinition, FunctionVmDefinition, ModuleId},
+    CommonRuntimeError, FormulaVmDefinition, ModuleDriver,
 };
 
 mod artifact;
@@ -32,6 +32,7 @@ pub struct NativeRuntime {
 
     function_cache: Cache<ModuleId, NativeFunctionFactory>,
     function_vm_cache: Cache<ModuleId, NativeFunctionVmFactory>,
+    formula_vm_cache: Cache<ModuleId, NativeFormulaVmFactory>,
 
     vm_interpreter_cache: Cache<VirtualModuleInterpreter, Arc<Component>>,
 }
@@ -56,6 +57,7 @@ impl NativeRuntime {
 
             function_cache: Cache::new(32)?,
             function_vm_cache: Cache::new(32)?,
+            formula_vm_cache: Cache::new(32)?,
 
             vm_interpreter_cache: Cache::new(16)?,
         })
@@ -132,6 +134,57 @@ impl ModuleDriver<FunctionVmDefinition> for NativeRuntime {
             )
             .await?;
             self.function_vm_cache.insert(id, factory.clone()).await;
+            factory
+        };
+        Ok(factory)
+    }
+}
+
+#[async_trait]
+impl ModuleDriver<FormulaVmDefinition> for NativeRuntime {
+    type ModuleFactory = NativeFormulaVmFactory;
+
+    async fn prepare(
+        &self,
+        definition: FormulaVmDefinition,
+    ) -> Result<Self::ModuleFactory, CommonRuntimeError> {
+        let id = ModuleId::from(&*definition);
+
+        let factory = if let Some(cached_item) = self.formula_vm_cache.get(&id).await {
+            cached_item
+        } else {
+            let virtual_module_interpreter =
+                NativeFormulaVmFactory::select_virtual_module_interpreter(&definition)?;
+
+            let interpreter = if let Some(cached_item) = self
+                .vm_interpreter_cache
+                .get(&virtual_module_interpreter)
+                .await
+            {
+                cached_item
+            } else {
+                let interpreter = Arc::new(
+                    NativeFormulaVmFactory::prepare_interpreter(
+                        self.wasmtime_engine.clone(),
+                        virtual_module_interpreter.clone(),
+                        self.artifact_resolver.clone(),
+                    )
+                    .await?,
+                );
+                self.vm_interpreter_cache
+                    .insert(virtual_module_interpreter, interpreter.clone())
+                    .await;
+                interpreter
+            };
+
+            let factory = NativeFormulaVmFactory::new(
+                self.wasmtime_engine.clone(),
+                self.artifact_resolver.clone(),
+                interpreter,
+                definition,
+            )
+            .await?;
+            self.formula_vm_cache.insert(id, factory.clone()).await;
             factory
         };
         Ok(factory)
