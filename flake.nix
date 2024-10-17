@@ -108,7 +108,7 @@
             name = "jco";
             src = ./typescript;
             dontNpmBuild = true;
-            npmDepsHash = "sha256-Nfhe2YyD7fhHoOiQEnrb8C6A0RfgOMa1xFqbTIAykyA=";
+            npmDepsHash = "sha256-HYUzbJAMDIW6yeZ5Y4jO3x6HXFZhdz0R23cPAEVxgXM=";
           };
 
           wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
@@ -153,7 +153,7 @@
               pname = "wasm-bindgen-cli";
               # NOTE: Version must be kept in sync with Cargo.toml
               # version of `wasm-bindgen` dependency!
-              version = "0.2.93";
+              version = "0.2.95";
               buildInputs = [ pkgs.rust-bin.stable.latest.default ] ++ lib.optionals stdenv.isDarwin [
                 darwin.apple_sdk.frameworks.SystemConfiguration
                 darwin.apple_sdk.frameworks.Security
@@ -161,10 +161,10 @@
 
               src = pkgs.fetchCrate {
                 inherit pname version;
-                sha256 = "sha256-DDdu5mM3gneraM85pAepBXWn3TMofarVR4NbjMdz3r0=";
+                sha256 = "sha256-prMIreQeAcbJ8/g3+pMp1Wp9H5u+xLqxRxL+34hICss=";
               };
 
-              cargoHash = "sha256-birrg+XABBHHKJxfTKAMSlmTVYLmnmqMDfRnmG6g/YQ=";
+              cargoHash = "sha256-6iMebkD7FQvixlmghGGIvpdGwFNLfnUcFke/Rg8nPK4=";
             };
         in
         {
