@@ -7,25 +7,34 @@ ROOT_DIR="$SCRIPT_DIR/../"
 print_help() {
     echo "Perform maintanance operations on Common System source code"
     echo ""
-    echo "Usage: ops-test [COMMAND]"
+    echo "Usage: ops-test [COMMAND] [OPTIONS]"
     echo ""
     echo "Commands:"
     echo "  unit         Run rust unit tests."
-    echo "  integration  Run rust integration tests."
     echo "  doc          Run rust doc tests."
     echo "  lint         Run linting and formatting tests."
     echo "  help         Print this message."
+    echo ""
+    echo "Options:"
+    echo "  -t, --target <TRIPLE>  Use triple target for command."
+    echo "                         Only used for unit tests."
+    echo ""
     exit 0
 }
 
 unit_tests() {
-    cargo test --workspace --exclude common-integration-tests
+	echo "RUNNING UNIT TESTS WIth TARGET $1"
+    if [ -z "$1" ]; then
+        cargo test --workspace
+    else
+        cargo test --workspace --target $1
+    fi
 }
 
-integration_tests() {
-    CHROMEDRIVER=`which chromedriver` cargo nextest run --package common-integration-tests \
-        --profile ci --color always
-}
+#integration_tests() {
+#    CHROMEDRIVER=`which chromedriver` cargo nextest run --package common-integration-tests \
+#        --profile ci --color always
+#}
 
 doc_tests() {
     cargo test --doc --all-features
@@ -37,20 +46,46 @@ lint_tests() {
     cargo fmt --all -- --check
 }
 
-case "$1" in
-  unit)
-    unit_tests
-    ;;
-  integration)
-    integration_tests
-    ;;
-  doc)
-    doc_tests
-    ;;
-  lint)
-    lint_tests
-    ;;
-  *)
-    print_help
-    ;;
+COMMAND=""
+TARGET=""
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -t|--target)
+            TARGET="$2"
+            shift
+            shift
+            ;;
+        -*|--*)
+            echo "Unknown option $1"
+            exit 1
+            ;;
+        *)
+            if [ -z "$COMMAND" ]; then
+                COMMAND="$1"	
+            else
+                echo "Error: Duplicate command found."
+	        exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+case "$COMMAND" in
+    unit)
+        unit_tests $TARGET
+        ;;
+    integration)
+        integration_tests
+        ;;
+    doc)
+        doc_tests
+        ;;
+    lint)
+        lint_tests
+        ;;
+    *)
+        print_help
+        ;;
 esac

@@ -50,36 +50,32 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: wasm-components
-          path: ./result/wasm-components/
+          path: ./result/common-wasm-components/
   
-  tests:
+  native-tests:
     name: 'Tests'
     needs: ['build-wasm-components']
     strategy:
       matrix:
         include:
-          - test: 'unit'
+          - test: 'lint'
             platform: 'ubuntu-latest'
             toolchain: 'stable'
-            target: 'native'
-          - test: 'unit'
-            platform: 'ubuntu-latest'
-            toolchain: 'stable'
-            target: 'wasm32-unknown-unknown'
-          #- test: 'lint'
-          #  platform: 'ubuntu-latest'
-          #  toolchain: 'stable'
-          #  target: 'native'
           - test: 'doc'
             platform: 'ubuntu-latest'
             toolchain: 'stable'
-            target: 'native'
-          #- test: 'unit'
-          #  platform: 'ubuntu-latest'
-          #  toolchain: 'nightly'
-          #- test: 'unit'
-          #  platform: 'macos-13'
-          #  toolchain: 'stable'
+          - test: 'unit'
+            platform: 'ubuntu-latest'
+            toolchain: 'stable'
+          - test: 'integration'
+            platform: 'ubuntu-latest'
+            toolchain: 'stable'
+          - test: 'unit'
+            platform: 'ubuntu-latest'
+            toolchain: 'nightly'
+          - test: 'unit'
+            platform: 'macos-13'
+            toolchain: 'stable'
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
@@ -90,21 +86,43 @@ jobs:
         shell: bash
         run: |
           mv ./wasm-components ./.wasm_cache
-          if [ ${{ matrix.target }} == "native" ]; then
-            TARGET=""
-          else
-            TARGET="--target ${{ matrix.target }}"
-          fi
-
           if [ ${{ matrix.toolchain }} == "nightly" ]; then
-            nix develop .#nightly --command ./scripts/ops-test ${{ matrix.test }} $TARGET
+            nix develop .#nightly --command ./scripts/ops-test ${{ matrix.test }}
           else
-            nix develop --command ./scripts/ops-test ${{ matrix.test }} $TARGET
+            nix develop --command ./scripts/ops-test ${{ matrix.test }}
           fi
         env:
-          RUST_LOG: info
+          RUST_LOG: info,common_runtime=trace,common_builder=trace,common_ifc=trace
           WASM_BINDGEN_TEST_TIMEOUT: 180
 
+  build-js:
+    name: 'Build JS Packages'
+    needs: ['precheck']
+    runs-on: 'ubuntu-latest'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-binstall
+        uses: cargo-bins/cargo-binstall@v1.10.3
+      - name: Install binaries from cargo
+        run: |
+          cargo binstall wit-deps-cli wasm-tools --no-confirm --force
+      - name: 'Setup Node/NPM'
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: 'Install NPM dependencies'
+        run: |
+          npm install -g @bytecodealliance/jco @bytecodealliance/componentize-js@0.9.0
+      - name: 'Initialize wits'
+        run: |
+          ./wit/wit-tools.sh deps
+      - name: 'Build NPM Project'
+        run: |
+          cd typescript
+          npm ci
+          npm run build --workspaces
+  
   nix-build:
     name: 'Nix build'
     needs: ['precheck']
@@ -112,10 +130,10 @@ jobs:
     strategy:
       matrix:
         include:
-          - package: "engine"
-            artifact-name: "ct-engine"
-          #- package: "engine-web"
-          #  artifact-name: "ct-engine-web"
+          - package: "runtime"
+            artifact-name: "runtime"
+          - package: "runtime-web"
+            artifact-name: "common-runtime"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/nix-setup
