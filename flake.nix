@@ -3,7 +3,7 @@
  *
  * This file constitutes a software development environment that
  * can reliably build the Common Tools System.
- * 
+ *
  * In order to use it, you need Nix with the "flakes" feature enabled.
  * Follow the instructions at https://zero-to-nix.com/start/install for
  * a quick start to get Nix set up on your local system.
