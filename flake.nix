@@ -41,12 +41,10 @@
             protobuf
             wasm-pack
             cargo-component
-            cargo-nextest
             wasm-bindgen-cli
             wit-deps-cli
             wasm-tools
-            nodejs
-            jco
+            wasi-virt 
           ] ++ lib.optionals stdenv.isDarwin [
             darwin.apple_sdk.frameworks.SystemConfiguration
             darwin.apple_sdk.frameworks.Security
@@ -92,25 +90,6 @@
               '';
             };
 
-          /**
-           * Re-export jco from our fake root package; we do this because
-           * @bytecodealliance/jco is a non-trivial package to build from
-           * scratch (it entails Rust compilation, Wasm artifact generation
-           * and JavaScript transpiling / bundling), and there is no practical
-           * path with Nix to do the equivalent of `npm install -g`.
-           *
-           * NOTE: When updating the NPM dependencies, you need to refresh the
-           * `npmDepsHash`. The way to do this is to set the value to
-           * `pkgs.lib.fakeHash`, then run a build or devshell, then copy the
-           * "expected" value from the failed run and replace `fakeHash` with it.
-           */
-          jco = pkgs.buildNpmPackage {
-            name = "jco";
-            src = ./typescript;
-            dontNpmBuild = true;
-            npmDepsHash = "sha256-HYUzbJAMDIW6yeZ5Y4jO3x6HXFZhdz0R23cPAEVxgXM=";
-          };
-
           wit-deps-cli = pkgs.rustPlatform.buildRustPackage rec {
             pname = "wit-deps-cli";
             version = "0.4.0";
@@ -125,6 +104,25 @@
             };
 
             cargoHash = "sha256-kjvbGJpdNk+achZykzSUk3dShYT+EXNlxRlc3N2UHpA=";
+          };
+
+          wasi-virt = pkgs.rustPlatform.buildRustPackage rec {
+            pname = "wasi-virt";
+            version = "0.1.0";
+            buildInputs = [ pkgs.rust-bin.stable.latest.default ];
+
+            doCheck = false;
+
+            # Currently targeting wasip1/wasi@0.2.0.
+            # Use revision before wasi-virt updates to wasip2.
+            src = pkgs.fetchFromGitHub {
+              owner = "bytecodealliance";
+              repo = pname;
+              rev = "b662e419bb7";
+              hash = "sha256-y/FF5BKyTSVoknu77CGIUU3l8qOoYrUGATqjxMF1pGg=";
+            };
+
+            cargoHash = "sha256-VdeNh/MfQjnTjmbIxScCgHipOJ5huPNG1WHF1uFTaFw=";
           };
 
           wasm-tools = pkgs.rustPlatform.buildRustPackage
@@ -169,7 +167,7 @@
         in
         {
           packages = rec {
-            builder =
+            engine =
               let
                 rust-toolchain = rustToolchain "stable";
                 rust-platform = pkgs.makeRustPlatform {
@@ -178,51 +176,27 @@
                 };
               in
               rust-platform.buildRustPackage {
-                name = "builder";
+                name = "engine";
                 src = ./.;
-                /* Don't run tests as part of this task */
-                doCheck = false;
-                buildPhase = ''
-                  bash ./wit/wit-tools.sh deps
-                  cargo build -p common-builder --release
-                '';
-                installPhase = ''
-                  mkdir -p $out
-                  cp ./target/release/builder $out/common-builder
-                '';
-
-                nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
-                cargoLock = {
-                  lockFile = ./Cargo.lock;
-                };
-              };
-
-            runtime =
-              let
-                rust-toolchain = rustToolchain "stable";
-                rust-platform = pkgs.makeRustPlatform {
-                  cargo = rust-toolchain;
-                  rustc = rust-toolchain;
-                };
-              in
-              rust-platform.buildRustPackage {
-                name = "runtime";
-                src = ./.;
-                /* Don't run tests as part of this task */
                 doCheck = false;
                 buildPhase = ''
                   bash ./wit/wit-tools.sh deps
                   export CARGO_COMPONENT_CACHE_DIR=.cargo-component-cache
-                  cargo build -p common-runtime --release
+                  cargo build -p ct-engine --release
                 '';
                 installPhase = ''
                   mkdir -p $out
-                  cp ./target/release/runtime $out/common-runtime
+                  cp ./target/release/engine $out/ct-engine
                 '';
 
                 nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
                 cargoLock = {
                   lockFile = ./Cargo.lock;
+                  outputHashes = {
+                    # Using our own forks of these
+                    "js_wasm_runtime_layer-0.4.0" = "sha256-LHhaCqGQCoV7AZKnDkBPdvd3KBda4UkrSlHrODqEELc=";
+                    "wasm_component_layer-0.1.18" = "sha256-S/MY+pkmQ93RxQ70/fWEiXjt5lg0YNlM5IQVoDVb3YI=";
+                  };
                 };
               };
             
@@ -242,33 +216,31 @@
                 buildPhase = ''
                   bash ./wit/wit-tools.sh deps
                   export CARGO_COMPONENT_CACHE_DIR=.cargo-component-cache
-                  cargo component build \
-                    -p common-javascript-interpreter \
-                    --release
-                  cargo component build \
-                    -p common-formula-javascript-interpreter \
-                    --release
+                  bash ./scripts/component-build ct-js-vm ./target
                 '';
                 installPhase = ''
-                  mkdir -p $out/common-wasm-components
-                  cp ./target/wasm32-wasip1/release/common_javascript_interpreter.wasm \
-                     $out/common-wasm-components/common_javascript_interpreter.wasm
-                  cp ./target/wasm32-wasip1/release/common_formula_javascript_interpreter.wasm \
-                     $out/common-wasm-components/common_formula_javascript_interpreter.wasm
+                  mkdir -p $out/wasm-components
+                  cp ./target/wasm32-wasip1/release/virt_ct_js_vm.wasm \
+                     $out/wasm-components/virt_ct_js_vm.wasm
                 '';
 
                 nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
                 cargoLock = {
                   lockFile = ./Cargo.lock;
+                  outputHashes = {
+                    # Using our own forks of these
+                    "js_wasm_runtime_layer-0.4.0" = "sha256-LHhaCqGQCoV7AZKnDkBPdvd3KBda4UkrSlHrODqEELc=";
+                    "wasm_component_layer-0.1.18" = "sha256-S/MY+pkmQ93RxQ70/fWEiXjt5lg0YNlM5IQVoDVb3YI=";
+                  };
                 };
               };
 
             /**
              * Builds the source files for an NPM package that bundles
-             * up the runtime (compiled to Web Assembly) and an auto-generated
+             * up the engine (compiled to Web Assembly) and an auto-generated
              * JavaScript library with bindings into the runtime's API.
              */
-            runtime-web =
+            engine-web =
               let
                 rust-toolchain = rustToolchain "stable";
                 rust-platform = pkgs.makeRustPlatform {
@@ -277,7 +249,7 @@
                 };
               in
               rust-platform.buildRustPackage {
-                name = "web-runtime";
+                name = "web-engine";
                 src = ./.;
                 /* Don't run tests as part of this task */
                 doCheck = false;
@@ -288,44 +260,25 @@
                   export HOME=`pwd`
 
                   bash ./wit/wit-tools.sh deps
-                  wasm-pack build --target web -m no-install ./rust/common-runtime
-                  cp ./typescript/common-runtime/README.md ./rust/common-runtime/pkg/README.md
-                  cp ./typescript/common-runtime/example.html ./rust/common-runtime/pkg/example.html
+                  wasm-pack build --target web -m no-install ./rust/ct-engine
+                  #cp ./typescript/common-runtime/README.md ./rust/common-runtime/pkg/README.md
+                  #cp ./typescript/common-runtime/example.html ./rust/common-runtime/pkg/example.html
                 '';
                 installPhase = ''
                   mkdir -p $out
-                  mv ./rust/common-runtime/pkg $out/common-runtime-web
+                  mv ./rust/ct-engine/pkg $out/ct-engine-web
                 '';
 
                 nativeBuildInputs = [ rust-toolchain ] ++ common-build-inputs;
                 cargoLock = {
                   lockFile = ./Cargo.lock;
+                  outputHashes = {
+                    # Using our own forks of these
+                    "js_wasm_runtime_layer-0.4.0" = "sha256-LHhaCqGQCoV7AZKnDkBPdvd3KBda4UkrSlHrODqEELc=";
+                    "wasm_component_layer-0.1.18" = "sha256-S/MY+pkmQ93RxQ70/fWEiXjt5lg0YNlM5IQVoDVb3YI=";
+                  };
                 };
               };
-
-            runtime-image = pkgs.dockerTools.buildLayeredImage {
-              name = "common-runtime";
-              tag = "latest";
-              created = "now";
-              config.Entrypoint = [ "${runtime}/runtime/runtime" ];
-            };
-
-            builder-image = pkgs.dockerTools.buildLayeredImage {
-              name = "common-builder";
-              tag = "latest";
-              created = "now";
-              contents = [
-                jco
-              ];
-              # NOTE: This is needed because the extremely minimal base image
-              # doesn't have a /tmp! And, for now we initialize a temporary DB
-              # for caching build artifacts.
-              fakeRootCommands = ''
-                mkdir -p /tmp
-              '';
-              enableFakechroot = true;
-              config.Entrypoint = [ "${builder}/builder/builder" ];
-            };
           };
 
           devShells = {

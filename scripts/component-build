@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -e
+
+echo "START!"
+
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+ROOT_DIR="$SCRIPT_DIR/../"
+
+print_help() {
+    echo "Build wasm components for use with Common Tools system."
+    echo ""
+    echo "Usage: component-build <CRATE> <OUT_DIR>"
+    exit 0
+}
+
+CRATE="$1"
+OUT_DIR="$2"
+CRATE_ARTIFACT_NAME="${CRATE//\-/\_}.wasm"
+CRATE_ARTIFACT_PATH="$2/wasm32-wasip1/release/$CRATE_ARTIFACT_NAME"
+VIRTUALIZED_ARTIFACT_PATH="$2/wasm32-wasip1/release/virt_$CRATE_ARTIFACT_NAME"
+
+if [ -z "$CRATE" ]; then
+    print_help
+elif [ -z "$OUT_DIR" ]; then
+    print_help
+fi
+
+# Build the wasm32-wasip1 component
+CARGO_TARGET_DIR="$OUT_DIR" \
+    cargo component build --release \
+    --package="$CRATE"
+
+# Virtualize/stub unsupported wasi imports, only
+# allowing `wasi:random`
+echo "Virtualizing $CRATE_ARTIFACT_PATH to $VIRTUALIZED_ARTIFACT_PATH"
+echo "in $PWD"
+wasi-virt "$CRATE_ARTIFACT_PATH" --allow-random -o "$VIRTUALIZED_ARTIFACT_PATH"

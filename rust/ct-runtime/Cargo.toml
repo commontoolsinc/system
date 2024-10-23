@@ -1,0 +1,49 @@
+[package]
+name = "ct-runtime"
+description = "A Common sandbox"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# backends do not expose their internal anyhow Error 
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+thiserror = { workspace = true }
+rand = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+cap-rand = { version = "3.3.0", features = ["small_rng"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+wasmtime = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm_component_layer = { git = "https://github.com/jsantell/wasm_component_layer.git", branch = "common-tools-compat" }
+js_wasm_runtime_layer = { git = "https://github.com/jsantell/wasm_runtime_layer.git", branch = "common-tools-compat" }
+getrandom = { workspace = true, features = ["js"] }
+console_error_panic_hook = "0.1"
+tracing-wasm = "~0.2"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+tokio = { workspace = true, features = [
+    "rt-multi-thread",
+    "rt",
+    "io-util",
+    "process",
+    "fs",
+    "macros",
+] }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
+wasm-bindgen = { workspace = true }
+wasm-bindgen-futures = { workspace = true }
+web-sys = { workspace = true }
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
+wasm-bindgen-test = { workspace = true }
+
+[build-dependencies]
+tempfile = { workspace = true }
