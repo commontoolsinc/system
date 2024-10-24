@@ -1,11 +1,11 @@
 //! Uses [wasm_component_layer] to implement a backend
 //! for both `wasmtime` and a browser's WASM implementation.
 
-use crate::backends::context::Context;
-use crate::sync::{ConditionalSend, ConditionalSync};
 use crate::{
-    Engine, Error, HostFeatures, Instance, Module, ModuleDefinition, Result, VirtualMachine,
+    backends::{context::Context, EngineBackend, InstanceBackend, ModuleBackend},
+    Error, HostCallback, HostCallbackFn, ModuleDefinition, Result, VirtualMachine,
 };
+use ct_common::{ConditionalSend, ConditionalSync};
 use std::collections::HashMap;
 use wasm_component_layer as wcl;
 
@@ -18,18 +18,15 @@ type Store = wcl::Store<Context, InnerEngine>;
 
 /// An implementation of [`Engine`] via [`wasm_component_layer`],
 /// primarily for `wasm32-unknown-unknown` via `js_wasm_runtime_layer`.
-pub struct WclEngine<H: HostFeatures> {
+pub struct WclEngine {
     engine: wcl::Engine<InnerEngine>,
     vm_components: HashMap<VirtualMachine, wcl::Component>,
-    host_features: std::marker::PhantomData<H>,
+    host_callback: HostCallback,
 }
 
-impl<H> WclEngine<H>
-where
-    H: HostFeatures,
-{
+impl WclEngine {
     /// Create a new [`WclEngine`].
-    pub fn new(vms: Vec<VirtualMachine>) -> Result<Self> {
+    pub fn new(callback: impl HostCallbackFn, vms: Vec<VirtualMachine>) -> Result<Self> {
         let engine = wcl::Engine::new(InnerEngine::default());
         let mut vm_components = HashMap::default();
         for vm in vms {
@@ -37,20 +34,17 @@ where
                 .map_err(|e| Error::from(e.to_string()))?;
             vm_components.insert(vm, component);
         }
-
+        let host_callback = HostCallback::new(callback);
         Ok(WclEngine {
             engine,
             vm_components,
-            host_features: Default::default(),
+            host_callback,
         })
     }
 }
 
-impl<H> Engine for WclEngine<H>
-where
-    H: HostFeatures,
-{
-    type Module = WclModule<H>;
+impl EngineBackend for WclEngine {
+    type Module = WclModule;
 
     fn module(&self, definition: ModuleDefinition) -> Result<Self::Module> {
         let component = self
@@ -60,29 +54,26 @@ where
             .to_owned();
         let linker = wcl::Linker::default();
 
-        Ok(WclModule::<H> {
+        Ok(WclModule {
             linker,
             engine: self.engine.clone(),
             component,
             definition,
-            host_features: Default::default(),
+            host_callback: self.host_callback.clone(),
         })
     }
 }
 
 /// An implementation of [`Module`] via [`wasm_component_layer`].
-pub struct WclModule<H: HostFeatures> {
+pub struct WclModule {
     linker: wcl::Linker,
     engine: wcl::Engine<InnerEngine>,
     component: wcl::Component,
     definition: ModuleDefinition,
-    host_features: std::marker::PhantomData<H>,
+    host_callback: HostCallback,
 }
 
-impl<H> Module for WclModule<H>
-where
-    H: HostFeatures,
-{
+impl ModuleBackend for WclModule {
     type Instance = WclInstance;
     fn instantiate(&mut self) -> Result<Self::Instance> {
         let context = Context::default();
@@ -100,12 +91,13 @@ where
             )
             .map_err(|e| Error::LinkerFailure(e.to_string()))?;
 
+        let host_callback = self.host_callback.clone();
         Interface::Identifier("common:basic/host-callback@0.0.1")
             .set_fn::<(String,), (std::result::Result<String, String>,), _>(
                 &mut store,
                 &mut self.linker,
                 "callback",
-                |_ctx, params| Ok((H::host_callback(params.0),)),
+                move |_ctx, params| Ok((host_callback.invoke(params.0),)),
             )
             .map_err(|e| Error::LinkerFailure(e.to_string()))?;
 
@@ -148,7 +140,7 @@ impl WclInstance {
     }
 }
 
-impl Instance for WclInstance {
+impl InstanceBackend for WclInstance {
     fn run(&mut self, input: String) -> Result<String> {
         self.run_fn
             .call(&mut self.store, input)

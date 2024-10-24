@@ -261,8 +261,9 @@
 
                   bash ./wit/wit-tools.sh deps
                   wasm-pack build --target web -m no-install ./rust/ct-engine
-                  #cp ./typescript/common-runtime/README.md ./rust/common-runtime/pkg/README.md
-                  #cp ./typescript/common-runtime/example.html ./rust/common-runtime/pkg/example.html
+
+                  cp ./typescript/ct-engine/README.md ./rust/ct-engine/pkg/README.md
+                  cp ./typescript/ct-engine/example.html ./rust/ct-engine/pkg/example.html
                 '';
                 installPhase = ''
                   mkdir -p $out

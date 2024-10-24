@@ -11,6 +11,8 @@ crate-type = ["cdylib", "rlib"]
 # backends do not expose their internal anyhow Error 
 anyhow = { workspace = true }
 async-trait = { workspace = true }
+blake3 = { workspace = true }
+ct-common = { workspace = true }
 thiserror = { workspace = true }
 rand = { workspace = true }
 tracing = { workspace = true }

@@ -13,6 +13,7 @@ members = [
 #  "rust/common-tools",
 #  "rust/common-tracing",
 #  "rust/common-wit",
+  "rust/ct-common",
   "rust/ct-engine",
   "rust/ct-js-vm",
   "rust/ct-runtime",
@@ -43,6 +44,7 @@ clap = { version = "4.5" }
 #common-test-fixtures = { path = "./rust/common-test-fixtures" }
 #common-tracing = { path = "./rust/common-tracing" }
 #common-wit = { path = "./rust/common-wit" }
+ct-common = { path = "./rust/ct-common" }
 ct-runtime = { path = "./rust/ct-runtime" }
 #criterion = { version = "0.5" }
 #darling = { version = "0.20" }
@@ -105,7 +107,6 @@ wit-bindgen-rt = { version = "0.33" }
 #wit-parser = { version = "0.218" }
 
 [profile.release]
-codegen-units = 1
 opt-level = "s"
 debug = false
 strip = true
