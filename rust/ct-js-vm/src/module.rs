@@ -1,10 +1,10 @@
-use crate::types::{js_object_to_str, str_to_js_object};
-use crate::util::format_error;
+use crate::{bindings::common::basic::host_callback::callback as host_callback, util};
 use blake3::Hash;
 use boa_engine::module::{ModuleLoader, Referrer};
 use boa_engine::property::Attribute;
 use boa_engine::{
-    builtins::promise::PromiseState, js_string, Context, JsObject, Module as JsModule, Source,
+    builtins::promise::PromiseState, js_string, Context, JsObject, Module as JsModule,
+    NativeFunction, Source,
 };
 use boa_engine::{JsResult, JsString, JsValue};
 use boa_runtime::Console;
@@ -17,10 +17,12 @@ thread_local! {
     pub static MODULE_STATE: RefCell<OnceCell<Rc<RwLock<Module>>>> = const { RefCell::new(OnceCell::new()) };
 }
 
+#[derive(Default)]
 pub struct CommonModuleLoader {
     builtins: RefCell<BTreeMap<JsString, JsModule>>,
 }
 
+/*
 impl CommonModuleLoader {
     pub fn new() -> Self {
         Self {
@@ -28,6 +30,7 @@ impl CommonModuleLoader {
         }
     }
 }
+*/
 
 impl ModuleLoader for CommonModuleLoader {
     fn load_imported_module(
@@ -91,11 +94,11 @@ pub struct Module {
 impl Module {
     pub fn call_run(&mut self, input: String) -> Result<String, String> {
         let init = self.run_fn.clone();
-        let input_js = str_to_js_object(input, &mut self.context)?;
+        let input_js = util::str_to_js_object(input, &mut self.context)?;
         let result = init
             .call(&JsValue::undefined(), &[input_js], &mut self.context)
-            .map_err(format_error)?;
-        js_object_to_str(result, &mut self.context)
+            .map_err(util::format_error)?;
+        util::js_object_to_str(result, &mut self.context)
     }
 
     pub fn load(maybe_script: Option<String>) -> Result<Rc<RwLock<Module>>, String> {
@@ -140,7 +143,7 @@ impl Module {
                             return Err("Must provide a script to load!".to_owned());
                         };
 
-                        let loader = Rc::new(CommonModuleLoader::new());
+                        let loader = Rc::new(CommonModuleLoader::default());
 
                         let mut context = Context::builder()
                             .module_loader(loader.clone())
@@ -176,6 +179,8 @@ impl Module {
                             }
                         };
 
+                        set_host_callback(&mut context)?;
+
                         let run_fn = get_module_export("run", &module, &mut context)?;
 
                         Ok(Rc::new(RwLock::new(Module {
@@ -204,4 +209,24 @@ fn get_module_export(
         .as_callable()
         .cloned()
         .ok_or_else(|| format!("No '{export_name}' function was exported!"))
+}
+
+fn set_host_callback(context: &mut Context) -> Result<(), String> {
+    context
+        .register_global_builtin_callable(
+            js_string!("hostCallback"),
+            1,
+            NativeFunction::from_fn_ptr(|_, args, context| {
+                let Some(arg) = args.get(0) else {
+                    return Err(util::str_to_js_error(
+                        "`hostCallback` requires at least one argument.",
+                    ));
+                };
+                let payload =
+                    util::js_object_to_str(arg.clone(), context).map_err(util::str_to_js_error)?;
+                let response = host_callback(&payload).map_err(util::str_to_js_error)?;
+                Ok(util::str_to_js_object(response, context).map_err(util::str_to_js_error)?)
+            }),
+        )
+        .map_err(|e| e.to_string())
 }
