@@ -1,0 +1,22 @@
+[package]
+name = "ct-js-vm"
+version = "0.1.0"
+edition = "2021"
+
+[target.'cfg(all(target_arch = "wasm32", target_os = "wasi"))'.dependencies]
+blake3 = { workspace = true }
+boa_engine = { workspace = true, features = ["js"] }
+boa_gc = { workspace = true }
+boa_runtime = { workspace = true }
+once_cell = { workspace = true }
+wit-bindgen-rt = { workspace = true }
+
+# [target.'cfg(target_arch = "wasm32")'.dependencies]
+# getrandom = { workspace = true }
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component.target]
+path = "wit/deps/basic/world.wit"
+world = "virtual-module"

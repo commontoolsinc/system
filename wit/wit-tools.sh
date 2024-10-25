@@ -3,8 +3,8 @@
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 TYPESCRIPT_DIR="$SCRIPT_DIR/../typescript"
 
-declare -a WASM_COMPONENTS=("rust/common-javascript-interpreter" "rust/common-formula-javascript-interpreter")
-declare -a WITS=("data" "io" "function" "formula")
+declare -a WASM_COMPONENTS=("rust/common-javascript-interpreter" "rust/common-formula-javascript-interpreter" "rust/ct-js-vm")
+declare -a WITS=("data" "io" "function" "formula" "basic")
 
 print_help() {
     echo "WIT tools for Common System"
