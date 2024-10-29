@@ -1,6 +1,7 @@
 use crate::backends::context::Context;
-use crate::{Engine, Error, Instance, Module, ModuleDefinition, Result, VirtualMachine};
-use async_trait::async_trait;
+use crate::{
+    Engine, Error, HostFeatures, Instance, Module, ModuleDefinition, Result, VirtualMachine,
+};
 use std::collections::HashMap;
 use wasmtime::{
     component::{Component, Linker},
@@ -11,27 +12,31 @@ mod virtual_module {
     wasmtime::component::bindgen!({
         world: "virtual-module",
         path: "../../wit/common/basic/wit",
-        async: true
+        //async: true
     });
 }
 
 use virtual_module::VirtualModule;
 
 /// An implementation of [`Engine`] via [`wasmtime`].
-pub struct WasmtimeEngine {
+pub struct WasmtimeEngine<H: HostFeatures> {
     engine: wasmtime::Engine,
     vm_components: HashMap<VirtualMachine, Component>,
+    host_features: std::marker::PhantomData<H>,
 }
 
-impl WasmtimeEngine {
+impl<H> WasmtimeEngine<H>
+where
+    H: HostFeatures,
+{
     /// Create a new [`WasmtimeEngine`].
     pub fn new(vms: Vec<VirtualMachine>) -> Result<Self> {
         let engine = {
             let mut config = wasmtime::Config::default();
 
             config.cranelift_opt_level(wasmtime::OptLevel::Speed);
-            config.async_support(true);
             config.wasm_backtrace(true);
+            //config.async_support(true);
 
             wasmtime::Engine::new(&config).map_err(|e| Error::from(e.to_string()))
         }?;
@@ -44,15 +49,18 @@ impl WasmtimeEngine {
         Ok(WasmtimeEngine {
             engine,
             vm_components,
+            host_features: Default::default(),
         })
     }
 }
 
-#[async_trait]
-impl Engine for WasmtimeEngine {
+impl<H> Engine for WasmtimeEngine<H>
+where
+    H: HostFeatures,
+{
     type Module = WasmtimeModule;
 
-    async fn module(&self, definition: ModuleDefinition) -> Result<Self::Module> {
+    fn module(&self, definition: ModuleDefinition) -> Result<Self::Module> {
         let component = self
             .vm_components
             .get(&definition.vm)
@@ -68,6 +76,17 @@ impl Engine for WasmtimeEngine {
                 let store: &mut Context = ctx.data_mut();
                 Ok((store.get_random_bytes(params.0),))
             })
+            .map_err(|e| Error::LinkerFailure(e.to_string()))?;
+
+        let mut callback_interface = linker
+            .instance("common:basic/host-callback@0.0.1")
+            .map_err(|e| Error::LinkerFailure(e.to_string()))?;
+        callback_interface
+            .func_wrap::<_, (String,), (std::result::Result<String, String>,)>(
+                "callback",
+                |_ctx, params| Ok((H::host_callback(params.0),)),
+                //|_ctx, params| Ok((Ok(params.0),)),
+            )
             .map_err(|e| Error::LinkerFailure(e.to_string()))?;
 
         Ok(WasmtimeModule {
@@ -87,22 +106,18 @@ pub struct WasmtimeModule {
     definition: ModuleDefinition,
 }
 
-#[async_trait]
 impl Module for WasmtimeModule {
     type Instance = WasmtimeInstance;
-    async fn instantiate(&mut self) -> Result<Self::Instance> {
-        let context = Context::default();
+    fn instantiate(&mut self) -> Result<Self::Instance> {
+        let context = Context::new();
         let mut store = wasmtime::Store::new(&self.engine, context);
 
-        let module_instance =
-            VirtualModule::instantiate_async(&mut store, &self.component, &self.linker)
-                .await
-                .map_err(|e| Error::InstantiationFailure(e.to_string()))?;
+        let module_instance = VirtualModule::instantiate(&mut store, &self.component, &self.linker)
+            .map_err(|e| Error::InstantiationFailure(e.to_string()))?;
 
         module_instance
             .common_basic_vm()
             .call_set_source(&mut store, &self.definition.source)
-            .await
             .map_err(|e| Error::InstantiationFailure(e.to_string()))?
             .map_err(|e| Error::InstantiationFailure(e.to_string()))?;
 
@@ -119,14 +134,12 @@ pub struct WasmtimeInstance {
     store: wasmtime::Store<Context>,
 }
 
-#[async_trait]
 impl Instance for WasmtimeInstance {
-    async fn run(&mut self, input: String) -> Result<String> {
+    fn run(&mut self, input: String) -> Result<String> {
         let value = self
             .module_instance
             .common_basic_processor()
             .call_run(self.store.as_context_mut(), &input)
-            .await
             .map_err(|e| Error::InvocationFailure(e.to_string()))?
             .map_err(|e| Error::InvocationFailure(e.to_string()))?;
         Ok(value)

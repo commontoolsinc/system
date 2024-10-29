@@ -1,7 +1,3 @@
-#[cfg(not(target_arch = "wasm32"))]
-#[macro_use]
-extern crate tracing;
-
 #[cfg(target_arch = "wasm32")]
 pub fn main() {
     unimplemented!("Binary not supported for wasm32")
@@ -10,7 +6,7 @@ pub fn main() {
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
 pub async fn main() -> ct_runtime::Result<()> {
-    use ct_runtime::{Instance, Module, ModuleDefinition, Runtime, VirtualMachine};
+    use ct_runtime::{HostFeatures, Instance, Module, ModuleDefinition, Runtime, VirtualMachine};
 
     println!("Running test case in lieu of a service.");
 
@@ -25,12 +21,18 @@ pub async fn main() -> ct_runtime::Result<()> {
         source: source.into(),
     };
 
-    let runtime = Runtime::new()?;
-    let mut module = runtime.module(definition).await?;
-    let mut instance = module.instantiate().await?;
+    struct Host;
+    impl HostFeatures for Host {
+        fn host_callback(input: String) -> std::result::Result<String, String> {
+            Ok(input)
+        }
+    }
+    let runtime = Runtime::<Host>::new()?;
+    let mut module = runtime.module(definition)?;
+    let mut instance = module.instantiate()?;
 
     let input = r#"{"foo":9}"#;
-    let output = instance.run(input.into()).await?;
+    let output = instance.run(input.into())?;
     assert_eq!(output, r#"{"foo":10}"#);
 
     Ok(())
