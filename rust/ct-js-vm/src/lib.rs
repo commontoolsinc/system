@@ -13,8 +13,6 @@ mod bindings;
 #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 mod module;
 #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
-mod types;
-#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]
 mod util;
 
 #[cfg(all(target_arch = "wasm32", target_os = "wasi"))]

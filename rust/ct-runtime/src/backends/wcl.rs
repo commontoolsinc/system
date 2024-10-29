@@ -3,8 +3,9 @@
 
 use crate::backends::context::Context;
 use crate::sync::{ConditionalSend, ConditionalSync};
-use crate::{Engine, Error, Instance, Module, ModuleDefinition, Result, VirtualMachine};
-use async_trait::async_trait;
+use crate::{
+    Engine, Error, HostFeatures, Instance, Module, ModuleDefinition, Result, VirtualMachine,
+};
 use std::collections::HashMap;
 use wasm_component_layer as wcl;
 
@@ -17,12 +18,16 @@ type Store = wcl::Store<Context, InnerEngine>;
 
 /// An implementation of [`Engine`] via [`wasm_component_layer`],
 /// primarily for `wasm32-unknown-unknown` via `js_wasm_runtime_layer`.
-pub struct WclEngine {
+pub struct WclEngine<H: HostFeatures> {
     engine: wcl::Engine<InnerEngine>,
     vm_components: HashMap<VirtualMachine, wcl::Component>,
+    host_features: std::marker::PhantomData<H>,
 }
 
-impl WclEngine {
+impl<H> WclEngine<H>
+where
+    H: HostFeatures,
+{
     /// Create a new [`WclEngine`].
     pub fn new(vms: Vec<VirtualMachine>) -> Result<Self> {
         let engine = wcl::Engine::new(InnerEngine::default());
@@ -36,16 +41,18 @@ impl WclEngine {
         Ok(WclEngine {
             engine,
             vm_components,
+            host_features: Default::default(),
         })
     }
 }
 
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-impl Engine for WclEngine {
-    type Module = WclModule;
+impl<H> Engine for WclEngine<H>
+where
+    H: HostFeatures,
+{
+    type Module = WclModule<H>;
 
-    async fn module(&self, definition: ModuleDefinition) -> Result<Self::Module> {
+    fn module(&self, definition: ModuleDefinition) -> Result<Self::Module> {
         let component = self
             .vm_components
             .get(&definition.vm)
@@ -53,28 +60,31 @@ impl Engine for WclEngine {
             .to_owned();
         let linker = wcl::Linker::default();
 
-        Ok(WclModule {
+        Ok(WclModule::<H> {
             linker,
             engine: self.engine.clone(),
             component,
             definition,
+            host_features: Default::default(),
         })
     }
 }
 
 /// An implementation of [`Module`] via [`wasm_component_layer`].
-pub struct WclModule {
+pub struct WclModule<H: HostFeatures> {
     linker: wcl::Linker,
     engine: wcl::Engine<InnerEngine>,
     component: wcl::Component,
     definition: ModuleDefinition,
+    host_features: std::marker::PhantomData<H>,
 }
 
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-impl Module for WclModule {
+impl<H> Module for WclModule<H>
+where
+    H: HostFeatures,
+{
     type Instance = WclInstance;
-    async fn instantiate(&mut self) -> Result<Self::Instance> {
+    fn instantiate(&mut self) -> Result<Self::Instance> {
         let context = Context::default();
         let mut store = Store::new(&self.engine, context);
 
@@ -87,6 +97,15 @@ impl Module for WclModule {
                     let store: &mut Context = ctx.data_mut();
                     Ok((store.get_random_bytes(params.0),))
                 },
+            )
+            .map_err(|e| Error::LinkerFailure(e.to_string()))?;
+
+        Interface::Identifier("common:basic/host-callback@0.0.1")
+            .set_fn::<(String,), (std::result::Result<String, String>,), _>(
+                &mut store,
+                &mut self.linker,
+                "callback",
+                |_ctx, params| Ok((H::host_callback(params.0),)),
             )
             .map_err(|e| Error::LinkerFailure(e.to_string()))?;
 
@@ -129,10 +148,8 @@ impl WclInstance {
     }
 }
 
-#[cfg_attr(not(target_arch = "wasm32"), async_trait)]
-#[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 impl Instance for WclInstance {
-    async fn run(&mut self, input: String) -> Result<String> {
+    fn run(&mut self, input: String) -> Result<String> {
         self.run_fn
             .call(&mut self.store, input)
             .map_err(|e| Error::InvocationFailure(e.to_string()))?
