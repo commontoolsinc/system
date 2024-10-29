@@ -7,6 +7,7 @@
 mod backends;
 mod engine;
 mod error;
+mod host;
 mod runtime;
 mod sync;
 mod vm;
@@ -14,5 +15,6 @@ mod vm;
 pub use backends::*;
 pub use engine::*;
 pub use error::*;
+pub use host::*;
 pub use runtime::*;
 pub use vm::*;
