@@ -1,6 +1,4 @@
-use ct_runtime::{
-    HostFeatures, Instance, Module, ModuleDefinition, Result, Runtime, VirtualMachine,
-};
+use ct_runtime::{ModuleDefinition, Result, Runtime, VirtualMachine};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::wasm_bindgen_test;
@@ -25,13 +23,8 @@ async fn it_runs_a_js_vm() -> Result<()> {
         source: source.into(),
     };
 
-    struct Host;
-    impl HostFeatures for Host {
-        fn host_callback(input: String) -> std::result::Result<String, String> {
-            Ok(input)
-        }
-    }
-    let runtime = Runtime::<Host>::new()?;
+    let host_callback = |input: String| -> std::result::Result<String, String> { Ok(input) };
+    let runtime = Runtime::new(host_callback)?;
     let mut module = runtime.module(definition)?;
     let mut instance = module.instantiate()?;
 

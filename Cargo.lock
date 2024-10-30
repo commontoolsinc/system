@@ -590,12 +590,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "ct-common"
+version = "0.1.0"
+
+[[package]]
 name = "ct-engine"
 version = "0.1.0"
 dependencies = [
  "console_error_panic_hook",
  "ct-runtime",
  "getrandom",
+ "js-sys",
+ "thiserror",
  "tokio",
  "tracing",
  "tracing-wasm",
@@ -623,8 +629,10 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
+ "blake3",
  "cap-rand",
  "console_error_panic_hook",
+ "ct-common",
  "getrandom",
  "js_wasm_runtime_layer",
  "rand",

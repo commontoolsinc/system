@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 set -e
 
-echo "START!"
-
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 ROOT_DIR="$SCRIPT_DIR/../"
 
@@ -33,5 +31,4 @@ CARGO_TARGET_DIR="$OUT_DIR" \
 # Virtualize/stub unsupported wasi imports, only
 # allowing `wasi:random`
 echo "Virtualizing $CRATE_ARTIFACT_PATH to $VIRTUALIZED_ARTIFACT_PATH"
-echo "in $PWD"
 wasi-virt "$CRATE_ARTIFACT_PATH" --allow-random -o "$VIRTUALIZED_ARTIFACT_PATH"

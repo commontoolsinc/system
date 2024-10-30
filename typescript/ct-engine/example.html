@@ -1,0 +1,43 @@
+<script type="module">
+  import init, { CTEngine } from './ct_engine.js';
+
+  // Only needed once, call the default export function
+  // to fetch and setup the web assembly artifact. 
+  await init();
+
+  // Host callback invoked by the VM via `globalThis.hostCallback()`
+  const hostCallback = (input) => {
+    switch (input.command) {
+      case "sum":
+        return Array.prototype.reduce.call(input.value, (acc, v) => {
+          acc += v;
+          return acc;
+        }, 0);
+    }
+    return {};
+  };
+
+  // Instantiate an engine
+  const engine = new CTEngine(hostCallback);
+
+  // Define a module definition
+  const definition = `
+export const run = (input) => {
+  input.foo = input.foo + 1;
+  input.bar = globalThis.hostCallback({
+    command: "sum",
+    value: [1, 2, 3],
+  });
+  return input;
+};
+`;
+
+  // Instantiate the module.
+  let id = engine.define(definition);
+  // Call the module function.
+  let output = engine.run(id, { foo: 9 });
+  
+  console.log("Output:", output);
+  console.assert(output.foo === 10);
+  console.assert(output.bar === 6);
+</script>

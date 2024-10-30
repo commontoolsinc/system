@@ -107,7 +107,7 @@ jobs:
 
   nix-build:
     name: 'Nix build'
-    needs: ['precheck']
+    needs: ['precheck', 'build-wasm-components']
     runs-on: 'ubuntu-latest'
     strategy:
       matrix:

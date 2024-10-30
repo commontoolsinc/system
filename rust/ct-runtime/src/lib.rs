@@ -5,15 +5,13 @@
 //!
 //! Supports native and `wasm32-unknown-unknown` build targets.
 mod backends;
-mod engine;
+mod definition;
 mod error;
 mod host;
 mod runtime;
-mod sync;
 mod vm;
 
-pub use backends::*;
-pub use engine::*;
+pub use definition::*;
 pub use error::*;
 pub use host::*;
 pub use runtime::*;
