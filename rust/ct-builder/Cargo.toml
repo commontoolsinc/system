@@ -1,0 +1,32 @@
+[package]
+name = "ct-builder"
+description = "A Common server"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+anyhow = { workspace = true }
+async-stream = { workspace = true }
+async-trait = { workspace = true }
+blake3 = { workspace = true }
+clap = { workspace = true, features = ["derive"] }
+ct-common = { workspace = true }
+ct-protos = { workspace = true, features = ["builder"] }
+deno_emit = { workspace = true }
+deno_graph = { workspace = true }
+redb = { workspace = true }
+reqwest = { workspace = true, default-features = false, features = ["rustls-tls", "charset", "http2", "macos-system-configuration"] }
+tempfile = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["rt-multi-thread", "io-util", "process", "fs"] }
+tonic = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+url = { workspace = true }
+
+[dev-dependencies]
+reqwest = { workspace = true, features = ["multipart"] }
+tracing-subscriber = { workspace = true }
+ct-test-fixtures = { workspace = true }
+ct-tracing = { workspace = true }

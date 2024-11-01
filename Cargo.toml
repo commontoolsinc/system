@@ -1,22 +1,22 @@
 [workspace]
 members = [
-#  "rust/common-builder",
 #  "rust/common-javascript-interpreter",
 #  "rust/common-formula-javascript-interpreter",
 #  "rust/common-graph",
 #  "rust/common-ifc",
 #  "rust/common-integration-tests",
-#  "rust/common-macros",
-#  "rust/common-protos",
 #  "rust/common-runtime",
-#  "rust/common-test-fixtures",
 #  "rust/common-tools",
-#  "rust/common-tracing",
 #  "rust/common-wit",
+  "rust/ct-builder",
   "rust/ct-common",
   "rust/ct-engine",
   "rust/ct-js-vm",
+  "rust/ct-macros",
+  "rust/ct-protos",
   "rust/ct-runtime",
+  "rust/ct-test-fixtures",
+  "rust/ct-tracing",
 ]
 
 # See: https://github.com/rust-lang/rust/issues/90148#issuecomment-949194352
@@ -26,30 +26,24 @@ resolver = "2"
 anyhow = { version = "1" }
 async-stream = { version = "0.3" }
 async-trait = { version = "0.1" }
-#axum = { version = "0.7" }
+axum = { version = "0.7" }
 blake3 = { version = "1.5" }
 boa_engine = { version = "0.19" }
 boa_gc = { version = "0.19" }
 boa_runtime = { version = "0.19" }
 bytes = { version = "1" }
 clap = { version = "4.5" }
-#common-builder = { path = "./rust/common-builder" }
-#common-graph = { path = "./rust/common-graph" }
-#common-ifc = { path = "./rust/common-ifc" }
-#common-integration-tests = { path = "./rust/common-integration-tests" }
-#common-javascript-interpreter = { path = "./rust/common-javasript-interpreter" }
-#common-macros = { path = "./rust/common-macros" }
-#common-protos = { path = "./rust/common-protos", default-features = false }
-#common-runtime = { path = "./rust/common-runtime" }
-#common-test-fixtures = { path = "./rust/common-test-fixtures" }
-#common-tracing = { path = "./rust/common-tracing" }
-#common-wit = { path = "./rust/common-wit" }
+ct-builder = { path = "./rust/ct-builder" }
 ct-common = { path = "./rust/ct-common" }
+ct-macros = { path = "./rust/ct-macros" }
+ct-protos = { path = "./rust/ct-protos" }
 ct-runtime = { path = "./rust/ct-runtime" }
+ct-test-fixtures = { path = "./rust/ct-test-fixtures" }
+ct-tracing = { path = "./rust/ct-tracing" }
 #criterion = { version = "0.5" }
-#darling = { version = "0.20" }
-#deno_emit = { version = "0.45" }
-#deno_graph = { version = "0.82" } # Keep aligned with `deno_emit`'s version
+darling = { version = "0.20" }
+deno_emit = { version = "0.46" }
+deno_graph = { version = "0.82.3" } # Keep aligned with `deno_emit`'s version
 getrandom = { version = "0.2", features = ["js"] }
 #http = { version = "1.1" }
 #http-body-util = { version = "0.1" }
@@ -59,27 +53,27 @@ js-sys = { version = "0.3" }
 #lazy_static = { version = "1" }
 #mime_guess = { version = "2" }
 once_cell = { version = "1" }
-#prost = { version = "0.13" }
-#quote = { version = "1" }
+prost = { version = "0.13" }
+quote = { version = "1" }
 rand = { version = "0.8" }
-#redb = { version = "2" }
-#reqwest = { version = "0.12", default-features = false }
+redb = { version = "2" }
+reqwest = { version = "0.12", default-features = false }
 #rust-embed = { version = "8.4" }
 #serde = { version = "1", features = ["derive"] }
 #serde_json = { version = "1" }
 #sieve-cache = { version = "0.2" }
 #strum = { version = "0.26" }
-#syn = { version = "2" }
+syn = { version = "2" }
 tempfile = { version = "3" }
 thiserror = { version = "1" }
-#tonic = { version = "0.12", default-features = false }
-#tonic-build = { version = "0.12", default-features = false, features = [
-#  "prost",
-#] }
+tonic = { version = "0.12", default-features = false }
+tonic-build = { version = "0.12", default-features = false, features = [
+  "prost",
+] }
 #tonic-web = { version = "0.12" }
 #tonic-web-wasm-client = { version = "0.6" }
 tokio = { version = "1" }
-#tower-http = { version = "0.5" }
+tower-http = { version = "0.5" }
 tracing = { version = "0.1" }
 tracing-subscriber = { version = "0.3", features = [
   "env-filter",
@@ -87,7 +81,7 @@ tracing-subscriber = { version = "0.3", features = [
   "json",
 ] }
 tracing-web = { version = "0.1" }
-#url = { version = "2" }
+url = { version = "2" }
 
 # Minimum required wasm-bindgen / wasm-bindgen-test versions
 # SEE: https://github.com/rustwasm/wasm-bindgen/issues/4083

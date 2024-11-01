@@ -4,53 +4,9 @@ package common;
 
 enum ContentType {
   JAVA_SCRIPT = 0;
-  PYTHON = 1;
 }
 
-enum Target {
-  COMMON_FUNCTION = 0;
-  COMMON_FUNCTION_VM = 1;
-  COMMON_FORMULA_VM = 2;
-}
-
-enum ValueKind {
-  STRING = 0;
-  NUMBER = 1;
-  BOOLEAN = 2;
-  BUFFER = 3;
-}
-
-message LabeledData {
-  Value value = 1;
-  string confidentiality = 2;
-  string integrity = 3;
-}
-
-message Value {
-  oneof variant {
-    string string = 1;
-    double number = 2;
-    bool boolean = 3;
-    bytes buffer = 4;
-  }
-}
-
-message SourceCode {
+message ModuleDefinition {
   ContentType content_type = 1;
-  bytes body = 2;
-}
-
-message ModuleBody {
-  oneof variant {
-    ModuleSignature module_signature = 1;
-    ModuleSource module_source = 2;
-  }
-}
-
-message ModuleSignature {
-  string id = 1;
-}
-
-message ModuleSource {
-  map<string, SourceCode> source_code = 1;
+  string source = 2;
 }

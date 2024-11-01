@@ -1,8 +1,9 @@
 use crate::{
     backends::{self, EngineBackend, InstanceBackend, ModuleBackend},
     vm::VirtualMachine,
-    HostCallbackFn, ModuleDefinition, ModuleId, Result,
+    HostCallbackFn, Result,
 };
+use ct_common::{ModuleDefinition, ModuleId};
 
 /// A [`Runtime`] creates [`Module`]s.
 pub struct Runtime {

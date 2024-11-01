@@ -3,9 +3,9 @@
 
 use crate::{
     backends::{context::Context, EngineBackend, InstanceBackend, ModuleBackend},
-    Error, HostCallback, HostCallbackFn, ModuleDefinition, Result, VirtualMachine,
+    Error, HostCallback, HostCallbackFn, Result, VirtualMachine,
 };
-use ct_common::{ConditionalSend, ConditionalSync};
+use ct_common::{ConditionalSend, ConditionalSync, ModuleDefinition};
 use std::collections::HashMap;
 use wasm_component_layer as wcl;
 
@@ -47,9 +47,10 @@ impl EngineBackend for WclEngine {
     type Module = WclModule;
 
     fn module(&self, definition: ModuleDefinition) -> Result<Self::Module> {
+        let requested_vm = VirtualMachine::try_from(&definition.content_type)?;
         let component = self
             .vm_components
-            .get(&definition.vm)
+            .get(&requested_vm)
             .ok_or(Error::UnsupportedVm)?
             .to_owned();
         let linker = wcl::Linker::default();

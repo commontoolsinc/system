@@ -1,4 +1,5 @@
-use ct_runtime::{ModuleDefinition, Result, Runtime, VirtualMachine};
+use ct_common::{ContentType, ModuleDefinition};
+use ct_runtime::{Result, Runtime};
 
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen_test::wasm_bindgen_test;
@@ -19,7 +20,7 @@ async fn it_runs_a_js_vm() -> Result<()> {
     }
     "#;
     let definition = ModuleDefinition {
-        vm: VirtualMachine::JavaScript,
+        content_type: ContentType::JavaScript,
         source: source.into(),
     };
 
