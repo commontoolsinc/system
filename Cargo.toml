@@ -15,8 +15,10 @@ members = [
   "rust/ct-macros",
   "rust/ct-protos",
   "rust/ct-runtime",
+  "rust/ct-storage",
   "rust/ct-test-fixtures",
   "rust/ct-tracing",
+  "rust/ranked-prolly-tree",
 ]
 
 # See: https://github.com/rust-lang/rust/issues/90148#issuecomment-949194352
@@ -38,12 +40,16 @@ ct-common = { path = "./rust/ct-common" }
 ct-macros = { path = "./rust/ct-macros" }
 ct-protos = { path = "./rust/ct-protos" }
 ct-runtime = { path = "./rust/ct-runtime" }
+ct-storage = { path = "./rust/ct-storage" }
 ct-test-fixtures = { path = "./rust/ct-test-fixtures" }
 ct-tracing = { path = "./rust/ct-tracing" }
-#criterion = { version = "0.5" }
+ranked-prolly-tree = { path = "./rust/ranked-prolly-tree" }
+criterion = { version = "0.5" }
 darling = { version = "0.20" }
 deno_emit = { version = "0.46" }
 deno_graph = { version = "0.82.3" } # Keep aligned with `deno_emit`'s version
+futures-core = { version = "0.3" }
+futures-util = { version = "0.3" }
 getrandom = { version = "0.2", features = ["js"] }
 #http = { version = "1.1" }
 #http-body-util = { version = "0.1" }
@@ -58,6 +64,7 @@ quote = { version = "1" }
 rand = { version = "0.8" }
 redb = { version = "2" }
 reqwest = { version = "0.12", default-features = false }
+rexie = { version = "0.6" }
 #rust-embed = { version = "8.4" }
 #serde = { version = "1", features = ["derive"] }
 #serde_json = { version = "1" }

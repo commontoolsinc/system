@@ -1,0 +1,8 @@
+[package]
+name = "ct-storage"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ranked-prolly-tree = { workspace = true }
+futures-core = { workspace = true }

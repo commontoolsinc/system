@@ -9,9 +9,12 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 tracing = { workspace = true }
-ct-runtime = { workspace = true }
 ct-common = { workspace = true }
+ct-runtime = { workspace = true }
+ct-storage = { workspace = true }
 thiserror = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true, features = ["sync"] } # for tokio::pin!
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { workspace = true, features = [

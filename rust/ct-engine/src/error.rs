@@ -16,6 +16,10 @@ pub enum Error {
     #[error("Module not found with id {0}")]
     ModuleNotFound(ct_common::ModuleId),
 
+    /// Error in the storage layer.
+    #[error("Storage error: {0}")]
+    StorageError(ct_storage::Error),
+
     /// An internal error occurred.
     #[error("Internal error: {0}")]
     InternalError(String),
@@ -24,6 +28,12 @@ pub enum Error {
 impl From<ct_runtime::Error> for Error {
     fn from(value: ct_runtime::Error) -> Self {
         Error::RuntimeError(value)
+    }
+}
+
+impl From<ct_storage::Error> for Error {
+    fn from(value: ct_storage::Error) -> Self {
+        Error::StorageError(value)
     }
 }
 
