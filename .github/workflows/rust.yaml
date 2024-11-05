@@ -114,8 +114,8 @@ jobs:
         include:
           - package: "engine"
             artifact-name: "ct-engine"
-          #- package: "engine-web"
-          #  artifact-name: "ct-engine-web"
+          - package: "engine-web"
+            artifact-name: "ct-engine-web"
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/nix-setup

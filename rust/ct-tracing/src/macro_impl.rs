@@ -4,8 +4,8 @@ mod inner {
     static INITIALIZE_TRACING: Once = Once::new();
 
     /// Do not call directly.
-    /// See [common_tracing::common_tracing].
-    pub fn common_tracing_impl() {
+    /// See [ct_tracing::ct_tracing].
+    pub fn ct_tracing_impl() {
         INITIALIZE_TRACING.call_once(|| {
             console_error_panic_hook::set_once();
             tracing_wasm::set_as_global_default();
@@ -22,8 +22,8 @@ mod inner {
     static INITIALIZE_TRACING: Once = Once::new();
 
     /// Do not call directly.
-    /// See [`common_tracing`].
-    pub fn common_tracing_impl() {
+    /// See [`ct_tracing`].
+    pub fn ct_tracing_impl() {
         INITIALIZE_TRACING.call_once(|| {
             if let Err(error) = initialize_tracing_subscriber() {
                 println!("Failed to initialize tracing: {}", error);
