@@ -113,7 +113,7 @@ impl ModuleBackend for WclModule {
 
 /// An implementation of [`Instance`] via [`wasm_component_layer`].
 pub struct WclInstance {
-    run_fn: wcl::TypedFunc<String, std::result::Result<String, String>>,
+    run_fn: wcl::TypedFunc<Option<String>, std::result::Result<Option<String>, String>>,
     module_instance: wcl::Instance,
     store: Store,
 }
@@ -131,7 +131,10 @@ impl WclInstance {
             .map_err(|e| Error::InstantiationFailure(e.to_string()))?;
 
         let run_fn = Interface::Identifier("common:basic/processor@0.0.1")
-            .get_fn::<String, std::result::Result<String, String>>(&module_instance, "run")?;
+            .get_fn::<Option<String>, std::result::Result<Option<String>, String>>(
+                &module_instance,
+                "run",
+            )?;
 
         Ok(Self {
             module_instance,
@@ -142,7 +145,7 @@ impl WclInstance {
 }
 
 impl InstanceBackend for WclInstance {
-    fn run(&mut self, input: String) -> Result<String> {
+    fn run(&mut self, input: Option<String>) -> Result<Option<String>> {
         self.run_fn
             .call(&mut self.store, input)
             .map_err(|e| Error::InvocationFailure(e.to_string()))?

@@ -33,7 +33,7 @@ impl SandboxManager {
         Ok(id)
     }
 
-    pub fn run(&mut self, id: &ModuleId, input: String) -> Result<String> {
+    pub fn run(&mut self, id: &ModuleId, input: Option<String>) -> Result<Option<String>> {
         // We use a single instance per module for now
         let instance = if let Some(instance) = self.instances.get_mut(id) {
             instance

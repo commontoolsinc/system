@@ -17,7 +17,7 @@ impl Engine {
         self.sandbox.define(definition)
     }
 
-    pub fn run(&mut self, id: &ModuleId, input: String) -> Result<String> {
+    pub fn run(&mut self, id: &ModuleId, input: Option<String>) -> Result<Option<String>> {
         self.sandbox.run(id, input)
     }
 }

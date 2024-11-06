@@ -15,9 +15,12 @@ pub fn serialize_js(value: &JsValue) -> Result<String> {
     }
 }
 
-pub fn deserialize_js(value: &str) -> Result<JsValue> {
-    match JSON::parse(value) {
-        Ok(parsed) => Ok(parsed),
-        Err(e) => Err(js_to_string(e)?.into()),
+pub fn deserialize_js(value: Option<String>) -> Result<JsValue> {
+    match value {
+        Some(value) => match JSON::parse(&value) {
+            Ok(parsed) => Ok(parsed),
+            Err(e) => Err(js_to_string(e)?.into()),
+        },
+        None => Ok(JsValue::UNDEFINED),
     }
 }

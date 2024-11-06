@@ -1,19 +1,11 @@
-use crate::{builder::Builder, error::Error, storage::PersistedHashStorage};
+use crate::{builder::Builder, error::Error};
 use ct_protos::{builder::builder_server::BuilderServer, MAX_MESSAGE_SIZE};
 use tokio::net::TcpListener;
 use tonic::transport::Server as TonicServer;
 
-/// Start the Common Builder server, serving gRPC on `grpc_listener`.
-pub async fn serve(grpc_listener: TcpListener) -> Result<(), Error> {
-    let storage = PersistedHashStorage::temporary()?;
-    let builder = Builder::new(storage);
-    serve_grpc(builder, grpc_listener).await?;
-    Ok(())
-}
-
 /// Start the Common Builder server, listening to incoming connections on the
 /// provided [`TcpListener`]
-async fn serve_grpc(builder: Builder, listener: TcpListener) -> Result<(), Error> {
+pub async fn serve_grpc(builder: Builder, listener: TcpListener) -> Result<(), Error> {
     let incoming_stream = async_stream::stream! {
         loop {
             let (stream, _) = listener.accept().await?;

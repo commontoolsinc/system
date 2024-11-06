@@ -106,11 +106,11 @@ pub struct WasmtimeInstance {
 }
 
 impl InstanceBackend for WasmtimeInstance {
-    fn run(&mut self, input: String) -> Result<String> {
+    fn run(&mut self, input: Option<String>) -> Result<Option<String>> {
         let value = self
             .module_instance
             .common_basic_processor()
-            .call_run(self.store.as_context_mut(), &input)
+            .call_run(self.store.as_context_mut(), input.as_deref())
             .map_err(|e| Error::InvocationFailure(e.to_string()))?
             .map_err(|e| Error::InvocationFailure(e.to_string()))?;
         Ok(value)

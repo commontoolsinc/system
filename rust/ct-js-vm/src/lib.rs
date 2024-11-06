@@ -24,7 +24,7 @@ mod guest {
     pub struct JavaScriptInterpreter;
 
     impl ProcessorGuest for JavaScriptInterpreter {
-        fn run(input: String) -> Result<String, String> {
+        fn run(input: Option<String>) -> Result<Option<String>, String> {
             let module = Module::get().ok_or("No script source has been set!")?;
             let mut module = module.write().map_err(|error| format!("{error}"))?;
             module.call_run(input)

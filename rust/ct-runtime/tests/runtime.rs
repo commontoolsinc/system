@@ -30,7 +30,7 @@ async fn it_runs_a_js_vm() -> Result<()> {
     let mut instance = module.instantiate()?;
 
     let input = r#"{"foo":9}"#;
-    let output = instance.run(input.into())?;
-    assert_eq!(output, r#"{"foo":10,"reflect":{"test":123}}"#);
+    let output = instance.run(Some(input.into()))?;
+    assert_eq!(output.unwrap(), r#"{"foo":10,"reflect":{"test":123}}"#);
     Ok(())
 }

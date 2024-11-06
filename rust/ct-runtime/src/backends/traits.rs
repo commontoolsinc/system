@@ -25,5 +25,5 @@ pub trait ModuleBackend {
 /// An active instance of a [`ModuleBackend`].
 pub trait InstanceBackend {
     /// Run the process in this instance.
-    fn run(&mut self, input: String) -> Result<String>;
+    fn run(&mut self, input: Option<String>) -> Result<Option<String>>;
 }
