@@ -5,28 +5,23 @@ import public "common/common.proto";
 package builder;
 
 message BuildComponentRequest {
-  common.ModuleSource module_source = 1;
-  common.Target target = 2;
+  common.ModuleDefinition module_definition = 1;
+  bool bundle_common_imports = 2;
 }
 
-message BuildComponentResponse { string id = 1; }
-
-message ReadComponentRequest { string id = 1; }
-
-message ReadComponentResponse { bytes component = 1; }
-
-message BundleSourceCodeRequest {
-  common.ModuleSource module_source = 1;
-  common.Target target = 2;
+message BuildComponentResponse {
+  string component_id = 1;
 }
 
-message BundleSourceCodeResponse { string bundled_source_code = 1; }
+message ReadComponentRequest { string component_id = 1; }
+
+message ReadComponentResponse {
+  string component = 1;
+  optional string source_map = 2;
+}
 
 service Builder {
   rpc BuildComponent(BuildComponentRequest) returns (BuildComponentResponse) {}
 
   rpc ReadComponent(ReadComponentRequest) returns (ReadComponentResponse) {}
-
-  rpc BundleSourceCode(BundleSourceCodeRequest)
-      returns (BundleSourceCodeResponse) {}
 }

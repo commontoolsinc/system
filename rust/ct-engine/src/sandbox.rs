@@ -1,5 +1,6 @@
 use crate::{Error, Result};
-use ct_runtime::{HostCallbackFn, Instance, Module, ModuleDefinition, ModuleId, Runtime};
+use ct_common::{ModuleDefinition, ModuleId};
+use ct_runtime::{HostCallbackFn, Instance, Module, Runtime};
 use std::collections::HashMap;
 
 /// Manages [`Module`] and [`Instance`] instances and lifetimes.

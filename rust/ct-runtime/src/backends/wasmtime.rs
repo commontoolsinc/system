@@ -1,5 +1,6 @@
 use crate::backends::{context::Context, EngineBackend, InstanceBackend, ModuleBackend};
-use crate::{Error, HostCallback, HostCallbackFn, ModuleDefinition, Result, VirtualMachine};
+use crate::{Error, HostCallback, HostCallbackFn, Result, VirtualMachine};
+use ct_common::ModuleDefinition;
 use std::collections::HashMap;
 use wasmtime::{
     component::{Component, Linker},
@@ -51,9 +52,10 @@ impl EngineBackend for WasmtimeEngine {
     type Module = WasmtimeModule;
 
     fn module(&self, definition: ModuleDefinition) -> Result<Self::Module> {
+        let requested_vm = VirtualMachine::try_from(&definition.content_type)?;
         let component = self
             .vm_components
-            .get(&definition.vm)
+            .get(&requested_vm)
             .ok_or(Error::UnsupportedVm)?
             .to_owned();
         let linker = create_linker(self.callback.clone(), &self.engine)?;

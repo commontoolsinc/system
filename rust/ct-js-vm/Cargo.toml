@@ -11,9 +11,6 @@ boa_runtime = { workspace = true }
 once_cell = { workspace = true }
 wit-bindgen-rt = { workspace = true }
 
-# [target.'cfg(target_arch = "wasm32")'.dependencies]
-# getrandom = { workspace = true }
-
 [lib]
 crate-type = ["cdylib"]
 

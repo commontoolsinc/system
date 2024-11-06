@@ -14,7 +14,7 @@ pub enum Error {
 
     /// Could not find requested runtime module.
     #[error("Module not found with id {0}")]
-    ModuleNotFound(ct_runtime::ModuleId),
+    ModuleNotFound(ct_common::ModuleId),
 
     /// An internal error occurred.
     #[error("Internal error: {0}")]

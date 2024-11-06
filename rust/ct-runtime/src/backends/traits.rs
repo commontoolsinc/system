@@ -1,4 +1,5 @@
-use crate::{ModuleDefinition, Result};
+use crate::Result;
+use ct_common::ModuleDefinition;
 
 /// Interface of backends to provide the of
 /// the runtime implementation.

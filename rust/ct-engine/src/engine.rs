@@ -1,5 +1,6 @@
 use crate::{sandbox::SandboxManager, Result};
-use ct_runtime::{HostCallbackFn, ModuleDefinition, ModuleId};
+use ct_common::{ModuleDefinition, ModuleId};
+use ct_runtime::HostCallbackFn;
 
 pub struct Engine {
     sandbox: SandboxManager,
