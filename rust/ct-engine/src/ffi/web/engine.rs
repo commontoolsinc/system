@@ -3,7 +3,6 @@ use crate::{
     Engine, Error,
 };
 use ct_common::{ModuleDefinition, ModuleId};
-use ct_runtime::{Runtime, VirtualMachine};
 use js_sys::Function;
 use std::str::FromStr;
 use std::{cell::RefCell, rc::Rc};
@@ -27,7 +26,7 @@ impl CTEngine {
         tracing_wasm::set_as_global_default();
 
         let host_callback = move |input: String| {
-            let parsed = deserialize_js(&input)?;
+            let parsed = deserialize_js(Some(input))?;
             match js_callback.call1(&JsValue::UNDEFINED, &parsed) {
                 Ok(js_string) => Ok(serialize_js(&js_string)?),
                 Err(js_string) => Err(js_to_string(js_string)?.into()),
@@ -55,7 +54,7 @@ impl CTEngine {
     pub fn run(&mut self, id: JsValue, input: JsValue) -> Result<JsValue, JsValue> {
         let id = ModuleId::from_str(&js_to_string(id)?).map_err(|e| Error::from(e))?;
         let input = serialize_js(&input)?;
-        let result = self.inner.borrow_mut().run(&id, input)?;
-        Ok(deserialize_js(&result)?)
+        let result = self.inner.borrow_mut().run(&id, Some(input))?;
+        Ok(deserialize_js(result)?)
     }
 }

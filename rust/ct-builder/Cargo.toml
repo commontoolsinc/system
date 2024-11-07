@@ -9,14 +9,18 @@ publish = false
 anyhow = { workspace = true }
 async-stream = { workspace = true }
 async-trait = { workspace = true }
+axum = { workspace = true }
 blake3 = { workspace = true }
 clap = { workspace = true, features = ["derive"] }
 ct-common = { workspace = true }
 ct-protos = { workspace = true, features = ["builder"] }
+ct-runtime = { workspace = true }
 deno_emit = { workspace = true }
 deno_graph = { workspace = true }
 redb = { workspace = true }
 reqwest = { workspace = true, default-features = false, features = ["rustls-tls", "charset", "http2", "macos-system-configuration"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
 tempfile = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["rt-multi-thread", "io-util", "process", "fs"] }

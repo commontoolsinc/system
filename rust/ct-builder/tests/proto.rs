@@ -1,6 +1,6 @@
 #![cfg(not(target_arch = "wasm32"))]
 
-use ct_builder::serve;
+use ct_builder::{serve, BuildServerConfig};
 use ct_common::ModuleDefinition;
 use ct_protos::builder::{
     builder_client::BuilderClient, BuildComponentRequest, BuildComponentResponse,
@@ -15,7 +15,8 @@ use tokio::net::TcpListener;
 async fn it_builds_and_returns_components_over_grpc() -> anyhow::Result<()> {
     let listener = TcpListener::bind("127.0.0.1:0").await?;
     let addr = listener.local_addr()?;
-    let _handler = tokio::spawn(async { serve(listener).await.unwrap() });
+    let config = BuildServerConfig::default().with_grpc(listener);
+    let _handler = tokio::spawn(async { serve(config).await.unwrap() });
 
     let mut client = BuilderClient::connect(format!("http://{}", addr)).await?;
 

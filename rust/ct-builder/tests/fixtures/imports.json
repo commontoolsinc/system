@@ -1,0 +1,5 @@
+{
+    "imports": {
+        "test:math": "./test/math/index.js"
+    }
+}

@@ -92,13 +92,19 @@ pub struct Module {
 }
 
 impl Module {
-    pub fn call_run(&mut self, input: String) -> Result<String, String> {
+    pub fn call_run(&mut self, input: Option<String>) -> Result<Option<String>, String> {
         let init = self.run_fn.clone();
-        let input_js = util::str_to_js_object(input, &mut self.context)?;
+        let input_js = match input {
+            Some(input) => util::str_to_js_object(input, &mut self.context)?,
+            None => JsValue::undefined(),
+        };
         let result = init
             .call(&JsValue::undefined(), &[input_js], &mut self.context)
             .map_err(util::format_error)?;
-        util::js_object_to_str(result, &mut self.context)
+        match result {
+            JsValue::Undefined => Ok(None),
+            ref value => Ok(Some(util::js_object_to_str(result, &mut self.context)?)),
+        }
     }
 
     pub fn load(maybe_script: Option<String>) -> Result<Rc<RwLock<Module>>, String> {

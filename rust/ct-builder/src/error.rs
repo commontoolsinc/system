@@ -3,6 +3,9 @@ use redb::{CommitError, DatabaseError, StorageError, TableError, TransactionErro
 use tokio::task::JoinError;
 use tracing::subscriber::SetGlobalDefaultError;
 
+/// [`std::result::Result`] type with [Error] /// as its error.
+pub type Result<T> = ::std::result::Result<T, Error>;
+
 /// Errors from various builder operations.
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -101,5 +104,17 @@ impl From<anyhow::Error> for Error {
     fn from(value: anyhow::Error) -> Self {
         error!("{}", value);
         Error::Internal(format!("{}", value))
+    }
+}
+
+impl From<axum::http::StatusCode> for Error {
+    fn from(value: axum::http::StatusCode) -> Self {
+        Error::Internal(value.to_string())
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(value: serde_json::Error) -> Self {
+        Error::Internal(value.to_string())
     }
 }

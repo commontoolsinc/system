@@ -57,7 +57,7 @@ impl Instance {
     }
 
     /// Invoke this instance.
-    pub fn run(&mut self, input: String) -> Result<String> {
+    pub fn run(&mut self, input: Option<String>) -> Result<Option<String>> {
         self.inner.run(input)
     }
 }

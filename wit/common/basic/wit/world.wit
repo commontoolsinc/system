@@ -5,7 +5,7 @@ interface host-callback {
 }
 
 interface processor {
-  run: func(input: string) -> result<string, string>;
+  run: func(input: option<string>) -> result<option<string>, string>;
 }
 
 interface vm {

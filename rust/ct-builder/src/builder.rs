@@ -2,7 +2,7 @@ use crate::{
     artifact::Artifact,
     error::Error,
     storage::{JsComponentStorage, PersistedHashStorage},
-    JavaScriptBundler,
+    ImportMap, JavaScriptBundler,
 };
 use async_trait::async_trait;
 use blake3::Hash;
@@ -15,8 +15,9 @@ use std::str::FromStr;
 use tonic::{Request, Response, Status};
 
 pub struct BuildComponentConfig {
-    definition: ModuleDefinition,
-    bundle_common_imports: bool,
+    pub definition: ModuleDefinition,
+    pub bundle_common_imports: bool,
+    pub import_map: Option<ImportMap>,
 }
 
 #[derive(Clone)]
@@ -33,7 +34,11 @@ impl Builder {
         info!("Building source: {:#?}", config.definition.source);
         let artifact = match config.definition.content_type {
             ContentType::JavaScript => {
-                JavaScriptBundler::bundle_from_bytes_sync(config.definition.source.into()).await?
+                JavaScriptBundler::bundle_from_bytes_sync(
+                    config.definition.source.into(),
+                    config.import_map,
+                )
+                .await?
             }
         };
         self.storage.write(artifact).await
@@ -61,6 +66,7 @@ impl BuilderProto for Builder {
             .build(BuildComponentConfig {
                 definition,
                 bundle_common_imports: false,
+                import_map: None,
             })
             .await?;
 
