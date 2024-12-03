@@ -65,7 +65,7 @@ reqwest = { version = "0.12", default-features = false }
 #strum = { version = "0.26" }
 syn = { version = "2" }
 tempfile = { version = "3" }
-thiserror = { version = "1" }
+thiserror = { version = "2" }
 tonic = { version = "0.12", default-features = false }
 tonic-build = { version = "0.12", default-features = false, features = [
   "prost",
@@ -88,10 +88,10 @@ url = { version = "2" }
 # NOTE: Version of wasm-bindgen must be kept in sync with the
 # version of wasm-bindgen-cli that is installed globally e.g.,
 # by flake.nix.
-wasm-bindgen = { version = "0.2.95" }
-wasm-bindgen-futures = { version = "0.4.45" }
-wasm-bindgen-test = { version = "0.3.45" }
-wasmtime = { version = "25" }
+wasm-bindgen = { version = "0.2.97" }
+wasm-bindgen-futures = { version = "0.4.47" }
+wasm-bindgen-test = { version = "0.3.47" }
+wasmtime = { version = "27" }
 #wasmtime-wasi = { version = "25" }
 #wasmtime-wasi-http = { version = "25" }
 #wasmtime-environ = { version = "25" }
