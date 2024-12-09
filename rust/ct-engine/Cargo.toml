@@ -11,6 +11,7 @@ crate-type = ["cdylib", "rlib"]
 tracing = { workspace = true }
 ct-runtime = { workspace = true }
 ct-common = { workspace = true }
+ranked-prolly-tree = { workspace = true }
 thiserror = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

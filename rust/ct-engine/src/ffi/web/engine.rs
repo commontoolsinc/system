@@ -1,5 +1,8 @@
 use crate::{
-    ffi::web::cast::{deserialize_js, js_to_string, serialize_js},
+    ffi::web::{
+        cast::{deserialize_js, js_to_string, serialize_js},
+        global_initializers,
+    },
     Engine, Error,
 };
 use ct_common::{ModuleDefinition, ModuleId};
@@ -23,8 +26,7 @@ impl CTEngine {
     /// Create a new [`CTEngine`].
     #[wasm_bindgen(constructor)]
     pub fn new(js_callback: Function) -> Self {
-        console_error_panic_hook::set_once();
-        tracing_wasm::set_as_global_default();
+        global_initializers();
 
         let host_callback = move |input: String| {
             let parsed = deserialize_js(&input)?;

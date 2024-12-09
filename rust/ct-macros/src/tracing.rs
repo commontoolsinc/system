@@ -16,7 +16,7 @@ pub fn ct_tracing(item: TokenStream) -> TokenStream {
     quote!(
         #(#attrs)*
         #vis #sig {
-            ct_tracing::macro_impl::common_tracing_impl();
+            ct_tracing::macro_impl::ct_tracing_impl();
             #(#statements)*
         }
     )
