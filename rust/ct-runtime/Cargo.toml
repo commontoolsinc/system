@@ -17,7 +17,7 @@ thiserror = { workspace = true }
 rand = { workspace = true }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
-cap-rand = { version = "3.3.0", features = ["small_rng"] }
+cap-rand = { version = "3.4.2", features = ["small_rng"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 wasmtime = { workspace = true }
