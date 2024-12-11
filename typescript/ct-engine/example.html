@@ -1,5 +1,5 @@
 <script type="module">
-  import init, { CTEngine } from './ct_engine.js';
+  import init, { CTEngine, CTStore } from './ct_engine.js';
 
   // Only needed once, call the default export function
   // to fetch and setup the web assembly artifact. 
@@ -36,8 +36,48 @@ export const run = (input) => {
   let id = engine.define(definition);
   // Call the module function.
   let output = engine.run(id, { foo: 9 });
-  
+
   console.log("Output:", output);
   console.assert(output.foo === 10);
   console.assert(output.bar === 6);
+
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const HELLO = encoder.encode("Hello!");
+  const WORLD = encoder.encode("World!");
+
+  // Set value in store
+  let store = await new CTStore("db-name", "store-name");
+  await store.set(HELLO, WORLD);
+  console.assert(arrayEq(await store.get(HELLO), WORLD));
+
+  let hash = store.hash();
+  console.log(`Root of tree: ${hash}`);
+
+  // Rehydrate tree from hash
+  store = await new CTStore("db-name", "store-name", hash);
+  console.assert(arrayEq(await store.get(HELLO), WORLD));
+
+  for (let key of "abcdefghi".split("")) {
+    let bytes = encoder.encode(key)
+    await store.set(bytes, bytes);
+  }
+
+  let expected = "bcdef";
+  let i = 0;
+  // Query a range of keys
+  await store.getRange(encoder.encode("b"), encoder.encode("f"), (key, value) => {
+    let decoded = decoder.decode(key);
+    console.assert(decoded === expected[i++]);
+  });
+  console.assert(i === 5);
+
+  function arrayEq(a, b) {
+    if (a === b) return true;
+    if (a.length !== b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
 </script>
