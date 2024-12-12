@@ -6,7 +6,7 @@ use tokio::sync::Mutex;
 
 /// An LRU cache that wraps another [`BlockStore`] implementation.
 #[derive(Clone)]
-pub struct LruStore<S: BlockStore> {
+pub struct LruStore<S> {
     store: S,
     cache: Arc<Mutex<LruCache<Hash, Vec<u8>>>>,
 }

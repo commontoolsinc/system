@@ -6,24 +6,23 @@ use crate::{
     Engine, Error,
 };
 use ct_common::{ModuleDefinition, ModuleId};
-use ct_runtime::{Runtime, VirtualMachine};
 use js_sys::Function;
 use std::str::FromStr;
 use std::{cell::RefCell, rc::Rc};
 use tracing::*;
 use wasm_bindgen::prelude::*;
 
-/// The [`CTEngine`] constitutes the JavaScript-facing bindings
+/// The [`CtEngine`] constitutes the JavaScript-facing bindings
 /// for the Common Runtime.
-#[wasm_bindgen]
+#[wasm_bindgen(js_name = "CTEngine")]
 #[derive(Clone)]
-pub struct CTEngine {
+pub struct CtEngine {
     inner: Rc<RefCell<Engine>>,
 }
 
-#[wasm_bindgen]
-impl CTEngine {
-    /// Create a new [`CTEngine`].
+#[wasm_bindgen(js_class = "CTEngine")]
+impl CtEngine {
+    /// Create a new [`CtEngine`].
     #[wasm_bindgen(constructor)]
     pub fn new(js_callback: Function) -> Self {
         global_initializers();

@@ -1,11 +1,16 @@
-use crate::{Entry, Error, HashDisplay, Node, NodeExt, Result, Storage, Tree};
+use crate::{Entry, Error, HashDisplay, Key, Node, NodeExt, Result, Storage, Tree};
+use ct_common::ConditionalSync;
 use std::io::Write;
 
 trait Renderable<const P: u8> {
     fn get_id_and_label(&self) -> Result<(String, String)>;
 }
 
-impl<const P: u8> Renderable<P> for Node<P> {
+impl<const P: u8, K, V> Renderable<P> for Node<P, K, V>
+where
+    K: Key + 'static,
+    V: Clone + ConditionalSync,
+{
     fn get_id_and_label(&self) -> Result<(String, String)> {
         let id = format!(
             "node_{}",
@@ -21,9 +26,12 @@ impl<const P: u8> Renderable<P> for Node<P> {
     }
 }
 
-impl<const P: u8> Renderable<P> for Entry {
+impl<const P: u8, K, V> Renderable<P> for Entry<K, V>
+where
+    K: Key + 'static,
+{
     fn get_id_and_label(&self) -> Result<(String, String)> {
-        let key = HashDisplay::from(self.key.to_owned()).to_string();
+        let key = HashDisplay::from(self.key.as_ref().to_vec()).to_string();
         let id = format!("node_{}", &key);
         let label = format!("{:.10} R={}", &key, self.rank(P as u32));
         Ok((id, label))
@@ -41,25 +49,33 @@ impl<const P: u8> Renderable<P> for Entry {
 ///
 /// [Graphviz]: https://www.graphviz.org
 /// [DOT]: https://www.graphviz.org/doc/info/lang.html
-pub async fn render<const P: u8, S, W>(tree: &Tree<P, S>, w: W) -> Result<()>
+pub async fn render<const P: u8, S, K, V, W>(tree: &Tree<P, S, K, V>, w: W) -> Result<()>
 where
-    S: Storage,
+    S: Storage<K, V>,
+    K: Key + 'static,
     W: Write,
+    V: Clone + ConditionalSync,
 {
     let Some(root) = tree.root() else {
         return Err(Error::Internal("Empty tree.".into()));
     };
 
-    render_node::<P, S, W>(root, tree.storage(), w).await
+    render_node::<P, S, K, V, W>(root, tree.storage(), w).await
 }
 
 /// Renders a graph where `node` is the root node.
 ///
 /// See [`render`].
-pub async fn render_node<const P: u8, S, W>(node: &Node<P>, storage: &S, mut w: W) -> Result<()>
+pub async fn render_node<const P: u8, S, K, V, W>(
+    node: &Node<P, K, V>,
+    storage: &S,
+    mut w: W,
+) -> Result<()>
 where
-    S: Storage,
+    S: Storage<K, V>,
     W: Write,
+    K: Key + 'static,
+    V: Clone + ConditionalSync,
 {
     let graph_name = "Ranked Prolly Tree";
     let port_bg = "lightgrey";
@@ -89,14 +105,16 @@ rankdir = "TB";
     Ok(())
 }
 
-/// Render a [`Node`] and its ports as a `subgraph`.
-async fn render_nodes<const P: u8, S, W>(
-    nodes: Vec<Node<P>>,
+/// Render a [`Node`].
+async fn render_nodes<const P: u8, S, K, V, W>(
+    nodes: Vec<Node<P, K, V>>,
     storage: &S,
     w: &mut W,
-) -> Result<Vec<Node<P>>>
+) -> Result<Vec<Node<P, K, V>>>
 where
-    S: Storage,
+    S: Storage<K, V>,
+    K: Key + 'static,
+    V: Clone + ConditionalSync,
     W: Write,
 {
     let mut out_nodes = vec![];
@@ -116,7 +134,7 @@ where
             false => {
                 for entry in node.into_entries()? {
                     let (entry_id, entry_label) =
-                        <Entry as Renderable<P>>::get_id_and_label(&entry)?;
+                        <Entry<K, V> as Renderable<P>>::get_id_and_label(&entry)?;
                     writeln!(w, "{} [label = \"{}\"];", &entry_id, &entry_label)?;
                     writeln!(w, "{} -> {};", &node_id, &entry_id)?;
                 }
@@ -129,7 +147,7 @@ where
 #[cfg(all(not(target_arch = "wasm32"), test))]
 mod tests {
     use super::*;
-    use crate::{BincodeEncoder, NodeStorage, SyncMemoryStore, Tree};
+    use crate::{BasicEncoder, NodeStorage, SyncMemoryStore, Tree};
     use std::collections::BTreeMap;
 
     #[tokio::test]
@@ -140,7 +158,7 @@ mod tests {
             let value = <[u8; 32] as From<blake3::Hash>>::from(blake3::hash(&key)).to_vec();
             set.insert(key, value);
         }
-        let storage = NodeStorage::new(BincodeEncoder::default(), SyncMemoryStore::default());
+        let storage = NodeStorage::new(BasicEncoder::default(), SyncMemoryStore::default());
         let tree = Tree::<32, _>::from_set(set, storage.clone()).await?;
 
         let mut out = std::io::Cursor::new(vec![]);

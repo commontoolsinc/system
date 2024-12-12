@@ -11,6 +11,9 @@ pub enum Error {
     /// An operation was performed on a non-Branch node.
     #[error("Operation may only be performed on tree branches.")]
     BranchOnly,
+    /// There was an error during a type conversion.
+    #[error("Conversion error.")]
+    Conversion,
     /// An operation attempted to use an empty list of children.
     #[error("Invalid attempt constructing a node with no children.")]
     EmptyChildren,
@@ -23,6 +26,9 @@ pub enum Error {
     /// A page could not be read from storage.
     #[error("Missing block: {0}")]
     MissingBlock(HashDisplay),
+    /// There was an out of range request.
+    #[error("Out of range request.")]
+    OutOfRange,
     /// An operation was performed on a non-Segment node.
     #[error("Operation may only be performed on tree segments.")]
     SegmentOnly,
@@ -37,6 +43,12 @@ pub enum Error {
 impl From<std::io::Error> for Error {
     fn from(value: std::io::Error) -> Self {
         Error::Io(value.to_string())
+    }
+}
+
+impl From<std::num::TryFromIntError> for Error {
+    fn from(_: std::num::TryFromIntError) -> Self {
+        Error::Conversion
     }
 }
 

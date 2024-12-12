@@ -1059,8 +1059,13 @@ dependencies = [
 name = "ct-storage"
 version = "0.1.0"
 dependencies = [
+ "async-stream",
+ "async-trait",
+ "blake3",
  "futures-core",
+ "nonempty",
  "ranked-prolly-tree",
+ "thiserror 2.0.4",
 ]
 
 [[package]]
@@ -2976,7 +2981,6 @@ dependencies = [
  "rand",
  "ranked-prolly-tree",
  "rexie",
- "serde",
  "tempfile",
  "thiserror 2.0.4",
  "tokio",

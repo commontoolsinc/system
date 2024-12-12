@@ -1,7 +1,7 @@
 #![cfg(not(target_arch = "wasm32"))]
 
 use rand::{thread_rng, Rng};
-use ranked_prolly_tree::{BincodeEncoder, NodeStorage, Result, Tree};
+use ranked_prolly_tree::{BasicEncoder, NodeStorage, Result, Tree};
 
 fn random() -> Vec<u8> {
     let mut buffer = [0u8; 32];
@@ -14,10 +14,10 @@ async fn file_system_storage() -> Result<()> {
     use ranked_prolly_tree::FileSystemStore;
     let root_dir = tempfile::TempDir::new()?;
     let storage = NodeStorage::new(
-        BincodeEncoder::default(),
+        BasicEncoder::default(),
         FileSystemStore::new(root_dir.path()).await?,
     );
-    let mut tree = Tree::<32, _>::new(storage.clone());
+    let mut tree = Tree::from(storage.clone());
 
     let mut ledger = vec![];
     for _ in 1..1024 {
