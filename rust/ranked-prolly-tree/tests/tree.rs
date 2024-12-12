@@ -16,7 +16,7 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_dedicated_worker);
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn basic_set_and_get() -> Result<()> {
     let storage = EphemeralStorage::default();
-    let mut tree = Tree::<32, _>::new(storage.clone());
+    let mut tree = Tree::from(storage.clone());
 
     tree.set(bytes("foo1"), bytes("bar1")).await?;
     tree.set(bytes("foo2"), bytes("bar2")).await?;
@@ -45,7 +45,7 @@ async fn basic_set_and_get() -> Result<()> {
 async fn create_tree_from_set() -> Result<()> {
     let iter_storage = EphemeralStorage::default();
     let set_storage = EphemeralStorage::default();
-    let mut iter_tree = Tree::<32, _>::new(iter_storage);
+    let mut iter_tree = Tree::from(iter_storage);
     let mut set = BTreeMap::default();
     for i in 0..=255 {
         let key = vec![i];
@@ -53,7 +53,7 @@ async fn create_tree_from_set() -> Result<()> {
         set.insert(key.clone(), value.clone());
         iter_tree.set(key, value).await?;
     }
-    let set_tree = Tree::<32, _>::from_set(set, set_storage).await?;
+    let set_tree = Tree::<64, _>::from_set(set, set_storage).await?;
 
     for i in 0..=255 {
         let key = vec![i];
@@ -84,7 +84,7 @@ async fn larger_random_tree() -> Result<()> {
 
     let mut ledger = vec![];
     let storage = EphemeralStorage::default();
-    let mut tree = Tree::<32, _>::new(storage);
+    let mut tree = Tree::from(storage);
     for _ in 1..1024 {
         let key_value = (random(), random());
         ledger.push(key_value.clone());
@@ -101,7 +101,7 @@ async fn larger_random_tree() -> Result<()> {
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn restores_tree_from_hash() -> Result<()> {
     let storage = NodeStorage::new(BincodeEncoder::default(), SyncMemoryStore::default());
-    let mut tree = Tree::<32, _>::new(storage.clone());
+    let mut tree = Tree::from(storage.clone());
 
     tree.set(bytes("foo1"), bytes("bar1")).await?;
     tree.set(bytes("foo2"), bytes("bar2")).await?;
@@ -143,7 +143,7 @@ async fn lru_store_caches() -> Result<()> {
     assert_eq!(tracking.writes()?, 0);
     assert_eq!(tracking.reads()?, 1); // read root hash
 
-    let key = 1023u32.to_be_bytes();
+    let key = 1023u32.to_be_bytes().to_vec();
     let _ = tree.get(&key).await?;
     assert_eq!(tracking.writes()?, 0);
     assert_eq!(tracking.reads()?, 3);

@@ -21,7 +21,7 @@ async fn indexed_db_storage() -> Result<()> {
         BincodeEncoder::default(),
         IndexedDbStore::new("db_name", "store_name").await?,
     );
-    let mut tree = Tree::<32, _>::new(storage.clone());
+    let mut tree = Tree::from(storage.clone());
 
     let mut ledger = vec![];
     for _ in 1..1024 {

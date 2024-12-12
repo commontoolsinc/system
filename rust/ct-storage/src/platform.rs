@@ -1,3 +1,4 @@
+use crate::Key;
 use ranked_prolly_tree::{BincodeEncoder, NodeStorage, Result};
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -6,10 +7,10 @@ mod inner {
     use ranked_prolly_tree::FileSystemStore;
     use std::path::PathBuf;
 
-    pub type PlatformStorage = NodeStorage<BincodeEncoder, FileSystemStore>;
-    pub type PlatformStorageParams = PathBuf;
+    /// Default persistent platform storage for the current platform.
+    pub type PlatformStorage = NodeStorage<Key, BincodeEncoder, FileSystemStore>;
 
-    pub async fn open_platform_storage(params: PlatformStorageParams) -> Result<PlatformStorage> {
+    pub async fn open_fs_storage(params: PathBuf) -> Result<PlatformStorage> {
         let store = FileSystemStore::new(params).await?;
         Ok(NodeStorage::new(BincodeEncoder::default(), store))
     }
@@ -20,11 +21,11 @@ mod inner {
     use super::*;
     use ranked_prolly_tree::{IndexedDbStore, LruStore};
 
-    pub type PlatformStorage = NodeStorage<BincodeEncoder, LruStore<IndexedDbStore>>;
-    pub type PlatformStorageParams = (String, String);
+    /// Default persistent platform storage for the current platform.
+    pub type PlatformStorage = NodeStorage<Key, BincodeEncoder, LruStore<IndexedDbStore>>;
 
-    pub async fn open_platform_storage(params: PlatformStorageParams) -> Result<PlatformStorage> {
-        let idb = IndexedDbStore::new(&params.0, &params.1).await?;
+    pub async fn open_idb_storage(db_name: String, store_name: String) -> Result<PlatformStorage> {
+        let idb = IndexedDbStore::new(&db_name, &store_name).await?;
         let cache = LruStore::new(idb, 10_000)?;
         Ok(NodeStorage::new(BincodeEncoder::default(), cache))
     }

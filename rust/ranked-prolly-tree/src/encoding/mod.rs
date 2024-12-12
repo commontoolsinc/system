@@ -1,7 +1,6 @@
-use crate::{Error, Result};
+use crate::{Block, Error, Key, Result};
 use async_trait::async_trait;
 use ct_common::ConditionalSync;
-use serde::{de::DeserializeOwned, Serialize};
 
 /// Type of hash produced by an [`Encoder`].
 pub type Hash = Vec<u8>;
@@ -31,12 +30,12 @@ impl From<Hash> for HashDisplay {
 /// a [`Hash`] that can be used to uniquely reference it.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-pub trait Encoder: Clone + ConditionalSync {
+pub trait Encoder<K: Key>: Clone + ConditionalSync {
     /// Encode a serializable item into its referencable [`Hash`] and its bytes.
-    fn encode(&self, item: impl Serialize) -> Result<(Hash, Vec<u8>)>;
+    fn encode(&self, block: &Block<K>) -> Result<(Hash, Vec<u8>)>;
 
     /// Decode bytes into `T`.
-    fn decode<T: DeserializeOwned>(&self, bytes: &[u8]) -> Result<T>;
+    fn decode(&self, bytes: &[u8]) -> Result<Block<K>>;
 }
 
 /// An [`Encoder`] implementation using [`bincode`].
@@ -46,14 +45,17 @@ pub struct BincodeEncoder {}
 
 #[cfg(feature = "bincode")]
 #[async_trait]
-impl Encoder for BincodeEncoder {
-    fn encode(&self, item: impl Serialize) -> Result<(Hash, Vec<u8>)> {
-        let bytes = bincode::serialize(&item).map_err(|e| Error::Encoding(e.to_string()))?;
+impl<K> Encoder<K> for BincodeEncoder
+where
+    K: Key,
+{
+    fn encode(&self, block: &Block<K>) -> Result<(Hash, Vec<u8>)> {
+        let bytes = bincode::serialize(block).map_err(|e| Error::Encoding(e.to_string()))?;
         let hash = <[u8; 32] as From<blake3::Hash>>::from(blake3::hash(&bytes)).to_vec();
         Ok((hash, bytes))
     }
 
-    fn decode<T: DeserializeOwned>(&self, bytes: &HashRef) -> Result<T> {
+    fn decode(&self, bytes: &HashRef) -> Result<Block<K>> {
         bincode::deserialize(&bytes).map_err(|e| Error::Encoding(e.to_string()))
     }
 }

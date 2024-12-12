@@ -10,7 +10,7 @@ blake3 = { workspace = true }
 ct-common = { workspace = true }
 nonempty = { version = "0.10", features = ["serialize"] }
 thiserror = { workspace = true }
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true, features = ["derive"], optional = true }
 tracing = { workspace = true }
 lru = { version = "0.12", optional = true }
 tokio = { workspace = true, features = ["sync"] }
@@ -49,8 +49,9 @@ wasm-bindgen-test = { workspace = true }
 getrandom = { workspace = true, features = ["js"] }
 
 [features]
-default = ["bincode", "lru"]
+default = ["bincode", "lru", "serde"]
 bincode = ["dep:bincode"]
+serde = ["dep:serde"]
 lru = ["dep:lru"]
 helpers = []
 render = []
