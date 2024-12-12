@@ -19,7 +19,7 @@ use web_time::Instant;
 #[cfg(not(target_arch = "wasm32"))]
 use ranked_prolly_tree::EphemeralStorage;
 #[cfg(target_arch = "wasm32")]
-use ranked_prolly_tree::{BincodeEncoder, IndexedDbStore, LruStore, NodeStorage};
+use ranked_prolly_tree::{BasicEncoder, IndexedDbStore, LruStore, NodeStorage};
 
 const BRANCHING_FACTOR: u8 = 64;
 const SECONDS_TO_MILLISECONDS: f64 = 1000.0;
@@ -52,14 +52,14 @@ async fn main_impl() -> Result<()> {
     Ok(())
 }
 
-struct Context<S: Storage> {
+struct Context<S> {
     tree_size: u32,
     tree: Tree<BRANCHING_FACTOR, S>,
 }
 
 impl<S> Context<S>
 where
-    S: Storage,
+    S: Storage<Vec<u8>, Vec<u8>>,
 {
     async fn new(tree_size: u32, storage: S) -> Result<Self> {
         let tree = Self::create_tree(tree_size, storage).await?;
@@ -248,12 +248,13 @@ impl Printer {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-async fn create_storage() -> Result<EphemeralStorage> {
+async fn create_storage() -> Result<EphemeralStorage<Vec<u8>, Vec<u8>>> {
     Ok(EphemeralStorage::default())
 }
 
 #[cfg(target_arch = "wasm32")]
-async fn create_storage() -> Result<NodeStorage<BincodeEncoder, LruStore<IndexedDbStore>>> {
+async fn create_storage(
+) -> Result<NodeStorage<Vec<u8>, Vec<u8>, BasicEncoder, LruStore<IndexedDbStore>>> {
     fn gen_name() -> String {
         let bytes = thread_rng().gen_range(0..u32::MAX).to_be_bytes();
         let hash = blake3::hash(&bytes);
@@ -263,7 +264,7 @@ async fn create_storage() -> Result<NodeStorage<BincodeEncoder, LruStore<Indexed
 
     let store = IndexedDbStore::new(&gen_name(), &gen_name()).await?;
     let store = LruStore::new(store, 10_000)?;
-    Ok(NodeStorage::new(BincodeEncoder::default(), store))
+    Ok(NodeStorage::new(BasicEncoder::default(), store))
 }
 
 /*

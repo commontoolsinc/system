@@ -55,3 +55,14 @@ impl From<Error> for wasm_bindgen::JsValue {
         error.to_string().into()
     }
 }
+
+#[cfg(target_arch = "wasm32")]
+impl From<wasm_bindgen::JsValue> for Error {
+    fn from(error: wasm_bindgen::JsValue) -> Self {
+        const JS_ERROR: &str = "UNKNOWN JS ERROR";
+        match error.as_string() {
+            Some(string) => string.into(),
+            None => String::from(JS_ERROR).into(),
+        }
+    }
+}

@@ -1,5 +1,3 @@
-use crate::KeyRef;
-
 /// Branching factor used in [`compute_rank`].
 pub type Factor = u32;
 /// A geometric distribution used for ranking nodes.
@@ -7,7 +5,7 @@ pub type Rank = u32;
 
 /// Computes geometric distribution [`Rank`] from a `key`,
 /// using probability factor `m`.
-pub fn compute_rank(key: &KeyRef, m: Factor) -> Rank {
+pub fn compute_rank(key: &[u8], m: Factor) -> Rank {
     let hash = blake3::hash(key);
     inner_compute_rank(hash.as_bytes(), m)
 }

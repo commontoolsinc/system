@@ -1,30 +1,27 @@
-use std::ops::{Bound, RangeBounds};
-
-use crate::{nodes::Block, rank::Rank, Entry, Error, HashRef, NodeRef, Result, Storage};
+use crate::{
+    rank::Rank, Block, Entry, Error, Hash, HashDisplay, HashRef, Key, NodeRef, Result, Storage,
+};
 use async_stream::try_stream;
 use async_trait::async_trait;
+use ct_common::ConditionalSync;
 use futures_core::Stream;
 use nonempty::NonEmpty;
-
-#[cfg(doc)]
-use crate::Hash;
-
-/// The key type used to store key/value pairs in nodes and trees.
-pub type Key = Vec<u8>;
-/// A reference to a [`Key`].
-pub type KeyRef = <Key as std::ops::Deref>::Target;
+use std::ops::{Bound, RangeBounds};
 
 /// A helper trait implemented by [`Entry`] and [`NodeRef`] to
 /// create new [`Node`]s.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-pub(crate) trait Adoptable: Sized {
+pub(crate) trait Adoptable<const P: u8, K: Key, V>: Sized
+where
+    V: ConditionalSync,
+{
     /// Adopt a collection of `children` into a new [`Node`].
     /// Children data must be ordered and follow rank rules.
-    async fn adopt<const P: u8>(
+    async fn adopt(
         children: NonEmpty<Self>,
-        storage: &mut impl Storage,
-    ) -> Result<Node<P>>;
+        storage: &mut impl Storage<K, V>,
+    ) -> Result<Node<P, K, V>>;
 }
 
 /// Primary representation of tree nodes.
@@ -32,13 +29,29 @@ pub(crate) trait Adoptable: Sized {
 /// Each [`Node`] stores its children in a [`Storage`] as key/value pairs.
 /// Branches store a collection of children references as [`NodeRef`], and
 /// segments (leaf nodes) store their key-value [`Entry`] inline.
-#[derive(Clone)]
-pub struct Node<const P: u8> {
-    pub(crate) block: Block,
-    self_ref: NodeRef,
+pub struct Node<const P: u8, K, V> {
+    pub(crate) block: Block<K, V>,
+    self_ref: NodeRef<K, Hash>,
 }
 
-impl<const P: u8> Node<P> {
+impl<const P: u8, K, V> Clone for Node<P, K, V>
+where
+    K: Clone,
+    V: Clone,
+{
+    fn clone(&self) -> Self {
+        Node {
+            block: self.block.clone(),
+            self_ref: self.self_ref.clone(),
+        }
+    }
+}
+
+impl<const P: u8, K, V> Node<P, K, V>
+where
+    K: Key + 'static,
+    V: Clone + ConditionalSync,
+{
     /// Whether this node is a branch.
     pub fn is_branch(&self) -> bool {
         match self.block {
@@ -55,8 +68,8 @@ impl<const P: u8> Node<P> {
     /// Create a new branch [`Node`] given [`NodeRef`] children,
     /// and encodes the new node into storage.
     pub(crate) async fn branch(
-        children: NonEmpty<NodeRef>,
-        storage: &mut impl Storage,
+        children: NonEmpty<NodeRef<K, Hash>>,
+        storage: &mut impl Storage<K, V>,
     ) -> Result<Self> {
         let block = Block::branch(children);
         let node_ref = block.encode(storage).await?;
@@ -69,8 +82,8 @@ impl<const P: u8> Node<P> {
     /// Create a new segment [`Node`] given [`Entry`] children,
     /// and encodes the new node into storage.
     pub(crate) async fn segment(
-        children: NonEmpty<Entry>,
-        storage: &mut impl Storage,
+        children: NonEmpty<Entry<K, V>>,
+        storage: &mut impl Storage<K, V>,
     ) -> Result<Self> {
         let block = Block::segment(children);
         let node_ref = block.encode(storage).await?;
@@ -81,9 +94,14 @@ impl<const P: u8> Node<P> {
     }
 
     /// Hydrates a node from `storage` given a [`NodeRef`].
-    pub async fn from_ref(node_ref: NodeRef, storage: &impl Storage) -> Result<Self> {
+    pub async fn from_ref(
+        node_ref: NodeRef<K, Hash>,
+        storage: &impl Storage<K, V>,
+    ) -> Result<Self> {
         let Some(block) = Block::decode(node_ref.hash(), storage).await? else {
-            return Err(Error::MissingBlock(node_ref.hash().to_owned().into()));
+            return Err(Error::MissingBlock(HashDisplay::from(
+                node_ref.hash().to_owned(),
+            )));
         };
         Ok(Node {
             block,
@@ -92,11 +110,11 @@ impl<const P: u8> Node<P> {
     }
 
     /// Hydrates a node from `storage` given a [`Hash`].
-    pub async fn from_hash(hash: &HashRef, storage: &impl Storage) -> Result<Self> {
-        let Some(block) = Block::decode(hash, storage).await? else {
+    pub async fn from_hash(hash: &HashRef, storage: &impl Storage<K, V>) -> Result<Self> {
+        let Some(block) = Block::<K, V>::decode(hash, storage).await? else {
             return Err(Error::MissingBlock(hash.to_owned().into()));
         };
-        let node_ref = NodeRef::new(hash.to_owned(), block.boundary().to_owned());
+        let node_ref = NodeRef::new(block.boundary().to_owned(), hash.to_owned());
         Ok(Node {
             block,
             self_ref: node_ref,
@@ -104,7 +122,7 @@ impl<const P: u8> Node<P> {
     }
 
     /// Returns a [`NodeRef`] for this node.
-    pub(crate) fn into_ref(self) -> NodeRef {
+    pub(crate) fn into_ref(self) -> NodeRef<K, Hash> {
         self.self_ref
     }
 
@@ -121,7 +139,7 @@ impl<const P: u8> Node<P> {
     /// Return all entries from this node into a [`Entry`] collection.
     ///
     /// Returns an error if this is not a segment node.
-    pub fn into_entries(self) -> Result<NonEmpty<Entry>> {
+    pub fn into_entries(self) -> Result<NonEmpty<Entry<K, V>>> {
         if !self.is_segment() {
             return Err(Error::SegmentOnly);
         }
@@ -131,9 +149,13 @@ impl<const P: u8> Node<P> {
 
     /// Recursively descends the tree, returning an [`Entry`] matching
     /// `key` if found.
-    pub async fn get_entry(&self, key: &KeyRef, storage: &impl Storage) -> Result<Option<Entry>> {
+    pub async fn get_entry(
+        &self,
+        key: &K,
+        storage: &impl Storage<K, V>,
+    ) -> Result<Option<Entry<K, V>>> {
         #[allow(unused_assignments)]
-        let mut current_node_holder: Option<Node<P>> = None;
+        let mut current_node_holder: Option<Node<P, K, V>> = None;
         let mut current_node = self;
         loop {
             match current_node.is_branch() {
@@ -153,33 +175,47 @@ impl<const P: u8> Node<P> {
     pub async fn get_range<'a, R>(
         &'a self,
         range: R,
-        storage: &'a impl Storage,
-    ) -> impl Stream<Item = Result<Entry>> + 'a
+        storage: &'a impl Storage<K, V>,
+    ) -> impl Stream<Item = Result<Entry<K, V>>> + 'a
     where
-        R: RangeBounds<&'a KeyRef> + 'a,
+        R: RangeBounds<&'a K> + 'a,
     {
-        async fn get_child_index_by_key<const P: u8>(
-            node: &Node<P>,
-            key: &KeyRef,
-            storage: &impl Storage,
-        ) -> Result<Option<(Node<P>, usize)>> {
-            for (index, node_ref) in node.block.node_refs()?.iter().enumerate() {
-                if *key <= *node_ref.boundary() {
-                    return Ok(Some((
-                        Node::from_ref(node_ref.to_owned(), storage).await?,
-                        index,
-                    )));
+        async fn get_child_index_by_key<
+            const P: u8,
+            K: Key + 'static,
+            V: Clone + ConditionalSync,
+        >(
+            node: &Node<P, K, V>,
+            key: Option<&K>,
+            storage: &impl Storage<K, V>,
+        ) -> Result<Option<(Node<P, K, V>, usize)>> {
+            match key {
+                Some(key) => {
+                    for (index, node_ref) in node.block.node_refs()?.iter().enumerate() {
+                        if *key <= *node_ref.boundary() {
+                            return Ok(Some((
+                                Node::from_ref(node_ref.to_owned(), storage).await?,
+                                index,
+                            )));
+                        }
+                    }
+                    Ok(None)
                 }
+                // If no key provided, this was an unbounded range request;
+                // take the left-most child.
+                None => Ok(Some((
+                    Node::from_ref(node.block.node_refs()?.first().to_owned(), storage).await?,
+                    0,
+                ))),
             }
-            Ok(None)
         }
 
-        struct Level<const P: u8> {
-            node: Node<P>,
+        struct Level<const P: u8, K, V> {
+            node: Node<P, K, V>,
             visited_index: Option<usize>,
         }
-        impl<const P: u8> Level<P> {
-            fn new(node: Node<P>, visited_index: Option<usize>) -> Self {
+        impl<const P: u8, K, V> Level<P, K, V> {
+            fn new(node: Node<P, K, V>, visited_index: Option<usize>) -> Self {
                 Level {
                     node,
                     visited_index,
@@ -190,11 +226,10 @@ impl<const P: u8> Node<P> {
         // Get the start key. Included/Excluded ranges are identical here,
         // the check if key is in range is below, and this will at most read
         // one unnecessary segment iff `Bound::Excluded(K)` and `K` is a boundary node.
-        const UNBOUNDED_START_KEY: [u8; 1] = [0];
         let start_key = match range.start_bound() {
-            Bound::Included(start) => *start,
-            Bound::Excluded(start) => *start,
-            Bound::Unbounded => &UNBOUNDED_START_KEY,
+            Bound::Included(start) => Some(*start),
+            Bound::Excluded(start) => Some(*start),
+            Bound::Unbounded => None,
         };
         // An entry was found matching the key range.
         let mut matching = false;
@@ -236,7 +271,7 @@ impl<const P: u8> Node<P> {
                     false => {
                         let current = branch_stack.pop().ok_or(Error::Unexpected)?;
                         for entry in current.node.into_entries()? {
-                            let entry_key: &[u8] = entry.key.as_ref();
+                            let entry_key = &entry.key;
                             if range.contains(&entry_key) {
                                 if !matching {
                                     matching = true;
@@ -255,12 +290,16 @@ impl<const P: u8> Node<P> {
 
     /// Inserts a new [`Entry`] into the tree represented by this node as root.
     /// On success, returns the new root [`Node`] representing this tree.
-    pub async fn insert(&self, new_entry: Entry, storage: &mut impl Storage) -> Result<Node<P>> {
+    pub async fn insert(
+        &self,
+        new_entry: Entry<K, V>,
+        storage: &mut impl Storage<K, V>,
+    ) -> Result<Node<P, K, V>> {
         let key = new_entry.key.to_owned();
         let mut node = self.to_owned();
         let mut branch_stack = vec![];
         #[allow(unused_assignments)]
-        let mut all_entries: Option<NonEmpty<Entry>> = None;
+        let mut all_entries: Option<NonEmpty<Entry<K, V>>> = None;
         loop {
             match node.is_branch() {
                 true => {
@@ -272,7 +311,7 @@ impl<const P: u8> Node<P> {
                         // the largest boundary use the last child.
                         if next.is_some() {
                             right.push(child_ref);
-                        } else if *key <= *child_ref.boundary() {
+                        } else if &key <= child_ref.boundary() {
                             next = Some(Node::from_ref(child_ref, storage).await?);
                         } else {
                             left.push(child_ref);
@@ -365,7 +404,11 @@ impl<const P: u8> Node<P> {
     /// within its descendants.
     ///
     /// Returns an error if this is not a branch node.
-    async fn child_by_key(&self, key: &KeyRef, storage: &impl Storage) -> Result<Option<Node<P>>> {
+    async fn child_by_key(
+        &self,
+        key: &K,
+        storage: &impl Storage<K, V>,
+    ) -> Result<Option<Node<P, K, V>>> {
         if !self.is_branch() {
             return Err(Error::BranchOnly);
         }
@@ -380,12 +423,12 @@ impl<const P: u8> Node<P> {
     /// Returns this segment's [`Entry`] matching the provided `key`.
     ///
     /// Returns an error if this is not a segment node.
-    fn entry_by_key(&self, key: &KeyRef) -> Result<Option<Entry>> {
+    fn entry_by_key(&self, key: &K) -> Result<Option<Entry<K, V>>> {
         if !self.is_segment() {
             return Err(Error::SegmentOnly);
         }
         for entry in self.block.entries()? {
-            if *key == *entry.key {
+            if *key == entry.key {
                 return Ok(Some(entry.to_owned()));
             }
         }
@@ -395,11 +438,11 @@ impl<const P: u8> Node<P> {
     /// Joins a collection of sibling [`Adoptable`]s into
     /// one or more parent [`Node`]s, where branching is determined
     /// by rank.
-    pub(crate) async fn join_with_rank<T: Adoptable>(
+    pub(crate) async fn join_with_rank<T: Adoptable<P, K, V>>(
         nodes: NonEmpty<(T, Rank)>,
         min_rank: Rank,
-        storage: &mut impl Storage,
-    ) -> Result<NonEmpty<(Node<P>, Rank)>> {
+        storage: &mut impl Storage<K, V>,
+    ) -> Result<NonEmpty<(Node<P, K, V>, Rank)>> {
         let mut output = vec![];
         let mut pending = vec![];
         for (node, rank) in nodes {
@@ -540,11 +583,15 @@ impl From<NodeRef> for NodeFragment {
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-impl<const P: u8> Adoptable for Node<P> {
-    async fn adopt<const P2: u8>(
+impl<const P: u8, K, V> Adoptable<P, K, V> for Node<P, K, V>
+where
+    K: Key + 'static,
+    V: Clone + ConditionalSync,
+{
+    async fn adopt(
         children: NonEmpty<Self>,
-        storage: &mut impl Storage,
-    ) -> Result<Node<P2>> {
+        storage: &mut impl Storage<K, V>,
+    ) -> Result<Node<P, K, V>> {
         Node::branch(children.map(|node| node.into_ref()), storage).await
     }
 }

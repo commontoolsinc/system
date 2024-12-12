@@ -23,7 +23,6 @@ print_help() {
 }
 
 unit_tests() {
-	echo "RUNNING UNIT TESTS WIth TARGET $1"
     if [ -z "$1" ]; then
         cargo test --workspace
     else

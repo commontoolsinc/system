@@ -1,7 +1,7 @@
 #![cfg(target_arch = "wasm32")]
 
 use rand::{thread_rng, Rng};
-use ranked_prolly_tree::{BincodeEncoder, NodeStorage, Result, Tree};
+use ranked_prolly_tree::{BasicEncoder, NodeStorage, Result, Tree};
 
 fn random() -> Vec<u8> {
     let mut buffer = [0u8; 32];
@@ -18,10 +18,10 @@ wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_dedicated_worker);
 async fn indexed_db_storage() -> Result<()> {
     use ranked_prolly_tree::IndexedDbStore;
     let storage = NodeStorage::new(
-        BincodeEncoder::default(),
+        BasicEncoder::default(),
         IndexedDbStore::new("db_name", "store_name").await?,
     );
-    let mut tree = Tree::<32, _>::new(storage.clone());
+    let mut tree = Tree::from(storage.clone());
 
     let mut ledger = vec![];
     for _ in 1..1024 {
