@@ -3,6 +3,8 @@ use futures_core::Stream;
 use ranked_prolly_tree::{Entry, Result, Tree};
 use std::ops::RangeBounds;
 
+type Key = Vec<u8>;
+
 const BRANCHING_FACTOR: u8 = 64;
 
 /// Passive database.
@@ -28,7 +30,7 @@ impl Storage {
     }
 
     /// Retrieves the value associated with `key` from the tree.
-    pub async fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
+    pub async fn get(&self, key: &Key) -> Result<Option<Vec<u8>>> {
         self.tree.get(key).await
     }
 
@@ -38,14 +40,14 @@ impl Storage {
     }
 
     /// Returns an async stream over all entries.
-    pub async fn stream<'a>(&'a self) -> impl Stream<Item = Result<Entry>> + 'a {
+    pub async fn stream<'a>(&'a self) -> impl Stream<Item = Result<Entry<Key>>> + 'a {
         self.tree.stream().await
     }
 
     /// Returns an async stream over entries with keys within the provided range.
-    pub async fn get_range<'a, R>(&'a self, range: R) -> impl Stream<Item = Result<Entry>> + 'a
+    pub async fn get_range<'a, R>(&'a self, range: R) -> impl Stream<Item = Result<Entry<Key>>> + 'a
     where
-        R: RangeBounds<&'a [u8]> + 'a,
+        R: RangeBounds<&'a Key> + 'a,
     {
         self.tree.get_range(range).await
     }

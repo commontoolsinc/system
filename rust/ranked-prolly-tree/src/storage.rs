@@ -1,5 +1,6 @@
 use crate::{BincodeEncoder, BlockStore, Encoder, Hash, HashRef, MemoryStore, Result};
 use async_trait::async_trait;
+use ct_common::ConditionalSend;
 use serde::{de::DeserializeOwned, Serialize};
 
 /// Trait representing the encoding and storage of data
@@ -11,7 +12,7 @@ use serde::{de::DeserializeOwned, Serialize};
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait Storage: Encoder + BlockStore {
     /// Encodes `item` to storage.
-    async fn write(&mut self, item: impl Serialize + Send) -> Result<Hash> {
+    async fn write(&mut self, item: impl Serialize + ConditionalSend) -> Result<Hash> {
         let (hash, bytes) = self.encode(item)?;
         self.set_block(hash.clone(), bytes).await?;
         Ok(hash)

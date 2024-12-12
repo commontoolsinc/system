@@ -57,7 +57,11 @@ impl CTStore {
 
     /// Retrieves value with `key`.
     pub async fn get(&self, key: Box<[u8]>) -> Result<Option<Vec<u8>>> {
-        self.inner.borrow().get(&key).await.map_err(|e| e.into())
+        self.inner
+            .borrow()
+            .get(&key.into_vec())
+            .await
+            .map_err(|e| e.into())
     }
 
     /// Calls `callback` with `key` and `value` arguments
@@ -70,8 +74,10 @@ impl CTStore {
         callback: &js_sys::Function,
     ) -> Result<()> {
         let this = JsValue::null();
+        let start = start.into_vec();
+        let end = end.into_vec();
         let inner = self.inner.borrow();
-        let stream = inner.get_range(start.as_ref()..=end.as_ref()).await;
+        let stream = inner.get_range(&start..=&end).await;
         tokio::pin!(stream);
         while let Some(entry) = stream.try_next().await? {
             callback.call2(
