@@ -1,21 +1,24 @@
-use crate::{Error, Node, Result, Storage};
+use crate::{Error, Key, Node, Result, Storage};
 use async_trait::async_trait;
 use nonempty::NonEmpty;
 
 /// Additional [`Node`] functionality for debugging and rendering.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-pub trait NodeExt<const P: u8> {
+pub trait NodeExt<const P: u8, K: Key> {
     /// Decode all children refs for this node from `storage` into a [`Node`] collection.
     ///
     /// Returns an error is this is not a branch node.
-    async fn into_children(self, storage: &impl Storage) -> Result<NonEmpty<Node<P>>>;
+    async fn into_children(self, storage: &impl Storage<K>) -> Result<NonEmpty<Node<P, K>>>;
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-impl<const P: u8> NodeExt<P> for Node<P> {
-    async fn into_children(self, storage: &impl Storage) -> Result<NonEmpty<Node<P>>> {
+impl<const P: u8, K> NodeExt<P, K> for Node<P, K>
+where
+    K: Key + 'static,
+{
+    async fn into_children(self, storage: &impl Storage<K>) -> Result<NonEmpty<Node<P, K>>> {
         if !self.is_branch() {
             return Err(Error::BranchOnly);
         }

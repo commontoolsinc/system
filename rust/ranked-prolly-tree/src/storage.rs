@@ -1,6 +1,6 @@
-use crate::{BincodeEncoder, BlockStore, Encoder, Hash, HashRef, MemoryStore, Result};
+use crate::{BincodeEncoder, Block, BlockStore, Encoder, Hash, HashRef, Key, MemoryStore, Result};
 use async_trait::async_trait;
-use serde::{de::DeserializeOwned, Serialize};
+use std::marker::PhantomData;
 
 /// Trait representing the encoding and storage of data
 /// for nodes.
@@ -9,16 +9,19 @@ use serde::{de::DeserializeOwned, Serialize};
 /// of both [`Encoder`] and [`BlockStore`].
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-pub trait Storage: Encoder + BlockStore {
+pub trait Storage<K: Key>: Encoder<K> + BlockStore {
     /// Encodes `item` to storage.
-    async fn write(&mut self, item: impl Serialize + Send) -> Result<Hash> {
-        let (hash, bytes) = self.encode(item)?;
+    async fn write(&mut self, block: &Block<K>) -> Result<Hash>
+    where
+        K: 'static,
+    {
+        let (hash, bytes) = self.encode(block)?;
         self.set_block(hash.clone(), bytes).await?;
         Ok(hash)
     }
 
     /// Decodes item from storage.
-    async fn read<T: DeserializeOwned>(&self, hash: &HashRef) -> Result<Option<T>> {
+    async fn read(&self, hash: &HashRef) -> Result<Option<Block<K>>> {
         let Some(bytes) = self.get_block(hash).await? else {
             return Ok(None);
         };
@@ -26,55 +29,69 @@ pub trait Storage: Encoder + BlockStore {
     }
 }
 
-impl<T> Storage for T where T: Encoder + BlockStore {}
+impl<T, K> Storage<K> for T
+where
+    K: Key + 'static,
+    T: Encoder<K> + BlockStore,
+{
+}
 
 /// A [`Storage`] implementation comprised of an underlying [`Encoder`]
 /// and [`BlockStore`].
 #[derive(Clone)]
-pub struct NodeStorage<E: Encoder, B: BlockStore> {
+pub struct NodeStorage<K: Key, E: Encoder<K>, B: BlockStore> {
     encoder: E,
     store: B,
+    marker: PhantomData<K>,
 }
 
-impl<E, B> NodeStorage<E, B>
+impl<K, E, B> NodeStorage<K, E, B>
 where
-    E: Encoder,
+    K: Key,
+    E: Encoder<K>,
     B: BlockStore,
 {
     /// Creates a new [`NodeStorage`] from an [`Encoder`] and [`BlockStore`].
     pub fn new(encoder: E, store: B) -> Self {
-        Self { encoder, store }
+        Self {
+            encoder,
+            store,
+            marker: PhantomData,
+        }
     }
 }
 
-impl<E, B> Default for NodeStorage<E, B>
+impl<K, E, B> Default for NodeStorage<K, E, B>
 where
-    E: Encoder + Default,
+    K: Key,
+    E: Encoder<K> + Default,
     B: BlockStore + Default,
 {
-    fn default() -> NodeStorage<E, B> {
+    fn default() -> NodeStorage<K, E, B> {
         NodeStorage::new(E::default(), B::default())
     }
 }
 
-impl<E, B> Encoder for NodeStorage<E, B>
+impl<K, E, B> Encoder<K> for NodeStorage<K, E, B>
 where
-    E: Encoder,
+    K: Key,
+    E: Encoder<K>,
     B: BlockStore,
 {
-    fn decode<T: DeserializeOwned>(&self, bytes: &[u8]) -> Result<T> {
-        self.encoder.decode(bytes)
+    fn encode(&self, block: &Block<K>) -> Result<(Hash, Vec<u8>)> {
+        self.encoder.encode(block)
     }
-    fn encode(&self, item: impl Serialize) -> Result<(Hash, Vec<u8>)> {
-        self.encoder.encode(item)
+    fn decode(&self, bytes: &[u8]) -> Result<Block<K>> {
+        self.encoder.decode(bytes)
     }
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-impl<E, B> BlockStore for NodeStorage<E, B>
+impl<K, E, B> BlockStore for NodeStorage<K, E, B>
 where
-    E: Encoder,
+    K: Key,
+    E: Encoder<K>,
     B: BlockStore,
 {
     async fn get_block(&self, key: &[u8]) -> Result<Option<Vec<u8>>> {
@@ -88,4 +105,4 @@ where
 
 /// An alias type for [`NodeStorage`] with [`BincodeEncoder`] and [`MemoryStore`].
 #[cfg(feature = "bincode")]
-pub type EphemeralStorage = NodeStorage<BincodeEncoder, MemoryStore>;
+pub type EphemeralStorage<K> = NodeStorage<K, BincodeEncoder, MemoryStore>;

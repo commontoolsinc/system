@@ -7,7 +7,7 @@ use crate::{
 };
 use ct_common::{ModuleDefinition, ModuleId};
 use ct_runtime::{Runtime, VirtualMachine};
-use ct_storage::Storage;
+use ct_storage::{CtStorage, PlatformStorage};
 use futures_util::TryStreamExt;
 use js_sys::Function;
 use std::str::FromStr;
@@ -15,22 +15,27 @@ use std::{cell::RefCell, rc::Rc};
 use tracing::*;
 use wasm_bindgen::prelude::*;
 
-/// The [`CTStore`] provides direct access to the underlying web store.
-#[wasm_bindgen]
+/// The [`CtStore`] provides direct access to the underlying web store.
+#[wasm_bindgen(js_name = "CTStore")]
 #[derive(Clone)]
-pub struct CTStore {
-    inner: Rc<RefCell<Storage>>,
+pub struct CtStore {
+    inner: Rc<RefCell<CtStorage<PlatformStorage>>>,
 }
 
-#[wasm_bindgen]
-impl CTStore {
-    /// Create a new [`CTStore`].
+#[wasm_bindgen(js_name = "CTStore")]
+impl CtStore {
+    /// Create a new [`CtStore`].
     #[wasm_bindgen(constructor)]
     pub async fn new(db_name: String, store_name: String, hash: Option<Box<[u8]>>) -> Result<Self> {
         global_initializers();
         info!("Constructed!");
 
-        let storage = Storage::open((db_name, store_name), hash.map(|hash| hash.to_vec())).await?;
+        let storage = CtStorage::<PlatformStorage>::open_idb(
+            db_name,
+            store_name,
+            hash.map(|hash| hash.to_vec()),
+        )
+        .await?;
         Ok(Self {
             inner: Rc::new(RefCell::new(storage)),
         })
@@ -57,7 +62,11 @@ impl CTStore {
 
     /// Retrieves value with `key`.
     pub async fn get(&self, key: Box<[u8]>) -> Result<Option<Vec<u8>>> {
-        self.inner.borrow().get(&key).await.map_err(|e| e.into())
+        self.inner
+            .borrow()
+            .get(&key.into_vec())
+            .await
+            .map_err(|e| e.into())
     }
 
     /// Calls `callback` with `key` and `value` arguments
@@ -70,8 +79,10 @@ impl CTStore {
         callback: &js_sys::Function,
     ) -> Result<()> {
         let this = JsValue::null();
+        let start = start.into_vec();
+        let end = end.into_vec();
         let inner = self.inner.borrow();
-        let stream = inner.get_range(start.as_ref()..=end.as_ref()).await;
+        let stream = inner.get_range(&start..=&end).await;
         tokio::pin!(stream);
         while let Some(entry) = stream.try_next().await? {
             callback.call2(

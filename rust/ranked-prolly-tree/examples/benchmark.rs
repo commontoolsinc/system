@@ -52,14 +52,14 @@ async fn main_impl() -> Result<()> {
     Ok(())
 }
 
-struct Context<S: Storage> {
+struct Context<S> {
     tree_size: u32,
     tree: Tree<BRANCHING_FACTOR, S>,
 }
 
 impl<S> Context<S>
 where
-    S: Storage,
+    S: Storage<Vec<u8>>,
 {
     async fn new(tree_size: u32, storage: S) -> Result<Self> {
         let tree = Self::create_tree(tree_size, storage).await?;
@@ -248,7 +248,7 @@ impl Printer {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-async fn create_storage() -> Result<EphemeralStorage> {
+async fn create_storage() -> Result<EphemeralStorage<Vec<u8>>> {
     Ok(EphemeralStorage::default())
 }
 
