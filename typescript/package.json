@@ -11,7 +11,7 @@
   ],
   "dependencies": {
     "@bytecodealliance/jco": "1.4.4",
-    "@bytecodealliance/componentize-js": "=0.9.0"
+    "@bytecodealliance/componentize-js": "=0.15.1"
   },
   "bin": {
     "jco": "node_modules/@bytecodealliance/jco/src/jco.js"
