@@ -1,21 +1,26 @@
-use crate::{Error, Node, Result, Storage};
+use crate::{Error, Key, Node, Result, Storage};
 use async_trait::async_trait;
+use ct_common::ConditionalSync;
 use nonempty::NonEmpty;
 
 /// Additional [`Node`] functionality for debugging and rendering.
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-pub trait NodeExt<const P: u8> {
+pub trait NodeExt<const P: u8, K: Key, V: ConditionalSync> {
     /// Decode all children refs for this node from `storage` into a [`Node`] collection.
     ///
     /// Returns an error is this is not a branch node.
-    async fn into_children(self, storage: &impl Storage) -> Result<NonEmpty<Node<P>>>;
+    async fn into_children<S: Storage<K, V>>(self, storage: &S) -> Result<NonEmpty<Node<P, K, V>>>;
 }
 
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
-impl<const P: u8> NodeExt<P> for Node<P> {
-    async fn into_children(self, storage: &impl Storage) -> Result<NonEmpty<Node<P>>> {
+impl<const P: u8, K, V> NodeExt<P, K, V> for Node<P, K, V>
+where
+    K: Key + 'static,
+    V: Clone + ConditionalSync,
+{
+    async fn into_children<S: Storage<K, V>>(self, storage: &S) -> Result<NonEmpty<Node<P, K, V>>> {
         if !self.is_branch() {
             return Err(Error::BranchOnly);
         }

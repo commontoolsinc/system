@@ -1,11 +1,14 @@
-use crate::{Entry, Error, HashDisplay, Node, NodeExt, Result, Storage, Tree};
+use crate::{Entry, Error, HashDisplay, Key, Node, NodeExt, Result, Storage, Tree};
 use std::io::Write;
 
 trait Renderable<const P: u8> {
     fn get_id_and_label(&self) -> Result<(String, String)>;
 }
 
-impl<const P: u8> Renderable<P> for Node<P> {
+impl<const P: u8, K> Renderable<P> for Node<P, K>
+where
+    K: Key + 'static,
+{
     fn get_id_and_label(&self) -> Result<(String, String)> {
         let id = format!(
             "node_{}",
@@ -21,9 +24,12 @@ impl<const P: u8> Renderable<P> for Node<P> {
     }
 }
 
-impl<const P: u8> Renderable<P> for Entry {
+impl<const P: u8, K> Renderable<P> for Entry<K>
+where
+    K: Key + 'static,
+{
     fn get_id_and_label(&self) -> Result<(String, String)> {
-        let key = HashDisplay::from(self.key.to_owned()).to_string();
+        let key = HashDisplay::from(self.key.as_ref().to_vec()).to_string();
         let id = format!("node_{}", &key);
         let label = format!("{:.10} R={}", &key, self.rank(P as u32));
         Ok((id, label))
@@ -41,25 +47,31 @@ impl<const P: u8> Renderable<P> for Entry {
 ///
 /// [Graphviz]: https://www.graphviz.org
 /// [DOT]: https://www.graphviz.org/doc/info/lang.html
-pub async fn render<const P: u8, S, W>(tree: &Tree<P, S>, w: W) -> Result<()>
+pub async fn render<const P: u8, S, K, W>(tree: &Tree<P, S, K>, w: W) -> Result<()>
 where
-    S: Storage,
+    S: Storage<K>,
+    K: Key + 'static,
     W: Write,
 {
     let Some(root) = tree.root() else {
         return Err(Error::Internal("Empty tree.".into()));
     };
 
-    render_node::<P, S, W>(root, tree.storage(), w).await
+    render_node::<P, S, K, W>(root, tree.storage(), w).await
 }
 
 /// Renders a graph where `node` is the root node.
 ///
 /// See [`render`].
-pub async fn render_node<const P: u8, S, W>(node: &Node<P>, storage: &S, mut w: W) -> Result<()>
+pub async fn render_node<const P: u8, S, K, W>(
+    node: &Node<P, K>,
+    storage: &S,
+    mut w: W,
+) -> Result<()>
 where
-    S: Storage,
+    S: Storage<K>,
     W: Write,
+    K: Key + 'static,
 {
     let graph_name = "Ranked Prolly Tree";
     let port_bg = "lightgrey";
@@ -90,13 +102,14 @@ rankdir = "TB";
 }
 
 /// Render a [`Node`] and its ports as a `subgraph`.
-async fn render_nodes<const P: u8, S, W>(
-    nodes: Vec<Node<P>>,
+async fn render_nodes<const P: u8, S, K, W>(
+    nodes: Vec<Node<P, K>>,
     storage: &S,
     w: &mut W,
-) -> Result<Vec<Node<P>>>
+) -> Result<Vec<Node<P, K>>>
 where
-    S: Storage,
+    S: Storage<K>,
+    K: Key + 'static,
     W: Write,
 {
     let mut out_nodes = vec![];
@@ -116,7 +129,7 @@ where
             false => {
                 for entry in node.into_entries()? {
                     let (entry_id, entry_label) =
-                        <Entry as Renderable<P>>::get_id_and_label(&entry)?;
+                        <Entry<K> as Renderable<P>>::get_id_and_label(&entry)?;
                     writeln!(w, "{} [label = \"{}\"];", &entry_id, &entry_label)?;
                     writeln!(w, "{} -> {};", &node_id, &entry_id)?;
                 }

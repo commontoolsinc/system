@@ -21,14 +21,14 @@ impl FileSystemStore {
 
     /// Encodes the hash using [`HashDisplay`], a lower hex encoding
     /// of the hash bytes.
-    fn get_path(&self, hash: Hash) -> Result<PathBuf> {
+    fn get_path(&self, hash: Vec<u8>) -> Result<PathBuf> {
         Ok(self.root_dir.join(HashDisplay::from(hash).to_string()))
     }
 }
 #[async_trait]
 impl BlockStore for FileSystemStore {
     async fn get_block(&self, hash: &HashRef) -> Result<Option<Vec<u8>>> {
-        match tokio::fs::read(self.get_path(hash.to_owned())?).await {
+        match tokio::fs::read(self.get_path(hash.to_owned().into())?).await {
             Ok(value) => Ok(Some(value)),
             Err(e) => match e.kind() {
                 ErrorKind::NotFound => Ok(None),
@@ -38,7 +38,7 @@ impl BlockStore for FileSystemStore {
     }
 
     async fn set_block(&mut self, hash: Hash, bytes: Vec<u8>) -> Result<()> {
-        tokio::fs::write(self.get_path(hash)?, bytes).await?;
+        tokio::fs::write(self.get_path(hash.into())?, bytes).await?;
         Ok(())
     }
 }

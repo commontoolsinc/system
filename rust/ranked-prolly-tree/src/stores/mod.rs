@@ -24,8 +24,8 @@ pub use tracking::*;
 #[cfg_attr(not(target_arch = "wasm32"), async_trait)]
 #[cfg_attr(target_arch = "wasm32", async_trait(?Send))]
 pub trait BlockStore: Clone + ConditionalSync {
-    /// Retrieve a block by its [`Hash`].
+    /// Retrieve a block by its hash.
     async fn get_block(&self, hash: &HashRef) -> Result<Option<Vec<u8>>>;
-    /// Store `bytes`, keyed by its [`Hash`].
+    /// Store `bytes`, keyed by its hash.
     async fn set_block(&mut self, hash: Hash, bytes: Vec<u8>) -> Result<()>;
 }
