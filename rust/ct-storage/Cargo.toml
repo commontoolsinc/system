@@ -4,5 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ranked-prolly-tree = { workspace = true }
+async-stream = { workspace = true }
+async-trait = { workspace = true }
+blake3 = { workspace = true }
 futures-core = { workspace = true }
+ranked-prolly-tree = { workspace = true, features = ["basic-encoder"] }
+thiserror = { workspace = true }
+nonempty = { version = "0.10" }

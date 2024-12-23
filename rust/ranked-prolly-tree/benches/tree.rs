@@ -7,7 +7,9 @@ use std::collections::BTreeMap;
 
 const TREE_SIZES: [usize; 3] = [10_000, 100_000, 1_000_000];
 
-async fn setup_tree<const P: u8>(count: u32) -> Result<(Tree<P, EphemeralStorage>, Vec<Vec<u8>>)> {
+async fn setup_tree<const P: u8>(
+    count: u32,
+) -> Result<(Tree<P, EphemeralStorage<Vec<u8>, Vec<u8>>>, Vec<Vec<u8>>)> {
     let mut set = BTreeMap::default();
     for _ in 0..count {
         set.insert(random(), random());

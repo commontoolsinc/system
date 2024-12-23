@@ -10,7 +10,7 @@ struct Stats {
 
 /// An LRU cache that wraps another [`BlockStore`] implementation.
 #[derive(Clone)]
-pub struct TrackingStore<S: BlockStore> {
+pub struct TrackingStore<S> {
     store: S,
     stats: Arc<Mutex<Stats>>,
 }
@@ -69,6 +69,6 @@ where
                 .map_err(|e| Error::Internal(e.to_string()))?;
             stats.writes += 1;
         }
-        self.store.set_block(hash.clone(), bytes.clone()).await
+        self.store.set_block(hash, bytes).await
     }
 }

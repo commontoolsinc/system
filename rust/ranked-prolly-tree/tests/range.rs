@@ -7,7 +7,9 @@ use wasm_bindgen_test::wasm_bindgen_test;
 #[cfg(target_arch = "wasm32")]
 wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_dedicated_worker);
 
-async fn create_test_tree<const P: u8>(size: u32) -> Result<Tree<P, EphemeralStorage>> {
+async fn create_test_tree<const P: u8>(
+    size: u32,
+) -> Result<Tree<P, EphemeralStorage<Vec<u8>, Vec<u8>>, Vec<u8>>> {
     let storage = EphemeralStorage::default();
     let mut set = BTreeMap::default();
     for i in 0..size {
@@ -36,7 +38,7 @@ async fn gets_full_range() -> Result<()> {
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn get_range_on_empty_trees() -> Result<()> {
     let storage = EphemeralStorage::default();
-    let empty = Tree::<32, _>::new(storage);
+    let empty = Tree::from(storage);
 
     let stream = empty.get_range(..).await;
     tokio::pin!(stream);
@@ -57,9 +59,9 @@ async fn gets_range() -> Result<()> {
     const OFFSET: u32 = 2;
     const MAX: u32 = 10;
 
-    let start = OFFSET.to_be_bytes();
-    let end = MAX.to_be_bytes();
-    let stream = tree.get_range(start.as_ref()..end.as_ref()).await;
+    let start = OFFSET.to_be_bytes().to_vec();
+    let end = MAX.to_be_bytes().to_vec();
+    let stream = tree.get_range(&start..&end).await;
     tokio::pin!(stream);
     let mut i = 0u32;
     while let Some(entry) = stream.try_next().await? {
@@ -78,8 +80,8 @@ async fn gets_range() -> Result<()> {
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
 async fn request_out_of_range() -> Result<()> {
     let tree = create_test_tree::<32>(1024).await?;
-    let start = 1_000_000u32.to_be_bytes();
-    let stream = tree.get_range(start.as_ref()..).await;
+    let start = 1_000_000u32.to_be_bytes().to_vec();
+    let stream = tree.get_range(&start..).await;
     tokio::pin!(stream);
     assert!(
         stream.try_next().await?.is_none(),
@@ -89,9 +91,9 @@ async fn request_out_of_range() -> Result<()> {
     let storage = EphemeralStorage::default();
     let mut tree = Tree::<32, _>::new(storage);
     tree.set(10u32.to_be_bytes().to_vec(), vec![1]).await?;
-    let start = 0u32.to_be_bytes();
-    let end = 5u32.to_be_bytes();
-    let stream = tree.get_range(start.as_ref()..end.as_ref()).await;
+    let start = 0u32.to_be_bytes().to_vec();
+    let end = 5u32.to_be_bytes().to_vec();
+    let stream = tree.get_range(&start..&end).await;
     tokio::pin!(stream);
     assert!(
         stream.try_next().await?.is_none(),
