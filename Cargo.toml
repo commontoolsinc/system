@@ -95,9 +95,9 @@ url = { version = "2" }
 # NOTE: Version of wasm-bindgen must be kept in sync with the
 # version of wasm-bindgen-cli that is installed globally e.g.,
 # by flake.nix.
-wasm-bindgen = { version = "0.2.97" }
-wasm-bindgen-futures = { version = "0.4.47" }
-wasm-bindgen-test = { version = "0.3.47" }
+wasm-bindgen = { version = "0.2.99" }
+wasm-bindgen-futures = { version = "0.4.49" }
+wasm-bindgen-test = { version = "0.3.49" }
 wasmtime = { version = "27" }
 #wasmtime-wasi = { version = "25" }
 #wasmtime-wasi-http = { version = "25" }
