@@ -151,7 +151,7 @@
               pname = "wasm-bindgen-cli";
               # NOTE: Version must be kept in sync with Cargo.toml
               # version of `wasm-bindgen` dependency!
-              version = "0.2.97";
+              version = "0.2.99";
               buildInputs = [ pkgs.rust-bin.stable.latest.default ] ++ lib.optionals stdenv.isDarwin [
                 darwin.apple_sdk.frameworks.SystemConfiguration
                 darwin.apple_sdk.frameworks.Security
@@ -159,10 +159,10 @@
 
               src = pkgs.fetchCrate {
                 inherit pname version;
-                sha256 = "sha256-DDUdJtjCrGxZV84QcytdxrmS5qvXD8Gcdq4OApj5ktI=";
+                sha256 = "sha256-1AN2E9t/lZhbXdVznhTcniy+7ZzlaEp/gwLEAucs6EA=";
               };
 
-              cargoHash = "sha256-Zfc2aqG7Qi44dY2Jz1MCdpcL3lk8C/3dt7QiE0QlNhc=";
+              cargoHash = "sha256-DbwAh8RJtW38LJp+J9Ht8fAROK9OabaJ85D9C/Vkve4=";
             };
         in
         {
