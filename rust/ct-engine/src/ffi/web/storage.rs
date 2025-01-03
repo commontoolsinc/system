@@ -111,7 +111,7 @@ impl CtStore {
         let start = Key::new(&start_entity, &start_ns, &start_attr);
         let end = Key::new(&end_entity, &end_ns, &end_attr);
         let inner = self.inner.borrow();
-        let stream = inner.get_range(&start..=&end).await;
+        let stream = inner.stream_range(start..=end).await;
         tokio::pin!(stream);
         while let Some(entry) = stream.try_next().await? {
             callback.call2(
@@ -136,7 +136,7 @@ impl CtStore {
         let start = Key::try_from(start.into_vec()).map_err(|e| Error::from(e))?;
         let end = Key::try_from(end.into_vec()).map_err(|e| Error::from(e))?;
         let inner = self.inner.borrow();
-        let stream = inner.get_range(&start..=&end).await;
+        let stream = inner.stream_range(start..=end).await;
         tokio::pin!(stream);
         while let Some(entry) = stream.try_next().await? {
             callback.call2(
