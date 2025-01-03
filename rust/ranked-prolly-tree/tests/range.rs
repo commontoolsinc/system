@@ -36,11 +36,11 @@ async fn gets_full_range() -> Result<()> {
 
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen_test)]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::test)]
-async fn get_range_on_empty_trees() -> Result<()> {
+async fn stream_range_on_empty_trees() -> Result<()> {
     let storage = EphemeralStorage::default();
     let empty = Tree::from(storage);
 
-    let stream = empty.get_range(..).await;
+    let stream = empty.stream_range(..).await;
     tokio::pin!(stream);
     assert!(stream.try_next().await?.is_none());
 
@@ -61,7 +61,7 @@ async fn gets_range() -> Result<()> {
 
     let start = OFFSET.to_be_bytes().to_vec();
     let end = MAX.to_be_bytes().to_vec();
-    let stream = tree.get_range(&start..&end).await;
+    let stream = tree.stream_range(start..end).await;
     tokio::pin!(stream);
     let mut i = 0u32;
     while let Some(entry) = stream.try_next().await? {
@@ -81,7 +81,7 @@ async fn gets_range() -> Result<()> {
 async fn request_out_of_range() -> Result<()> {
     let tree = create_test_tree::<32>(1024).await?;
     let start = 1_000_000u32.to_be_bytes().to_vec();
-    let stream = tree.get_range(&start..).await;
+    let stream = tree.stream_range(start..).await;
     tokio::pin!(stream);
     assert!(
         stream.try_next().await?.is_none(),
@@ -93,7 +93,7 @@ async fn request_out_of_range() -> Result<()> {
     tree.set(10u32.to_be_bytes().to_vec(), vec![1]).await?;
     let start = 0u32.to_be_bytes().to_vec();
     let end = 5u32.to_be_bytes().to_vec();
-    let stream = tree.get_range(&start..&end).await;
+    let stream = tree.stream_range(start..end).await;
     tokio::pin!(stream);
     assert!(
         stream.try_next().await?.is_none(),

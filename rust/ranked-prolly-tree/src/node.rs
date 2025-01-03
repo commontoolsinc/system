@@ -178,7 +178,7 @@ where
         storage: &'a impl Storage<K, V>,
     ) -> impl Stream<Item = Result<Entry<K, V>>> + 'a
     where
-        R: RangeBounds<&'a K> + 'a,
+        R: RangeBounds<K> + 'a,
     {
         async fn get_child_index_by_key<
             const P: u8,
@@ -227,8 +227,8 @@ where
         // the check if key is in range is below, and this will at most read
         // one unnecessary segment iff `Bound::Excluded(K)` and `K` is a boundary node.
         let start_key = match range.start_bound() {
-            Bound::Included(start) => Some(*start),
-            Bound::Excluded(start) => Some(*start),
+            Bound::Included(start) => Some(start.clone()),
+            Bound::Excluded(start) => Some(start.clone()),
             Bound::Unbounded => None,
         };
         // An entry was found matching the key range.
@@ -244,7 +244,7 @@ where
                 match current.node.is_branch() {
                     true => {
                         if !matching {
-                            let Some((next_node, next_index)) = get_child_index_by_key(&current.node, start_key, storage).await? else {
+                            let Some((next_node, next_index)) = get_child_index_by_key(&current.node, start_key.as_ref(), storage).await? else {
                                 // The start key is larger than any key stored in this tree.
                                 return;
                             };

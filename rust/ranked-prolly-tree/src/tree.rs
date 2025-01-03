@@ -89,16 +89,16 @@ where
 
     /// Returns an async stream over all entries.
     pub async fn stream<'a>(&'a self) -> impl Stream<Item = Result<Entry<K, V>>> + 'a {
-        self.get_range(..).await
+        self.stream_range(..).await
     }
 
     /// Returns an async stream over entries with keys within the provided range.
-    pub async fn get_range<'a, R>(
+    pub async fn stream_range<'a, R>(
         &'a self,
         range: R,
     ) -> impl Stream<Item = Result<Entry<K, V>>> + 'a
     where
-        R: RangeBounds<&'a K> + 'a,
+        R: RangeBounds<K> + 'a,
     {
         try_stream! {
             if let Some(root) = self.root.as_ref() {
