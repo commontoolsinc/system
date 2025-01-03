@@ -1063,9 +1063,12 @@ dependencies = [
  "async-trait",
  "blake3",
  "futures-core",
+ "futures-util",
  "nonempty",
  "ranked-prolly-tree",
  "thiserror 2.0.9",
+ "tokio",
+ "wasm-bindgen-test",
 ]
 
 [[package]]
