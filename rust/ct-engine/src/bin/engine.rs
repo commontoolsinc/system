@@ -5,6 +5,6 @@ pub fn main() {
 
 #[cfg(not(target_arch = "wasm32"))]
 #[tokio::main]
-pub async fn main() -> ct_runtime::Result<()> {
+pub async fn main() -> ct_engine::Result<()> {
     Ok(())
 }

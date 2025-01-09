@@ -182,7 +182,8 @@
                 buildPhase = ''
                   bash ./wit/wit-tools.sh deps
                   export CARGO_COMPONENT_CACHE_DIR=.cargo-component-cache
-                  cargo build -p ct-engine --release
+                  cargo build -p ct-engine --release \
+                    --no-default-features --features storage
                 '';
                 installPhase = ''
                   mkdir -p $out
@@ -260,7 +261,8 @@
                   export HOME=`pwd`
 
                   bash ./wit/wit-tools.sh deps
-                  wasm-pack build --target web -m no-install ./rust/ct-engine
+                  wasm-pack build --target web -m no-install ./rust/ct-engine \
+                    -- --no-default-features --features storage
 
                   cp ./typescript/ct-engine/README.md ./rust/ct-engine/pkg/README.md
                   cp ./typescript/ct-engine/example.html ./rust/ct-engine/pkg/example.html

@@ -10,6 +10,7 @@ pub type Result<T> = ::std::result::Result<T, Error>;
 pub enum Error {
     /// An error occurred in the Runtime.
     #[error("Runtime error: {0}")]
+    #[cfg(feature = "runtime")]
     RuntimeError(ct_runtime::Error),
 
     /// Could not find requested runtime module.
@@ -18,6 +19,7 @@ pub enum Error {
 
     /// Error in the storage layer.
     #[error("Storage error: {0}")]
+    #[cfg(feature = "storage")]
     StorageError(ct_storage::Error),
 
     /// An internal error occurred.
@@ -25,12 +27,14 @@ pub enum Error {
     InternalError(String),
 }
 
+#[cfg(feature = "runtime")]
 impl From<ct_runtime::Error> for Error {
     fn from(value: ct_runtime::Error) -> Self {
         Error::RuntimeError(value)
     }
 }
 
+#[cfg(feature = "storage")]
 impl From<ct_storage::Error> for Error {
     fn from(value: ct_storage::Error) -> Self {
         Error::StorageError(value)

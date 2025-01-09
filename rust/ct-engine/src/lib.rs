@@ -1,9 +1,12 @@
 //! Root component representing the Common Engine.
 
+#[cfg(feature = "runtime")]
 mod engine;
 mod error;
+#[cfg(feature = "runtime")]
 mod sandbox;
 
+#[cfg(feature = "runtime")]
 pub use engine::*;
 pub use error::*;
 

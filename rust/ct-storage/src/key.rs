@@ -1,7 +1,6 @@
-use std::ops::RangeInclusive;
-
 use crate::{Error, Result};
 use ranked_prolly_tree::Key as KeyTrait;
+use std::ops::RangeInclusive;
 
 const MIN: [u8; Key::COMPONENT_LEN] = [0u8; Key::COMPONENT_LEN];
 const MAX: [u8; Key::COMPONENT_LEN] = [255u8; Key::COMPONENT_LEN];
