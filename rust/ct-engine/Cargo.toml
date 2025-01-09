@@ -10,8 +10,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 tracing = { workspace = true }
 ct-common = { workspace = true }
-ct-runtime = { workspace = true }
-ct-storage = { workspace = true }
+ct-runtime = { workspace = true, optional = true }
+ct-storage = { workspace = true, optional = true }
 thiserror = { workspace = true }
 futures-util = { workspace = true }
 tokio = { workspace = true, features = ["sync"] } # for tokio::pin!
@@ -37,3 +37,8 @@ js-sys = { workspace = true }
 
 [target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dev-dependencies]
 wasm-bindgen-test = { workspace = true }
+
+[features]
+default = ["storage", "runtime"]
+storage = ["dep:ct-storage"]
+runtime = ["dep:ct-runtime"] 
